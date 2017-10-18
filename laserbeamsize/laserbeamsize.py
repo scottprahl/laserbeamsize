@@ -44,8 +44,8 @@ def basic_beam_size(image):
     p  = np.sum(image,dtype=np.float)     # float avoids integer overflow
 
     # find the centroid
-    hh = np.arange(h,dtype="float")       # float avoids integer overflow
-    vv = np.arange(v,dtype='float')  
+    hh = np.arange(h,dtype=np.float)      # float avoids integer overflow
+    vv = np.arange(v,dtype=np.float)      # ditto
     xc = int(np.sum(np.dot(image,hh))/p)
     yc = int(np.sum(np.dot(image.T,vv))/p)
       
@@ -254,23 +254,22 @@ def basic_beam_size_naive(image):
     """
     v,h = image.shape
     
-    # sum all the pixels
-    p=np.sum(image)
-
-     # locate the center just like ndimage.center_of_mass(image)
-    xc = 0
-    yc = 0
+    # locate the center just like ndimage.center_of_mass(image)
+    p = 0.0
+    xc = 0.0
+    yc = 0.0
     for i in range(v):
         for j in range(h):
+            p  += image[i,j]
             xc += image[i,j]*j
             yc += image[i,j]*i
     xc = int(xc/p)
     yc = int(yc/p)
 
     # calculate variances
-    xx=0
-    yy=0
-    xy=0
+    xx=0.0
+    yy=0.0
+    xy=0.0
     for i in range(v):
         for j in range(h):
             xx += image[i,j]*(j-xc)**2
