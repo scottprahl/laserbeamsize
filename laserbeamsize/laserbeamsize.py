@@ -213,7 +213,8 @@ def beam_test_image(h,v,xc,yc,dx,dy,phi, offset=0, noise=0, max_value=256):
 
 def ellipse_arrays(xc,yc,dx,dy,phi, npoints=200):
     """
-    Returns two arrays containing points that correspond the ellipserotated about its center.  The center is at (xc,yc), the diameters 
+    Returns two arrays containing points that correspond the ellipse
+    rotated about its center.  The center is at (xc,yc), the diameters 
     are dx and dy, and the rotation angle is phi
     """
     t = np.linspace(0,2*np.pi,npoints)
@@ -247,7 +248,6 @@ def plot_image_and_ellipse(image,xc,yc,dx,dy,phi, scale=1):
     plt.ylim(v*scale,0)
     plt.colorbar()
 
-# ISO 11146 beam size
 def basic_beam_size_naive(image):
     """
     Slow but simple implementation of ISO 1146 beam standard
@@ -285,4 +285,39 @@ def basic_beam_size_naive(image):
     phi = 2 * np.arctan2(2*xy,xx-yy)
     
     return xc, yc, dx, dy, phi
+
+def draw_beam_figure():
+    """
+    Draw a simple astigmatic beam.  A super confusing thing is that python designates the 
+    top left corner as (0,0).  This is usually not a problem, but one has to be careful drawing
+    rotated ellipses.
+    """
+    theta = 30*np.pi/180
+    xc=0
+    yc=0
+    dx=50
+    dy=20
+    xp,yp = ellipse_arrays(xc,yc,dx,dy,theta)
+
+    plt.plot(xp,yp,color='black',lw=2)
+    sint = np.sin(theta)/2
+    cost = np.cos(theta)/2
+    plt.plot([xc-dx*cost,xc+dx*cost],[yc+dx*sint,yc-dx*sint],':b')
+    plt.plot([xc+dy*sint,xc-dy*sint],[yc+dy*cost,yc-dy*cost],':g')
+
+    plt.annotate(r'$x$', xy=(-25,0), xytext=(25,0), arrowprops=dict(arrowstyle="<-"),va='center', fontsize=16)
+    plt.annotate(r'$y$', xy=(0,25), xytext=(0,-25), arrowprops=dict(arrowstyle="<-"), ha='center', fontsize=16)
+
+    plt.annotate(r'$\phi$',xy=(13,-2.5),fontsize=16)
+    plt.annotate('', xy=(15.5,0), xytext=(14, -8.0), arrowprops=dict(arrowstyle="<-", connectionstyle="arc3,rad=-0.2"))
+    plt.annotate(r'$d_x$',xy=(-17,7),color='blue',fontsize=16)
+    plt.annotate(r'$d_y$',xy=(-3,-6),color='green',fontsize=16)
+
+    plt.title("Simple Astigmatic Beam")
+    plt.xlim(-25,25)
+    plt.ylim(25,-30)  #inverted to match image coordinates!
+    plt.axis('off')
+
+    plt.show()
+
 
