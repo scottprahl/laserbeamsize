@@ -59,12 +59,19 @@ def basic_beam_size(image):
     # the ISO measures
     diff = xx-yy
     summ = xx+yy
-    disc = np.sign(diff)*np.sqrt(diff**2 + 4*xy**2)
+
+    # Ensure that the case xx==yy is handled correctly
+    if diff :
+    	disc = np.sign(diff)*np.sqrt(diff**2 + 4*xy**2)
+    else :
+    	disc = np.abs(xy)
     dx = 2.0*np.sqrt(2)*np.sqrt(summ+disc)
     dy = 2.0*np.sqrt(2)*np.sqrt(summ-disc)
-    phi = -0.5 * np.arctan(2*xy/diff)      # negative because top of matrix is zero
+
+    phi = -0.5 * np.arctan2(2*xy,diff) # negative because top of matrix is zero
     
     return xc, yc, dx, dy, phi
+
 
 def elliptical_mask(image, xc, yc, dx, dy, phi):
     """
@@ -102,6 +109,7 @@ def elliptical_mask(image, xc, yc, dx, dy, phi):
     elliptical_mask = r2 <= 1
 
     return elliptical_mask
+
 
 def beam_size(image, threshold=0.1, mask_diameters=2):
     """ 
@@ -174,6 +182,7 @@ def beam_size(image, threshold=0.1, mask_diameters=2):
 
     return basic_beam_size(masked_image)
 
+
 def beam_test_image(h,v,xc,yc,dx,dy,phi, offset=0, noise=0, max_value=256):
     """
     Create a v x h image with an elliptical beam centered at (xc,yc) with diameters dx and dy 
@@ -224,6 +233,7 @@ def ellipse_arrays(xc,yc,dx,dy,phi, npoints=200):
     yp = yc - a*np.sin(phi) - b*np.cos(phi)
     return xp, yp
 
+
 def plot_image_and_ellipse(image,xc,yc,dx,dy,phi, scale=1):
     """
     Draws the image, an ellipse, and center lines
@@ -247,6 +257,7 @@ def plot_image_and_ellipse(image,xc,yc,dx,dy,phi, scale=1):
     plt.xlim(0,h*scale)
     plt.ylim(v*scale,0)
     plt.colorbar()
+
 
 def basic_beam_size_naive(image):
     """
@@ -286,6 +297,7 @@ def basic_beam_size_naive(image):
     
     return xc, yc, dx, dy, phi
 
+
 def draw_beam_figure():
     """
     Draw a simple astigmatic beam.  A super confusing thing is that python designates the 
@@ -319,5 +331,3 @@ def draw_beam_figure():
     plt.axis('off')
 
     plt.show()
-
-
