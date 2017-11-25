@@ -13,7 +13,7 @@ from setuptools import setup
 setup(
 	name='laserbeamsize',
 	packages=['laserbeamsize'],
-	version='0.2.0',
+	version='1.0.0',
 	description='ISO 11146 Calculation of Laser Beam Center and Diameter',
 	url='https://github.com/scottprahl/laserbeamsize.git',  
 	author='Scott Prahl',
@@ -26,9 +26,8 @@ setup(
 		'Programming Language :: Python',
 		'Topic :: Scientific/Engineering :: Physics',
 	],
-	keywords=['variance', 'image', 'laser', 'transmission', 'optical properties'],
-	install_requires=['numpy'],
-	test_suite='iadpython/test_iadpython.py',
+	keywords=['variance', 'gaussian', 'M-squared', 'd4sigma'],
+	install_requires=['numpy','matplotlib'],
 	long_description=
 	"""
 	Simple and fast calculation of beam sizes from a single monochrome image based
