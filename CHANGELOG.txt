@@ -1,2 +1,11 @@
+v1.0.0
+      first pass at docs
+      General doc improvements
+      add routine to draw default figure
+      handle symmetric case dx=dy better
+      add new definitions and test dx=dy case
+
 v0.2.0
+      initial commit
+      ensure float used for sums
       first public release
