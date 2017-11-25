@@ -17,4 +17,4 @@ update CHANGELOG.txt  `git shortlog`
 > twine upload dist/*
 
 # install the new version locally
-> pip install --upgrade iadpython
+> pip install --upgrade laserbeamsize
