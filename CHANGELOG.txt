@@ -1,3 +1,10 @@
+v 1.0.1
+      trivial fix for release.txt
+      improve text
+      remove completed tasks
+      initial commit of 07-M2-Measurement.ipynb
+      bump version
+
 v1.0.0
       first pass at docs
       General doc improvements
