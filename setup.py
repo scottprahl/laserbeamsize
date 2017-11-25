@@ -13,7 +13,7 @@ from setuptools import setup
 setup(
 	name='laserbeamsize',
 	packages=['laserbeamsize'],
-	version='1.0.0',
+	version='1.0.1',
 	description='ISO 11146 Calculation of Laser Beam Center and Diameter',
 	url='https://github.com/scottprahl/laserbeamsize.git',  
 	author='Scott Prahl',
