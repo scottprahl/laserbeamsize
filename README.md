@@ -5,7 +5,7 @@ on the ISO 11146 method of variances.  Some effort has been made to make the
 algorithm less sensitive to background offset and noise.
 	
 ## Usage
-For examples and use cases, see test folder
+For examples, see the doc folder
 
 ## Installation
 
@@ -19,11 +19,7 @@ Alternatively you can install from github
 
     git clone https://github.com/scottprahl/laserbeamsize.git
 
-Test by changing the iadpython directory and doing
-
-    nosetests laserbeamsize/test_laserbeamsize.py
-
-Then, add the iadpython directory to your PYTHONPATH or somehow
+Then, add the laserbeamsize directory to your PYTHONPATH or somehow
 
 
 ### Dependencies
