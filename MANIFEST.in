@@ -1,6 +1,8 @@
 include CHANGELOG.rst
 include LICENSE.txt
+exclude docs
 exclude docs/*
 exclude release.txt
 exclude Makefile
 exclude .gitignore
+exclude todo
