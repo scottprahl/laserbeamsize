@@ -15,16 +15,16 @@ Usage
 
 Finding the center and dimensions of a good beam image::
 
-import imageio
-import laserbeamsize as lbs
+    import imageio
+    import laserbeamsize as lbs
 
-beam = imageio.imread("t-hene.pgm")
-x, y, dx, dy, phi = lbs.beam_size(beam)
+    beam = imageio.imread("t-hene.pgm")
+    x, y, dx, dy, phi = lbs.beam_size(beam)
 
-print("The image center is at (%g, %g)" % (x,y))
-print("The horizontal width is %.1f pixels" % dx)
-print("The  vertical height is %.1f pixels" % dy)
-print("The beam oval is rotated is %.1f°" % (phi*180/3.1416))
+    print("The image center is at (%g, %g)" % (x,y))
+    print("The horizontal width is %.1f pixels" % dx)
+    print("The  vertical height is %.1f pixels" % dy)
+    print("The beam oval is rotated is %.1f°" % (phi*180/3.1416))
 
 There are many examples at <https://laserbeamsize.readthedocs.io>
 
