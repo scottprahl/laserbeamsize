@@ -2,6 +2,7 @@
 *.pyc
 .tox/*
 dist/*
-docs/.ipynb_checkpoints/*
 laserbeamsize/__pycache__/*
-doc/.ipynb_checkpoints/
+docs/.ipynb_checkpoints/*
+docs/_build
+docs/api
