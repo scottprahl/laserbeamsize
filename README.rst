@@ -8,6 +8,8 @@ algorithm less sensitive to background offset and noise.
 Installation
 ------------
 
+Just use pip::
+
    pip install laserbeamsize
 
 Usage
@@ -23,13 +25,16 @@ Finding the center and dimensions of a good beam image::
 
     print("The image center is at (%g, %g)" % (x,y))
     print("The horizontal width is %.1f pixels" % dx)
-    print("The  vertical height is %.1f pixels" % dy)
+    print("The vertical height is %.1f pixels" % dy)
     print("The beam oval is rotated is %.1f°" % (phi*180/3.1416))
 
-There are many examples at <https://laserbeamsize.readthedocs.io>
+Handling non-zero backgrounds and other issues are explained in Jupyter 
+notebooks at <https://laserbeamsize.readthedocs.io>
 
 Source code repository
 ----------------------
+
+Source is hosted by github::
 
     <https://github.com/scottprahl/laserbeamsize>
 
