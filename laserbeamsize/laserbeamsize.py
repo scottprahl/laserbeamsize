@@ -359,35 +359,40 @@ def draw_beam_figure():
 
     A super confusing thing is that python designates the top left corner as
     (0,0).  This is usually not a problem, but one has to be careful drawing
-    rotated ellipses.
+    rotated ellipses.  Also, if the aspect ratio is not set to be equal then
+    the major and minor radii are not orthogonal to each other!
     """
     theta = 30*np.pi/180
     xc = 0
     yc = 0
     dx = 50
-    dy = 20
+    dy = 25
     xp, yp = ellipse_arrays(xc, yc, dx, dy, theta)
 
+    plt.figure(num=None, figsize=(6, 6), dpi=75)
+
+    plt.axes().set_aspect('equal')
     plt.plot(xp, yp, color='black', lw=2)
     sint = np.sin(theta)/2
     cost = np.cos(theta)/2
     plt.plot([xc-dx*cost, xc+dx*cost], [yc+dx*sint, yc-dx*sint], ':b')
-    plt.plot([xc+dy*sint, xc-dy*sint], [yc+dy*cost, yc-dy*cost], ':g')
+    plt.plot([xc+dy*sint, xc-dy*sint], [yc+dy*cost, yc-dy*cost], ':r')
 
-    plt.annotate(r'$x$', xy=(-25, 0), xytext=(25, 0),
+    # draw axes
+    plt.annotate("x'", xy=(-25, 0), xytext=(25, 0),
                  arrowprops=dict(arrowstyle="<-"), va='center', fontsize=16)
-    plt.annotate(r'$y$', xy=(0, 25), xytext=(0, -25),
+    
+    plt.annotate("y'", xy=(0, 25), xytext=(0, -25),
                  arrowprops=dict(arrowstyle="<-"), ha='center', fontsize=16)
 
     plt.annotate(r'$\phi$', xy=(13, -2.5), fontsize=16)
     plt.annotate('', xy=(15.5, 0), xytext=(
         14, -8.0), arrowprops=dict(arrowstyle="<-", connectionstyle="arc3,rad=-0.2"))
+
     plt.annotate(r'$d_x$', xy=(-17, 7), color='blue', fontsize=16)
-    plt.annotate(r'$d_y$', xy=(-3, -6), color='green', fontsize=16)
+    plt.annotate(r'$d_y$', xy=(-4, -8), color='red', fontsize=16)
 
-    plt.title("Simple Astigmatic Beam")
-    plt.xlim(-25, 25)
-    plt.ylim(25, -30)  # inverted to match image coordinates!
+    plt.xlim(-30, 30)
+    plt.ylim(30, -30)  # inverted to match image coordinates!
     plt.axis('off')
-
     plt.show()
