@@ -4,9 +4,6 @@ Links
    :maxdepth: 3
    :titlesonly:
    
-   readme
-   changelog
-
    01-Definitions.ipynb
    02-Test-Beam.ipynb
    03-Easy-Images.ipynb
@@ -14,7 +11,7 @@ Links
    05-Razor-Blade.ipynb
    06-Beam-Waist.ipynb
    07-M2-Measurement.ipynb
-   09-ToDo.ipynb
+   changelog
 
 .. include:: ../README.rst
 
