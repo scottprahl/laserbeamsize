@@ -1,12 +1,14 @@
 Releasing a new version
 
-# versioning
-update the version in setup.py
-> git commit -m 'update version' setup.py
-> git push
+# check
+  make check
 
-update CHANGELOG.txt  `git shortlog`
-> git commit -m 'update recent changes' CHANGELOG.txt
+# update the version in setup.cfg and in docs/conf.py
+  git commit -m 'update version' setup.cfg docs/conf.py
+  git push
+
+update CHANGELOG.rst  `git shortlog`
+> git commit -m 'update recent changes' CHANGELOG.rst
 > git push
 
 # create release tag on github
@@ -15,8 +17,13 @@ update CHANGELOG.txt  `git shortlog`
 
 # upload source to pypi
 > rm -rf dist/*
-> python setup.py sdist
+> python3 setup.py sdist
 > twine upload dist/*
+
+# verify releases on 
+  https://github.com/scottprahl/laserbeamsize
+  https://pypi.org
+  https://laserbeamsize.readthedocs.io
 
 # install the new version locally
 > pip install --upgrade laserbeamsize
