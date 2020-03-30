@@ -1,7 +1,7 @@
 Changelog
 =================================================
 
-v1.02
+v1.0.2
 ------
 *    use sphinx for documentation
 *    revise Jupyter notebooks
