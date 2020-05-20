@@ -1,5 +1,8 @@
-Links
-=====
+.. include:: ../README.rst
+
+Examples
+========
+
 .. toctree::
    :maxdepth: 3
    :titlesonly:
@@ -11,17 +14,10 @@ Links
    05-Razor-Blade.ipynb
    06-Beam-Waist.ipynb
    07-M2-Measurement.ipynb
-   changelog
 
-.. include:: ../README.rst
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
+.. include:: ../CHANGELOG.rst
 
 API
 ===
 
-.. automodapi:: laserbeamsize.laserbeamsize
+.. automodapi:: laserbeamsize

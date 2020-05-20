@@ -14,7 +14,7 @@ copyright = '2017-20, Scott Prahl'
 author = 'Scott Prahl'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.2'
+release = '1.0.3'
 
 master_doc = 'index'
 
@@ -33,9 +33,11 @@ extensions = [
     'nbsphinx',
 ]
 numpydoc_show_class_members = False
-napoleon_google_docstring = False
-napoleon_use_param = False
+napoleon_google_docstring = True
+napoleon_numpy_docstring = True
+napoleon_use_param = True
 napoleon_use_ivar = True
+napoleon_use_keyword = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

@@ -41,37 +41,33 @@ def basic_beam_size(image):
     """
     Determine the beam center, diameters, and tilt using ISO 11146 standard.
 
-    The function does nothing to eliminate noise.  It just finds the first
-    and second order moments and returns the beam parameters. This implementation
-    is roughly 800X faster than one that finds the moments using for loops.
+    Find the center and sizes of an elliptical spot in an 2D array.
+
+    The function does nothing to eliminate background noise.  It just finds the first
+    and second order moments and returns the beam parameters. Consequently
+    a beam spot in an image with a constant background will fail badly.
+    
+    FWIW, this implementation is roughly 800X faster than one that finds 
+    the moments using for loops.
+    
+    The returned parameters are::
+
+        `xc`,`yc` is the center of the elliptical spot.
+
+        `dx`,`dy` is the width and height of the elliptical spot.
+
+        `phi` is tilt of the ellipse from the axis [radians]
 
     Parameters
     ----------
-    image : array_like
-        should be a monochrome two-dimensional array
-
+    image: 2D array
+        image with beam spot in it
+        
     Returns
     -------
-    xc : int
-        horizontal center of beam
-    yc : int
-        vertical center of beam
-    dx : float
-        horizontal diameter of beam
-    dy : float
-        vertical diameter of beam
-    phi: float
-        angle that beam is rotated (about center) from the horizontal axis
-
-    Notes
-    -----
-    Uses the ISO 11146 definitions
-
-    Examples
-    --------
-    Maybe one day there will be an example
+    array: 
+        [xc, yc, dx, dy, phi]
     """
-    # vertical and horizontal dimensions of beam
     v, h = image.shape
 
     # total of all pixels
@@ -112,25 +108,25 @@ def elliptical_mask(image, xc, yc, dx, dy, phi):
     """
     Return a boolean mask for a rotated elliptical disk.
 
+    The returned mask is the same size as `image`.
+    
     Parameters
     ----------
-    image : array_like
-        should be a two-dimensional array
-    xc : int
+    image: 2D array
+    xc: float
         horizontal center of beam
-    yc : int
+    yc: int
         vertical center of beam
-    dx : float
+    dx: float
         horizontal diameter of beam
-    dy : float
+    dy: float
         vertical diameter of beam
     phi: float
-        angle that beam is rotated (about center) from the horizontal axis
+        angle that elliptical beam is rotated (about center) from the horizontal axis in radians
 
     Returns
     -------
-    mask : array_like (boolean)
-        same size as image
+    mask: boolean 2D array
     """
     v, h = image.shape
     y, x = np.ogrid[:v, :h]
@@ -155,12 +151,20 @@ def beam_size(image, threshold=0.1, mask_diameters=2):
     are refined by masking all values more than two radii from the beam and
     recalculating.
 
+    The returned parameters are::
+
+        `xc`,`yc` is the center of the elliptical spot.
+
+        `dx`,`dy` is the width and height of the elliptical spot.
+
+        `phi` is tilt of the ellipse from the axis [radians]
+
     Parameters
     ----------
-    image : array_like
+    image: 2D array
         should be a monochrome two-dimensional array
 
-    threshold : float, optional
+    threshold: float, optional
         used to eliminate points outside the beam that confound estimating
         the beam parameters
 
@@ -170,24 +174,8 @@ def beam_size(image, threshold=0.1, mask_diameters=2):
 
     Returns
     -------
-    xc : int
-        horizontal center of beam
-    yc : int
-        vertical center of beam
-    dx : float
-        horizontal diameter of beam
-    dy : float
-        vertical diameter of beam
-    phi: float
-        angle that beam is rotated (about center) from the horizontal axis
-
-    Notes
-    -----
-    Uses the ISO 11146 definitions
-
-    Examples
-    --------
-    Maybe one day there will be an example
+    array: 
+        [xc, yc, dx, dy, phi]
     """
     # use a 10% threshold to get rough idea of beam parameters
     thresholded_image = np.copy(image)
@@ -221,12 +209,40 @@ def beam_size(image, threshold=0.1, mask_diameters=2):
     return basic_beam_size(masked_image)
 
 
-def beam_test_image(h, v, xc, yc, dx, dy, phi, offset=0, noise=0, max_value=256):
+def beam_test_image(h, v, xc, yc, dx, dy, phi, offset=0, noise=0, max_value=255):
     """
     Create a test image.
 
-    Create a v x h image with an elliptical beam centered at (xc,yc) with diameters dx and dy
-    that is rotated around the center by an angle phi from the horizontal
+    Create a v x h image with an elliptical beam with specified center and
+    beam dimensions.  By default the values in the image will range from 0 to 
+    255. The default image will have no background and no noise.  
+    
+    Parameters
+    ----------
+    h: int
+        horizontal size of image to generate
+    v: int
+        vertical size of image to generate
+    xc: float
+        horizontal center of beam
+    yc: int
+        vertical center of beam
+    dx: float
+        horizontal diameter of beam
+    dy: float
+        vertical diameter of beam
+    phi: float
+        angle that elliptical beam is rotated [radians]
+    offset: float, optional, default = 0
+        background offset to be added to entire image
+    noise: float, optional, default = 0
+        normally distributed pixel noise to add to image
+    max_value: float, optional, default = 256
+        all values in image fall between 0 and `max_value`
+
+    Returns
+    -------
+    test_image: v x h pixels in size
     """
     rx = dx/2
     ry = dy/2
@@ -261,11 +277,24 @@ def beam_test_image(h, v, xc, yc, dx, dy, phi, offset=0, noise=0, max_value=256)
 
 def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     """
-    Return arrays for the points in an ellipse.
+    Return x,y arrays to draw a rotated ellipse.
 
-    Returns two arrays containing points that correspond the ellipse
-    rotated about its center.  The center is at (xc,yc), the diameters
-    are dx and dy, and the rotation angle is phi
+    Parameters
+    ----------
+    xc: float
+        horizontal center of beam
+    yc: int
+        vertical center of beam
+    dx: float
+        horizontal diameter of beam
+    dy: float
+        vertical diameter of beam
+    phi: float
+        angle that elliptical beam is rotated [radians]
+
+    Returns
+    -------
+    x,y : two arrays of points on the ellipse
     """
     t = np.linspace(0, 2*np.pi, npoints)
     a = dx/2*np.cos(t)
@@ -279,16 +308,22 @@ def plot_image_and_ellipse(image, xc, yc, dx, dy, phi, scale=1):
     """
     Draw the image, an ellipse, and center lines.
 
-    Args:
-        image: a 2D array of containing the image
-        xc : horizontal center of beam
-        yc : vertical center of beam
-        dx : horizontal diameter of beam
-        dy : vertical diameter of beam
-        phi: angle that beam is rotated (about center)
-        scale: factor to change ellipse size
-    Returns:
-        nothing, but the plt object has changed.
+    Parameters
+    ----------
+    image: 2D array
+        image with beam spot
+    xc: float
+        horizontal center of beam
+    yc: int
+        vertical center of beam
+    dx: float
+        horizontal diameter of beam
+    dy: float
+        vertical diameter of beam
+    phi: float
+        angle that elliptical beam is rotated [radians]
+    scale: float
+        factor to increase/decrease ellipse size
     """
     v, h = image.shape
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
@@ -317,6 +352,24 @@ def basic_beam_size_naive(image):
     Slow but simple implementation of ISO 1146 beam standard.
 
     This is the obvious way to calculate the moments.  It is slow.
+    
+    The returned parameters are::
+
+        `xc`,`yc` is the center of the elliptical spot.
+
+        `dx`,`dy` is the width and height of the elliptical spot.
+
+        `phi` is tilt of the ellipse from the axis [radians]
+
+    Parameters
+    ----------
+    image: (2D array)
+        image with beam spot in it
+        
+    Returns
+    -------
+    array: 
+        [xc, yc, dx, dy, phi]
     """
     v, h = image.shape
 
