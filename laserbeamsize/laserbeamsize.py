@@ -64,8 +64,8 @@ def subtract_image(original, background):
         subtracted image that matches the type of the original
     """
     # convert to signed version
-    o = original.astype(np.int32)
-    b = background.astype(np.int32)
+    o = original.astype(int)
+    b = background.astype(int)
 
     # subtract and zero negative entries
     r = o-b
@@ -89,7 +89,7 @@ def rotate_image(original, x, y, phi):
         y:     row
         phi: angle [radians]
     Returns:
-        rotated image
+        rotated image with same dimensions as original
     """
     # center of original image
     o_y, o_x = (np.array(original.shape)-1)/2.0
@@ -98,26 +98,33 @@ def rotate_image(original, x, y, phi):
     rotated = scipy.ndimage.rotate(original, np.degrees(phi), order=1)
     r_y, r_x = (np.array(rotated.shape)-1)/2.0
 
-    # location of center of rotation in rotated image
+    # offset of center of rotation in rotated image to original
     new_x = r_x + (x-o_x)*np.cos(phi) + (y-o_y)*np.sin(phi)
     new_y = r_y - (x-o_x)*np.sin(phi) + (y-o_y)*np.cos(phi)
+    voff = int(new_y-y)
+    hoff = int(new_x-x)
 
     # crop so center remains in same location as original
-    mv = int(new_y-y)
-    mh = int(new_x-x)
     ov, oh = original.shape
-    r = rotated[mv:mv+ov, mh:mh+oh]
+    rv, rh = rotated.shape
 
-    if original.shape == r.shape:
-        return r
+    rv_start = max(voff, 0)
+    sv_start = max(-voff, 0)
+    vlen = min(voff+ov, rv) - rv_start
+    rv_end = rv_start+vlen
+    sv_end = sv_start+vlen
 
-    # possible for cropped shape to be smaller so pad with False values
-    rr = np.full_like(original, 0)
-    rv, rh = r.shape
-    sh = int((oh-rh)/2)
-    sv = int((ov-rv)/2)
-    rr[sv:sv+rv, sh:sh+rh] = r
-    return rr
+    rh_start = max(hoff, 0)
+    sh_start = max(-hoff, 0)
+    hlen = min(hoff+oh, rh) - rh_start
+    rh_end = rh_start+hlen
+    sh_end = sh_start+hlen
+
+    # move values into zero-padded array
+    s = np.full_like(original, 0) # np.zeros() fails with boolean arrays
+    s[sv_start:sv_end, sh_start:sh_end] = rotated[rv_start:rv_end, rh_start:rh_end]
+
+    return s
 
 
 def basic_beam_size(image):
