@@ -21,14 +21,15 @@ Finding the center and dimensions of a good beam image::
     print("The image center is at (%g, %g)" % (x,y))
     print("The horizontal width is %.1f pixels" % dx)
     print("The vertical height is %.1f pixels" % dy)
-    print("The beam oval is rotated is %.1f°" % (phi*180/3.1416))
+    print("The beam oval is rotated %.1f°" % (phi*180/3.1416))
 """
 
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage
 
-__all__ = ('corner_background',
+__all__ = ('subtract_image',
+           'corner_background',
            'corner_mask',
            'corner_subtract',
            'rotate_image',
@@ -43,6 +44,81 @@ __all__ = ('corner_background',
            'elliptical_mask',
            'plot_image_and_ellipse',
            )
+
+
+def subtract_image(original, background):
+    """
+    Subtract background from original image.
+
+    This is only needed because when subtracting some pixels may become
+    negative.  Unfortunately when the arrays have an unsigned data type
+    these negative values end up having very large pixel values.
+
+    This could be done as a simple loop with an if statement but this
+    version is about 250X faster for 960 x 1280 arrays.
+
+    Args:
+        original: the image to work with
+        background: the image to be subtracted
+    Returns:
+        subtracted image that matches the type of the original
+    """
+    # convert to signed version
+    o = original.astype(np.int32)
+    b = background.astype(np.int32)
+
+    # subtract and zero negative entries
+    r = o-b
+    np.place(r, r < 0, 0)
+
+    # return array that matches original type
+    return r.astype(original.dtype.name)
+
+
+def rotate_image(original, x, y, phi):
+    """
+    Create image rotated about specified centerpoint.
+
+    The image is rotated about a centerpoint (x0, y0) and then
+    cropped to the original size such that the centerpoint remains
+    in the same location.
+
+    Args:
+        image: the image to work with
+        x:     column
+        y:     row
+        phi: angle [radians]
+    Returns:
+        rotated image
+    """
+    # center of original image
+    o_y, o_x = (np.array(original.shape)-1)/2.0
+
+    # center of rotated image, defaults mode='constant' and cval=0.0
+    rotated = scipy.ndimage.rotate(original, np.degrees(phi), order=1)
+    r_y, r_x = (np.array(rotated.shape)-1)/2.0
+
+    # location of center of rotation in rotated image
+    new_x = r_x + (x-o_x)*np.cos(phi) + (y-o_y)*np.sin(phi)
+    new_y = r_y - (x-o_x)*np.sin(phi) + (y-o_y)*np.cos(phi)
+
+    # crop so center remains in same location as original
+    mv = int(new_y-y)
+    mh = int(new_x-x)
+    ov, oh = original.shape
+    r = rotated[mv:mv+ov, mh:mh+oh]
+
+    if original.shape == r.shape:
+        return r
+
+    # possible for cropped shape to be smaller so pad with False values
+    rr = np.full_like(original, 0)
+    rv, rh = r.shape
+    sh = int((oh-rh)/2)
+    sv = int((ov-rv)/2)
+    rr[sv:sv+rv, sh:sh+rh] = r
+    return rr
+
 
 def basic_beam_size(image):
     """
@@ -79,6 +155,10 @@ def basic_beam_size(image):
 
     # total of all pixels
     p = np.sum(image, dtype=np.float)     # float avoids integer overflow
+
+    # sometimes the image is all zeros, just return
+    if p == 0:
+        return int(h/2), int(v/2), 0, 0, 0
 
     # find the centroid
     hh = np.arange(h, dtype=np.float)      # float avoids integer overflow
@@ -150,21 +230,21 @@ def elliptical_mask(image, xc, yc, dx, dy, phi):
     return the_mask
 
 
-def corner_mask(image, rectangle_fraction=0.035):
+def corner_mask(image, corner_fraction=0.035):
     """
     Return mask of image with corners marked as True.
 
-    ISO 11146-3 recommends values from 2-5% for `rectangle_fraction`.
+    ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
 
     Args:
         image : the image to work with
-        rectangle_fraction: the fractional size of corner rectangles
+        corner_fraction: the fractional size of corner rectangles
     Returns:
         new boolean image mask
     """
     v, h = image.shape
-    n = int(v * rectangle_fraction)
-    m = int(h * rectangle_fraction)
+    n = int(v * corner_fraction)
+    m = int(h * corner_fraction)
 
     the_mask = np.full_like(image, False, dtype=np.bool)
     the_mask[:n, :m] = True
@@ -174,93 +254,63 @@ def corner_mask(image, rectangle_fraction=0.035):
     return the_mask
 
 
-def corner_background(image, rectangle_fraction=0.035):
+def corner_background(image, corner_fraction=0.035):
     """
     Return mean and stdev of background in corners of image.
 
     The background is estimated using the average of the pixels in a
     n x m rectangle in each of the four corners of the image. Here n
-    is the horizontal size multiplied by `rectangle_fraction`. Similar
+    is the horizontal size multiplied by `corner_fraction`. Similar
     for m.
 
-    ISO 11146-3 recommends values from 2-5% for `rectangle_fraction`.
+    ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
 
     Args:
         image : the image to work with
-        rectangle_fraction: the fractional size of corner rectangles
+        corner_fraction: the fractional size of corner rectangles
     Returns:
         average pixel value in corners
     """
-    mask = corner_mask(image, rectangle_fraction)
+    mask = corner_mask(image, corner_fraction)
     img = np.ma.masked_array(image, mask)
     mean = np.mean(img)
     stdev = np.std(img)
     return mean, stdev
 
 
-def corner_subtract(image, rectangle_fraction=0.035):
+def corner_subtract(image, corner_fraction=0.035, nT=3):
     """
     Return image with background subtracted.
 
     The background is estimated using the average of the pixels in a
     n x m rectangle in each of the four corners of the image. Here n
-    is the horizontal size multiplied by `rectangle_fraction`. Similar
+    is the horizontal size multiplied by `corner_fraction`. Similar
     for m.
 
-    ISO 11146-3 recommends values from 2-5% for `rectangle_fraction`.
+    The new image will have `mean+nT*stdev` subtracted.
+
+    ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
+
+    ISO 11146-3 recommends from 2-4 for `nT`.
 
     Some care must be taken to ensure that any values in the image that are
     less than the background are set to zero.
 
     Args:
         image : the image to work with
-        rectangle_fraction: the fractional size of corner rectangles
+        corner_fraction: the fractional size of corner rectangles
     Returns:
         new image with background subtracted
     """
     subtracted = np.array(image)
-    back, sigma = corner_background(image, rectangle_fraction)
-    offset = int(back + 3 * sigma)
+    back, sigma = corner_background(image, corner_fraction)
+    offset = int(back + nT * sigma)
     np.place(subtracted, subtracted < offset, offset)
     subtracted -= offset
     return subtracted
 
 
-def rotate_image(original, x, y, phi):
-    """
-    Create image rotated about specified centerpoint.
-
-    The image is rotated about a centerpoint (x0, y0) and then
-    cropped to the original size such that the centerpoint remains
-    in the same location.
-
-    Args:
-        image: the image to work with
-        x:     column
-        y:     row
-        phi: angle [radians]
-    Returns:
-        rotated image
-    """
-    # center of original image
-    o_y, o_x = (np.array(original.shape)-1)/2.0
-
-    # center of rotated image
-    rotated = scipy.ndimage.rotate(original, np.degrees(phi), order=1)
-    r_y, r_x = (np.array(rotated.shape)-1)/2.0
-
-    # location of center of rotation in rotated image
-    new_x = r_x + (x-o_x)*np.cos(phi) + (y-o_y)*np.sin(phi)
-    new_y = r_y - (x-o_x)*np.sin(phi) + (y-o_y)*np.cos(phi)
-
-    # crop so center remains in same location as original
-    mv = int(new_y-y)
-    mh = int(new_x-x)
-    v, h = original.shape
-    return rotated[mv:mv+v, mh:mh+h]
-
-
-def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
+def rotated_rect_mask(image, xc, yc, dx, dy, phi):
     """
     Create ISO 1146-3 image mask for specified beam.
 
@@ -280,9 +330,6 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     """
     raw_mask = np.full_like(image, False, dtype=bool)
 
-    dx *= mask_diameters/2
-    dy *= mask_diameters/2
-
     vlo = int(yc-dy)
     vhi = int(yc+dy)
     hlo = int(xc-dx)
@@ -293,7 +340,7 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     return rot_mask
 
 
-def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
+def rotated_rect_arrays(xc, yc, dx, dy, phi):
     """
     Return x,y arrays to draw a rotated rectangle.
 
@@ -307,9 +354,6 @@ def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
     Returns:
         x,y : two arrays for points on corners of rotated rectangle
     """
-    dx *= mask_diameters/2
-    dy *= mask_diameters/2
-
     # rectangle with center at (0,0)
     x = np.array([-dx, -dx, +dx, +dx, -dx])
     y = np.array([-dy, +dy, +dy, -dy, -dy])
@@ -321,7 +365,7 @@ def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
     return x_rot, y_rot
 
 
-def beam_size(image, mask_diameters=3, rectangle_fraction=0.035, max_iter=10):
+def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=10):
     """
     Determine beam parameters in an image with noise.
 
@@ -357,7 +401,7 @@ def beam_size(image, mask_diameters=3, rectangle_fraction=0.035, max_iter=10):
         [xc, yc, dx, dy, phi]
     """
     # remove any offset
-    zero_background_image = corner_subtract(image, rectangle_fraction)
+    zero_background_image = corner_subtract(image, corner_fraction, nT)
 
     xc, yc, dx, dy, phi = basic_beam_size(zero_background_image)
 
@@ -365,7 +409,10 @@ def beam_size(image, mask_diameters=3, rectangle_fraction=0.035, max_iter=10):
 
         xc2, yc2, dx2, dy2, _ = xc, yc, dx, dy, phi
 
-        mask = rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters)
+        ddx = dx * mask_diameters/2
+        ddy = dy * mask_diameters/2
+
+        mask = rotated_rect_mask(image, xc, yc, ddx, ddy, phi)
         masked_image = np.copy(zero_background_image)
         masked_image[~mask] = 0       # zero all values outside mask
 
@@ -582,17 +629,21 @@ def draw_beam_figure():
     rotated ellipses.  Also, if the aspect ratio is not set to be equal then
     the major and minor radii are not orthogonal to each other!
     """
-    theta = 30*np.pi/180
+    theta = np.radians(30)
     xc = 0
     yc = 0
     dx = 50
     dy = 25
-    xp, yp = ellipse_arrays(xc, yc, dx, dy, theta)
 
-    plt.figure(num=None, figsize=(6, 6), dpi=75)
-
+    plt.subplots(1, 1, figsize=(6, 6))
     plt.axes().set_aspect('equal')
-    plt.plot(xp, yp, color='black', lw=2)
+
+    xp, yp = ellipse_arrays(xc, yc, dx, dy, theta)
+    plt.plot(xp, yp, 'k', lw=2)
+
+    xp, yp = rotated_rect_arrays(xc, yc, 3*dx, 3*dy, theta)
+    plt.plot(xp, yp, ':b', lw=2)
+
     sint = np.sin(theta)/2
     cost = np.cos(theta)/2
     plt.plot([xc-dx*cost, xc+dx*cost], [yc+dx*sint, yc-dx*sint], ':b')
