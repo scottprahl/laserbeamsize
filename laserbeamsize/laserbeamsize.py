@@ -188,12 +188,16 @@ def basic_beam_size(image):
     if diff:
         disc = np.sign(diff)*np.sqrt(diff**2 + 4*xy**2)
     else:
-        disc = np.abs(xy)
+        disc = 2*xy
+
     dx = 2.0*np.sqrt(2)*np.sqrt(summ+disc)
     dy = 2.0*np.sqrt(2)*np.sqrt(summ-disc)
 
     # negative because top of matrix is zero
-    phi = -0.5 * np.arctan2(2*xy, diff)
+    if diff:
+        phi = -0.5 * np.arctan2(2*xy, diff)
+    else:
+        phi = -np.sign(xy) * np.pi/4
 
     return xc, yc, dx, dy, phi
 
