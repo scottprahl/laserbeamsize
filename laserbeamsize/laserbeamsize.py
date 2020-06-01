@@ -128,19 +128,18 @@ def rotate_image(original, x0, y0, phi):
         rotated image with same dimensions as original
     """
     # center of original image
-    o_y, o_x = (np.array(original.shape)-1)/2.0
+    cy, cx = (np.array(original.shape)-1)/2.0
 
     # rotate image using defaults mode='constant' and cval=0.0
     rotated = scipy.ndimage.rotate(original, np.degrees(phi), order=1)
 
     # center of rotated image, defaults mode='constant' and cval=0.0
-    r_y, r_x = (np.array(rotated.shape)-1)/2.0
+    ry, rx = (np.array(rotated.shape)-1)/2.0
 
-    # new position of desired rotation center
-    new_x0, new_y0 = rotate_points(x0, y0, o_x, o_y, phi)
-
-    new_x0 += r_x - o_x
-    new_y0 += r_y - o_y
+    # position of (x0,y0) in rotated image
+    new_x0, new_y0 = rotate_points(x0, y0, cx, cy, phi)
+    new_x0 += rx - cx
+    new_y0 += ry - cy
 
     voff = int(new_y0-y0)
     hoff = int(new_x0-x0)
@@ -378,13 +377,13 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi):
         2D boolean array with appropriate mask
     """
     raw_mask = np.full_like(image, False, dtype=bool)
-
+    v, h = image.shape
     dx *= 1.5
     dy *= 1.5
-    vlo = int(yc-dy)
-    vhi = int(yc+dy)
-    hlo = int(xc-dx)
-    hhi = int(xc+dx)
+    vlo = max(0, int(yc-dy))
+    vhi = min(v, int(yc+dy))
+    hlo = max(0, int(xc-dx))
+    hhi = min(h, int(xc+dx))
 
     raw_mask[vlo:vhi, hlo:hhi] = True
     rot_mask = rotate_image(raw_mask, xc, yc, phi)
