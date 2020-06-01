@@ -29,12 +29,14 @@ import numpy as np
 import scipy.ndimage
 
 __all__ = ('subtract_image',
+           'subtract_threshold',
            'corner_background',
            'corner_mask',
            'corner_subtract',
            'rotate_image',
            'rotated_rect_mask',
            'rotated_rect_arrays',
+           'axes_arrays',
            'basic_beam_size',
            'basic_beam_size_naive',
            'beam_size',
@@ -45,6 +47,22 @@ __all__ = ('subtract_image',
            'plot_image_and_ellipse',
            )
 
+def rotate_points(x, y, x0, y0, phi):
+    """Rotate x and y around designated center."""
+    xp = x-x0
+    yp = y-y0
+
+    s = np.sin(-phi)
+    c = np.cos(-phi)
+
+    xf = xp * c - yp * s
+    yf = xp * s + yp * c
+
+    xf += x0
+    yf += y0
+
+    return xf, yf
+
 
 def subtract_image(original, background):
     """
@@ -54,8 +72,8 @@ def subtract_image(original, background):
     negative.  Unfortunately when the arrays have an unsigned data type
     these negative values end up having very large pixel values.
 
-    This could be done as a simple loop with an if statement but this
-    version is about 250X faster for 960 x 1280 arrays.
+    This could be done as a simple loop with an if statement but the
+    implementation below is about 250X faster for 960 x 1280 arrays.
 
     Args:
         original: the image to work with
@@ -75,7 +93,25 @@ def subtract_image(original, background):
     return r.astype(original.dtype.name)
 
 
-def rotate_image(original, x, y, phi):
+def subtract_threshold(image, threshold):
+    """
+    Return image with constant subtracted.
+
+    Subtract threshold from entire image.  Negative values are set to zero.
+
+    Args:
+        image : the image to work with
+        threshold: value to subtract every pixel
+    Returns:
+        new image with threshold subtracted
+    """
+    subtracted = np.array(image)
+    np.place(subtracted, subtracted < threshold, threshold)
+    subtracted -= threshold
+    return subtracted
+
+
+def rotate_image(original, x0, y0, phi):
     """
     Create image rotated about specified centerpoint.
 
@@ -94,15 +130,20 @@ def rotate_image(original, x, y, phi):
     # center of original image
     o_y, o_x = (np.array(original.shape)-1)/2.0
 
-    # center of rotated image, defaults mode='constant' and cval=0.0
+    # rotate image using defaults mode='constant' and cval=0.0
     rotated = scipy.ndimage.rotate(original, np.degrees(phi), order=1)
+
+    # center of rotated image, defaults mode='constant' and cval=0.0
     r_y, r_x = (np.array(rotated.shape)-1)/2.0
 
-    # offset of center of rotation in rotated image to original
-    new_x = r_x + (x-o_x)*np.cos(phi) + (y-o_y)*np.sin(phi)
-    new_y = r_y - (x-o_x)*np.sin(phi) + (y-o_y)*np.cos(phi)
-    voff = int(new_y-y)
-    hoff = int(new_x-x)
+    # new position of desired rotation center
+    new_x0, new_y0 = rotate_points(x0, y0, o_x, o_y, phi)
+
+    new_x0 += r_x - o_x
+    new_y0 += r_y - o_y
+
+    voff = int(new_y0-y0)
+    hoff = int(new_x0-x0)
 
     # crop so center remains in same location as original
     ov, oh = original.shape
@@ -313,12 +354,9 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     Returns:
         new image with background subtracted
     """
-    subtracted = np.array(image)
     back, sigma = corner_background(image, corner_fraction)
     offset = int(back + nT * sigma)
-    np.place(subtracted, subtracted < offset, offset)
-    subtracted -= offset
-    return subtracted
+    return subtract_threshold(image, offset)
 
 
 def rotated_rect_mask(image, xc, yc, dx, dy, phi):
@@ -341,6 +379,8 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi):
     """
     raw_mask = np.full_like(image, False, dtype=bool)
 
+    dx *= 1.5
+    dy *= 1.5
     vlo = int(yc-dy)
     vhi = int(yc+dy)
     hlo = int(xc-dx)
@@ -365,13 +405,40 @@ def rotated_rect_arrays(xc, yc, dx, dy, phi):
     Returns:
         x,y : two arrays for points on corners of rotated rectangle
     """
-    # rectangle with center at (0,0)
-    x = np.array([-dx, -dx, +dx, +dx, -dx])
-    y = np.array([-dy, +dy, +dy, -dy, -dy])
+    dx *= 1.5
+    dy *= 1.5
 
-    # now apply rotation
-    x_rot = x*np.cos(phi) + y*np.sin(phi) + xc
-    y_rot = -x*np.sin(phi)+ y*np.cos(phi) + yc
+    # rectangle with center at (xc,yc)
+    x = np.array([-dx, -dx, +dx, +dx, -dx]) + xc
+    y = np.array([-dy, +dy, +dy, -dy, -dy]) + yc
+
+    x_rot, y_rot = rotate_points(x, y, xc, yc, phi)
+
+    return x_rot, y_rot
+
+
+def axes_arrays(xc, yc, dx, dy, phi):
+    """
+    Return x,y arrays to draw a rotated rectangle.
+
+    Args:
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: horizontal diameter of beam
+        dy: vertical diameter of beam
+        phi: angle that elliptical beam is rotated [radians]
+
+    Returns:
+        x,y : two arrays for points on corners of rotated rectangle
+    """
+    dx *= 1.5
+    dy *= 1.5
+
+    # major and minor ellipse axes with center at (xc,yc)
+    x = np.array([-dx, dx, 0,   0,  0]) + xc
+    y = np.array([  0,  0, 0, -dy, dy]) + yc
+
+    x_rot, y_rot = rotate_points(x, y, xc, yc, phi)
 
     return x_rot, y_rot
 
@@ -420,8 +487,8 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=10)
 
         xc2, yc2, dx2, dy2, _ = xc, yc, dx, dy, phi
 
-        ddx = dx * mask_diameters/2
-        ddy = dy * mask_diameters/2
+        ddx = dx * mask_diameters/3
+        ddy = dy * mask_diameters/3
 
         mask = rotated_rect_mask(image, xc, yc, ddx, ddy, phi)
         masked_image = np.copy(zero_background_image)
@@ -442,52 +509,33 @@ def beam_test_image(h, v, xc, yc, dx, dy, phi, offset=0, noise=0, max_value=255)
     beam dimensions.  By default the values in the image will range from 0 to
     255. The default image will have no background and no noise.
 
-    Parameters
-    ----------
-    h: int
-        horizontal size of image to generate
-    v: int
-        vertical size of image to generate
-    xc: float
-        horizontal center of beam
-    yc: int
-        vertical center of beam
-    dx: float
-        horizontal diameter of beam
-    dy: float
-        vertical diameter of beam
-    phi: float
-        angle that elliptical beam is rotated [radians]
-    offset: float, optional, default = 0
-        background offset to be added to entire image
-    noise: float, optional, default = 0
-        normally distributed pixel noise to add to image
-    max_value: float, optional, default = 256
-        all values in image fall between 0 and `max_value`
+    Args:
+        h: horizontal size of image to generate
+        v: vertical size of image to generate
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: horizontal diameter of beam
+        dy: vertical diameter of beam
+        phi: angle that elliptical beam is rotated [radians]
+        offset: background offset to be added to entire image
+        noise: normally distributed pixel noise to add to image
+        max_value: all values in image fall between 0 and `max_value`
 
-    Returns
-    -------
-    test_image: v x h pixels in size
+    Returns:
+        test_image: v x h pixels in size
     """
     rx = dx/2
     ry = dy/2
 
-    image = np.zeros([v, h])
+    image0 = np.zeros([v, h])
 
     y, x = np.ogrid[:v, :h]
 
-    # translate center of ellipse
-    y -= yc
-    x -= xc
+    image0 = np.exp(-2*(x-xc)**2/rx**2 -2*(y-yc)**2/ry**2)
 
-    # needed to rotate ellipse
-    sinphi = np.sin(phi)
-    cosphi = np.cos(phi)
+    image = rotate_image(image0, xc, yc, phi)
 
-    r2 = ((x*cosphi-y*sinphi)/rx)**2 + ((-x*sinphi-y*cosphi)/ry)**2
-    image = np.exp(-2*r2)
-
-    scale = max_value/np.max(image)
+    scale = (max_value - 2 * noise)/np.max(image)
     image *= scale
 
     if noise > 0:
@@ -497,7 +545,8 @@ def beam_test_image(h, v, xc, yc, dx, dy, phi, offset=0, noise=0, max_value=255)
         np.place(image, image > max_value, max_value)
         np.place(image, image < 0, 0)
 
-    return image
+    iimage = image.astype(int)
+    return iimage
 
 
 def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
