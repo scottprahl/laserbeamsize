@@ -220,25 +220,22 @@ def basic_beam_size(image):
     xy = np.dot(np.dot(image.T, vs), hs)/p
     yy = np.sum(np.dot(image.T, vs**2))/p
 
-    # the ISO measures
-    diff = xx-yy
-    summ = xx+yy
-
     # Ensure that the case xx==yy is handled correctly
-    if diff:
-        disc = np.sign(diff)*np.sqrt(diff**2 + 4*xy**2)
-    else:
+    if xx == yy:
         disc = 2*xy
-
-    dx = 2.0*np.sqrt(2)*np.sqrt(summ+disc)
-    dy = 2.0*np.sqrt(2)*np.sqrt(summ-disc)
-
-    # negative because top of matrix is zero
-    if diff:
-        phi = -0.5 * np.arctan2(2*xy, diff)
+        phi = np.sign(xy) * np.pi/4
     else:
-        phi = -np.sign(xy) * np.pi/4
+        diff = xx-yy
+        disc = np.sign(diff)*np.sqrt(diff**2 + 4*xy**2)
+        phi = 0.5 * np.arctan(2*xy/diff)
 
+    # finally, the major and minor diameters
+    dx = np.sqrt(8*(xx+yy+disc))
+    dy = np.sqrt(8*(xx+yy-disc))
+
+    # phi is negative because image is inverted
+    phi *= -1
+    
     return xc, yc, dx, dy, phi
 
 
@@ -323,7 +320,7 @@ def corner_background(image, corner_fraction=0.035):
         average pixel value in corners
     """
     mask = corner_mask(image, corner_fraction)
-    img = np.ma.masked_array(image, mask)
+    img = np.ma.masked_array(image, ~mask)
     mean = np.mean(img)
     stdev = np.std(img)
     return mean, stdev
@@ -358,7 +355,7 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     return subtract_threshold(image, offset)
 
 
-def rotated_rect_mask(image, xc, yc, dx, dy, phi):
+def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     """
     Create ISO 1146-3 image mask for specified beam.
 
@@ -376,21 +373,21 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi):
     Returns:
         2D boolean array with appropriate mask
     """
-    raw_mask = np.full_like(image, False, dtype=bool)
+    raw_mask = np.full_like(image, 0, dtype=float)
     v, h = image.shape
-    dx *= 1.5
-    dy *= 1.5
-    vlo = max(0, int(yc-dy))
-    vhi = min(v, int(yc+dy))
-    hlo = max(0, int(xc-dx))
-    hhi = min(h, int(xc+dx))
+    rx = mask_diameters * dx / 2
+    ry = mask_diameters * dy / 2
+    vlo = max(0, int(yc-ry))
+    vhi = min(v, int(yc+ry))
+    hlo = max(0, int(xc-rx))
+    hhi = min(h, int(xc+rx))
 
-    raw_mask[vlo:vhi, hlo:hhi] = True
+    raw_mask[vlo:vhi, hlo:hhi] = 1
     rot_mask = rotate_image(raw_mask, xc, yc, phi)
     return rot_mask
 
 
-def rotated_rect_arrays(xc, yc, dx, dy, phi):
+def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
     """
     Return x,y arrays to draw a rotated rectangle.
 
@@ -404,12 +401,12 @@ def rotated_rect_arrays(xc, yc, dx, dy, phi):
     Returns:
         x,y : two arrays for points on corners of rotated rectangle
     """
-    dx *= 1.5
-    dy *= 1.5
+    rx = mask_diameters * dx / 2
+    ry = mask_diameters * dy / 2
 
     # rectangle with center at (xc,yc)
-    x = np.array([-dx, -dx, +dx, +dx, -dx]) + xc
-    y = np.array([-dy, +dy, +dy, -dy, -dy]) + yc
+    x = np.array([-rx, -rx, +rx, +rx, -rx]) + xc
+    y = np.array([-ry, +ry, +ry, -ry, -ry]) + yc
 
     x_rot, y_rot = rotate_points(x, y, xc, yc, phi)
 
@@ -442,7 +439,7 @@ def axes_arrays(xc, yc, dx, dy, phi):
     return x_rot, y_rot
 
 
-def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=10):
+def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25):
     """
     Determine beam parameters in an image with noise.
 
@@ -480,18 +477,16 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=10)
     # remove any offset
     zero_background_image = corner_subtract(image, corner_fraction, nT)
 
+#    zero_background_image = np.copy(image)
     xc, yc, dx, dy, phi = basic_beam_size(zero_background_image)
 
     for _iteration in range(1, max_iter):
 
         xc2, yc2, dx2, dy2, _ = xc, yc, dx, dy, phi
 
-        ddx = dx * mask_diameters/3
-        ddy = dy * mask_diameters/3
-
-        mask = rotated_rect_mask(image, xc, yc, ddx, ddy, phi)
+        mask = rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters)
         masked_image = np.copy(zero_background_image)
-        masked_image[~mask] = 0       # zero all values outside mask
+        masked_image[mask<1] = 0       # zero all values outside mask
 
         xc, yc, dx, dy, phi = basic_beam_size(masked_image)
         if abs(xc-xc2) < 1 and abs(yc-yc2) < 1 and abs(dx-dx2) < 1 and abs(dy-dy2) < 1:
@@ -500,7 +495,7 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=10)
     return xc, yc, dx, dy, phi
 
 
-def beam_test_image(h, v, xc, yc, dx, dy, phi, offset=0, noise=0, max_value=255):
+def beam_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
     """
     Create a test image.
 
@@ -530,22 +525,23 @@ def beam_test_image(h, v, xc, yc, dx, dy, phi, offset=0, noise=0, max_value=255)
 
     y, x = np.ogrid[:v, :h]
 
-    image0 = np.exp(-2*(x-xc)**2/rx**2 -2*(y-yc)**2/ry**2)
+    scale = max_value - 3 * noise
+    image0 = scale * np.exp(-2*(x-xc)**2/rx**2 -2*(y-yc)**2/ry**2)
 
-    image = rotate_image(image0, xc, yc, phi)
-
-    scale = (max_value - 2 * noise)/np.max(image)
-    image *= scale
+    image1 = rotate_image(image0, xc, yc, phi)
 
     if noise > 0:
-        image += np.random.normal(offset, noise, size=(v, h))
+        image1 += np.random.poisson(noise, size=(v, h))
 
         # after adding noise, the signal may exceed the range 0 to max_value
-        np.place(image, image > max_value, max_value)
-        np.place(image, image < 0, 0)
+        np.place(image1, image1 > max_value, max_value)
+        np.place(image1, image1 < 0, 0)
 
-    iimage = image.astype(int)
-    return iimage
+    if max_value < 256:
+        return image1.astype(np.uint8)
+    elif max_value < 65536:
+        return image1.astype(np.uint16)
+    return image1
 
 
 def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
@@ -700,7 +696,7 @@ def draw_beam_figure():
     xp, yp = ellipse_arrays(xc, yc, dx, dy, theta)
     plt.plot(xp, yp, 'k', lw=2)
 
-    xp, yp = rotated_rect_arrays(xc, yc, 3*dx, 3*dy, theta)
+    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, theta)
     plt.plot(xp, yp, ':b', lw=2)
 
     sint = np.sin(theta)/2
