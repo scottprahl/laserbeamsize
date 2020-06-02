@@ -1,6 +1,4 @@
 #pylint: disable=invalid-name
-#pylint: disable=too-many-instance-attributes
-##pylint: disable=anomalous-backslash-in-string
 #pylint: disable=too-many-locals
 #pylint: disable=too-many-arguments
 """
@@ -163,18 +161,14 @@ def rotate_image(original, x0, y0, phi):
     rv1 = max(voff, 0)
     sv1 = max(-voff, 0)
     vlen = min(voff+ov, rv) - rv1
-    rv2 = rv1+vlen
-    sv2 = sv1+vlen
 
     rh1 = max(hoff, 0)
     sh1 = max(-hoff, 0)
     hlen = min(hoff+oh, rh) - rh1
-    rh2 = rh1+hlen
-    sh2 = sh1+hlen
 
     # move values into zero-padded array
     s = np.full_like(original, 0)
-    s[sv1:sv2, sh1:sh2] = rotated[rv1:rv2, rh1:rh2]
+    s[sv1:sv1+vlen, sh1:sh1+hlen] = rotated[rv1:rv1+vlen, rh1:rh1+hlen]
     return s
 
 
@@ -449,18 +443,19 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
     diameters.  This is the integration region used for estimate a new beam
     spot.
 
-    The process continues until two successive spot sizes match.
+    This process is repeated until two successive spot sizes match again as
+    outlined in ISO 11146
 
     `corner_fraction` determines the size of the corners. ISO 11146-3
     recommends values from 2-5%.  The default value of 3.5% works pretty well.
 
-    `mask_diameters' is the size of the rectangular mask in diameters
+    `mask_diameters` is the size of the rectangular mask in diameters
     of the ellipse.  ISO 11146 states that `mask_diameters` should be 3.
     This default value works fine.
 
-    `nT' accounts for noise in the background.  The background is estimated
+    `nT` accounts for noise in the background.  The background is estimated
     using the values in the cornes of the image as `mean+nT*stdev`. ISO 11146
-    states that 2<nT<4.  The default value works fine.
+    states that `2<nT<4`.  The default value works fine.
 
     `max_iter` is the maximum number of iterations done before giving up.
 
@@ -598,7 +593,7 @@ def plot_image_and_ellipse(image, xc, yc, dx, dy, phi, scale=1):
     plt.plot(xp, yp, ':y')
     plt.plot([xcc, xcc], [0, v*scale], ':y')
     plt.plot([0, h*scale], [ycc, ycc], ':y')
-    plt.title('c=(%.0f,%.0f), (dx,dy)=(%.1f,%.1f), $\phi$=%.1f°' %
+    plt.title(r'c=(%.0f,%.0f), (dx,dy)=(%.1f,%.1f), $\phi$=%.1f°' %
               (xcc, ycc, dxx, dyy, ph))
     plt.xlim(0, h*scale)
     plt.ylim(v*scale, 0)
@@ -607,7 +602,7 @@ def plot_image_and_ellipse(image, xc, yc, dx, dy, phi, scale=1):
 
 def basic_beam_size_naive(image):
     """
-    Slow but simple implementation of ISO 1146 beam standard.
+    Slow but simple implementation of ISO 11146 beam standard.
 
     This is identical to `basic_beam_size()` and is the obvious way to
     program the calculation of the necessary moments.  It is slow.
@@ -653,14 +648,7 @@ def basic_beam_size_naive(image):
 
 
 def draw_beam_figure():
-    """
-    Draw a simple astigmatic beam.
-
-    A super confusing thing is that python designates the top left corner as
-    (0,0).  This is usually not a problem, but one has to be careful drawing
-    rotated ellipses.  Also, if the aspect ratio is not set to be equal then
-    the major and minor radii are not orthogonal to each other!
-    """
+    """Draw a simple astigmatic beam ellipse with labels."""
     theta = np.radians(30)
     xc = 0
     yc = 0
@@ -668,6 +656,9 @@ def draw_beam_figure():
     dy = 25
 
     plt.subplots(1, 1, figsize=(6, 6))
+
+    #If the aspect ratio is not `equal` then the major and minor radii
+    #do not appear to be orthogonal to each other!
     plt.axes().set_aspect('equal')
 
     xp, yp = ellipse_arrays(xc, yc, dx, dy, theta)
