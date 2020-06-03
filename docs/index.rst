@@ -4,10 +4,10 @@ Examples
 ========
 
 .. toctree::
-   :maxdepth: 3
-   :titlesonly:
+   :maxdepth: 2
    
    01-Definitions.ipynb
+   01a-Background.ipynb
    02-Test-Beam.ipynb
    03-Easy-Images.ipynb
    04-Harder-Images.ipynb

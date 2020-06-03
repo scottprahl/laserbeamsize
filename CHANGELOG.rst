@@ -1,6 +1,18 @@
 Changelog
 =================================================
 
+v1.1.0
+------
+*    Works dramatically better across a wide range of images
+*    Minor API changes to `beam_size()`
+*    Use ISO 11146 integration areas
+*    Add background routines for corners
+*    Add functions for rotations
+*    Eliminate old threshold technique
+*    Use google docstyle for functions
+*    Explain background and integration areas in notebooks
+*    Tweak notebooks for clarity
+
 v1.0.2
 ------
 *    use sphinx for documentation

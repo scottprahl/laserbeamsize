@@ -14,7 +14,7 @@ copyright = '2017-20, Scott Prahl'
 author = 'Scott Prahl'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.3'
+release = '1.1.0'
 
 master_doc = 'index'
 
