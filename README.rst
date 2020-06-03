@@ -18,25 +18,26 @@ Usage
 Finding the center and dimensions of a good beam image::
 
     import imageio
+    import numpy as np
     import laserbeamsize as lbs
 
     beam = imageio.imread("t-hene.pgm")
     x, y, dx, dy, phi = lbs.beam_size(beam)
 
-    print("The image center is at (%g, %g)" % (x,y))
-    print("The horizontal width is %.1f pixels" % dx)
-    print("The vertical height is %.1f pixels" % dy)
-    print("The beam oval is rotated is %.1f°" % (phi*180/3.1416))
+    print("The center of the beam ellipse is at (%.0f, %.0f)" % (x,y))
+    print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
+    print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
+    print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi*180/3.1416))
 
-Handling non-zero backgrounds and other issues are explained in Jupyter 
-notebooks at <https://laserbeamsize.readthedocs.io>
+    ellipticity = dy/dx
+    if ellipticity>0.87:
+        print()
+        print("The beam is circular because the ellipticity=%.2f > 0.87")
+        print("The circular beam diameter is %.0f pixels" % np.sqrt((dx**2+dy**2)/2))
 
-Source code repository
-----------------------
+Documentation about backgrounds, integrations, and other issues are explained 
+at <https://laserbeamsize.readthedocs.io>
 
-Source is hosted by github::
-
-    <https://github.com/scottprahl/laserbeamsize>
 
 License
 --------
