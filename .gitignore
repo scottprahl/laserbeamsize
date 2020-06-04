@@ -1,9 +1,10 @@
 .DS_Store
 *.pyc
-.tox/*
-dist/*
-laserbeamsize/__pycache__/*
-docs/.ipynb_checkpoints/*
+.tox
+dist
+laserbeamsize/__pycache__
+laserbeamsize.egg-info
+docs/.ipynb_checkpoints
 docs/_build
 docs/api
 todo
