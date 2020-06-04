@@ -50,11 +50,14 @@ __all__ = ('subtract_image',
            'ellipse_arrays',
            'elliptical_mask',
            'plot_image_and_ellipse',
+           'major_axis_arrays',
+           'minor_axis_arrays',
            )
+
 
 def rotate_points(x, y, x0, y0, phi):
     """
-    Rotate x and y around designated center.
+    Rotate x and y around designated center (x0,y0).
 
     Args:
         x: x-values of point or array of points to be rotated
@@ -79,6 +82,106 @@ def rotate_points(x, y, x0, y0, phi):
     yf += y0
 
     return xf, yf
+
+
+def values_along_line(image, x0, y0, x1, y1, N=50):
+    """
+    Return x, y, z, and distance values between (x0,y0) and (x1,y1).
+
+    This creates four arrays::
+        x: index of horizontal pixel values along line
+        y: index of vertical pixel values along line
+        z: image values at each of the x,y positions
+        s: distance from start of minor axis to x,y position
+
+    Args:
+        image: the image to work with
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: ellipse diameter for axis closest to horizontal
+        dy: ellipse diameter for axis closest to vertical
+        phi: angle that elliptical beam is rotated [radians]
+        diameters:
+    Returns:
+        x, y, z, and s arrays
+    """
+    d = np.sqrt((x1-x0)**2 + (y1-y0)**2)
+    s = np.linspace(0, 1, N)
+
+    x = x0 + s * (x1-x0)
+    y = y0 + s * (y1-y0)
+
+    xx = x.astype(int)
+    yy = y.astype(int)
+
+    zz = image[yy, xx]
+
+    return xx, yy, zz, s*d
+
+
+def major_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=3):
+    """
+    Return x, y, z, and distance values along semi-major axis.
+
+    This creates four arrays::
+        x: index of horizontal pixel values along line
+        y: index of vertical pixel values along line
+        z: image values at each of the x,y positions
+        s: distance from start of minor axis to x,y position
+
+    Args:
+        image: the image to work with
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: ellipse diameter for axis closest to horizontal
+        dy: ellipse diameter for axis closest to vertical
+        phi: angle that elliptical beam is rotated [radians]
+        diameters:
+    Returns:
+        x, y, z, and s arrays
+    """
+    _, h = image.shape
+    rx = diameters * dx / 2
+    left = max(xc-rx, 0)
+    right = min(xc+rx, h-1)
+    x = np.array([left, right])
+    y = np.array([yc, yc])
+    xr, yr = rotate_points(x, y, xc, yc, phi)
+
+    return values_along_line(image, xr[0], yr[0], xr[1], yr[1])
+
+
+def minor_axis_arrays(image, xc, yc, _dx, dy, phi, diameters=3):
+    """
+    Return x, y, z, and distance values along semi-minor axis.
+
+    This creates four arrays::
+        x: index of horizontal pixel values along line
+        y: index of vertical pixel values along line
+        z: image values at each of the x,y positions
+        s: distance from start of minor axis to x,y position
+
+    Args:
+        image: the image to work with
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: ellipse diameter for axis closest to horizontal
+        dy: ellipse diameter for axis closest to vertical
+        phi: angle that elliptical beam is rotated [radians]
+        diameters:
+    Returns:
+        x, y, z, and s arrays
+    """
+    v, _ = image.shape
+    ry = diameters * dy / 2
+
+    top = max(yc-ry, 0)
+    bottom = min(yc+ry, v-1)
+    x = np.array([xc, xc])
+    y = np.array([top, bottom])
+    xr, yr = rotate_points(x, y, xc, yc, phi)
+
+    return values_along_line(image, xr[0], yr[0], xr[1], yr[1])
 
 
 def subtract_image(original, background):
