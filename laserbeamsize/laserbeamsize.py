@@ -116,10 +116,10 @@ def values_along_line(image, x0, y0, x1, y1, N=50):
 
     zz = image[yy, xx]
 
-    return xx, yy, zz, s*d
+    return xx, yy, zz, (s-0.5)*d
 
 
-def major_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=3):
+def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
     """
     Return x, y, z, and distance values along semi-major axis.
 
@@ -140,18 +140,27 @@ def major_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=3):
     Returns:
         x, y, z, and s arrays
     """
-    _, h = image.shape
-    rx = diameters * dx / 2
-    left = max(xc-rx, 0)
-    right = min(xc+rx, h-1)
-    x = np.array([left, right])
-    y = np.array([yc, yc])
-    xr, yr = rotate_points(x, y, xc, yc, phi)
+    v, h = image.shape
+    
+    if dx > dy:
+        rx = diameters * dx / 2
+        left = max(xc-rx, 0)
+        right = min(xc+rx, h-1)
+        x = np.array([left, right])
+        y = np.array([yc, yc])
+        xr, yr = rotate_points(x, y, xc, yc, phi)
+    else:
+        ry = diameters * dy / 2
+        top = max(yc-ry, 0)
+        bottom = min(yc+ry, v-1)
+        x = np.array([xc, xc])
+        y = np.array([top, bottom])
+        xr, yr = rotate_points(x, y, xc, yc, phi)
 
     return values_along_line(image, xr[0], yr[0], xr[1], yr[1])
 
 
-def minor_axis_arrays(image, xc, yc, _dx, dy, phi, diameters=3):
+def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
     """
     Return x, y, z, and distance values along semi-minor axis.
 
@@ -172,14 +181,22 @@ def minor_axis_arrays(image, xc, yc, _dx, dy, phi, diameters=3):
     Returns:
         x, y, z, and s arrays
     """
-    v, _ = image.shape
-    ry = diameters * dy / 2
-
-    top = max(yc-ry, 0)
-    bottom = min(yc+ry, v-1)
-    x = np.array([xc, xc])
-    y = np.array([top, bottom])
-    xr, yr = rotate_points(x, y, xc, yc, phi)
+    v, h = image.shape
+    
+    if dx <= dy:
+        rx = diameters * dx / 2
+        left = max(xc-rx, 0)
+        right = min(xc+rx, h-1)
+        x = np.array([left, right])
+        y = np.array([yc, yc])
+        xr, yr = rotate_points(x, y, xc, yc, phi)
+    else:
+        ry = diameters * dy / 2
+        top = max(yc-ry, 0)
+        bottom = min(yc+ry, v-1)
+        x = np.array([xc, xc])
+        y = np.array([top, bottom])
+        xr, yr = rotate_points(x, y, xc, yc, phi)
 
     return values_along_line(image, xr[0], yr[0], xr[1], yr[1])
 
