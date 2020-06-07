@@ -41,7 +41,6 @@ Alternatively, one can get a quick visual report::
     plt.show()
     
 Which will show something like
-..image
 
 .. image:: docs/hene.png
   :alt: visual report of HeNe beam
