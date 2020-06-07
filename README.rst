@@ -35,6 +35,17 @@ Finding the center and dimensions of a good beam image::
         print("The beam is circular because the ellipticity=%.2f > 0.87")
         print("The circular beam diameter is %.0f pixels" % np.sqrt((dx**2+dy**2)/2))
 
+Alternatively, one can get a quick visual report::
+
+    lbs.visual_report(beam)
+    plt.show()
+    
+Which will show something like
+..image
+
+.. image:: docs/hene.png
+  :alt: visual report of HeNe beam
+  
 Documentation about backgrounds, integrations, and other issues are explained 
 at <https://laserbeamsize.readthedocs.io>
 
