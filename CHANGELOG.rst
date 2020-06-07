@@ -1,6 +1,13 @@
 Changelog
 =================================================
 
+v1.2.0
+*    Add routines to plot values along semi axes
+*    Add visual_report() for simple beam analysis
+*    Fix error when calculating circular radius
+*    Add missing scipy requirement
+*    Improve README.rst with figure
+
 v1.1.0
 ------
 *    Works dramatically better across a wide range of images
