@@ -42,9 +42,8 @@ Alternatively, one can get a quick visual report::
     
 Which will show something like
 
-.. image:: docs/hene-report.png
-  :alt: visual report of HeNe beam
-  
+.. image:: ../docs/hene-report.png
+
 Documentation about backgrounds, integrations, and other issues are explained 
 at <https://laserbeamsize.readthedocs.io>
 
