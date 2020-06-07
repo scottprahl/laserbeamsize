@@ -3,6 +3,7 @@ include LICENSE.txt
 exclude docs
 exclude docs/*
 include docs/hene-report.png
+include hene-report.png
 exclude release.txt
 exclude Makefile
 exclude .gitignore
