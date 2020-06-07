@@ -1,6 +1,7 @@
-#pylint: disable=invalid-name
-#pylint: disable=too-many-locals
-#pylint: disable=too-many-arguments
+# pylint: disable=invalid-name
+# pylint: disable=too-many-locals
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-statements
 """
 A module for finding the beam size in an monochrome image.
 
@@ -52,6 +53,7 @@ __all__ = ('subtract_image',
            'plot_image_and_ellipse',
            'major_axis_arrays',
            'minor_axis_arrays',
+           'visual_report',
            )
 
 
@@ -141,7 +143,7 @@ def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
         x, y, z, and s arrays
     """
     v, h = image.shape
-    
+
     if dx > dy:
         rx = diameters * dx / 2
         left = max(xc-rx, 0)
@@ -182,7 +184,7 @@ def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
         x, y, z, and s arrays
     """
     v, h = image.shape
-    
+
     if dx <= dy:
         rx = diameters * dx / 2
         left = max(xc-rx, 0)
@@ -653,7 +655,7 @@ def beam_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
     y, x = np.ogrid[:v, :h]
 
     scale = max_value - 3 * noise
-    image0 = scale * np.exp(-2*(x-xc)**2/rx**2 -2*(y-yc)**2/ry**2)
+    image0 = scale * np.exp(-2*(x-xc)**2/rx**2 - 2*(y-yc)**2/ry**2)
 
     image1 = rotate_image(image0, xc, yc, phi)
 
@@ -784,8 +786,8 @@ def draw_beam_figure():
 
     plt.subplots(1, 1, figsize=(6, 6))
 
-    #If the aspect ratio is not `equal` then the major and minor radii
-    #do not appear to be orthogonal to each other!
+    # If the aspect ratio is not `equal` then the major and minor radii
+    # do not appear to be orthogonal to each other!
     plt.axes().set_aspect('equal')
 
     xp, yp = ellipse_arrays(xc, yc, dx, dy, theta)
@@ -816,4 +818,86 @@ def draw_beam_figure():
     plt.xlim(-30, 30)
     plt.ylim(30, -30)  # inverted to match image coordinates!
     plt.axis('off')
-    plt.show()
+
+
+def visual_report(image, title='Original', **kwargs):
+    """
+    Create a visual report for image fitting.
+
+    Args:
+        image: 2D image of laser beam
+        title: optional title for report
+    Returns:
+        nothing
+    """
+    beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
+    bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
+
+    corner_keys = ['corner_fraction', 'nT']
+    c_args = dict((k, kwargs[k]) for k in corner_keys if k in kwargs)
+
+    xc, yc, dx, dy, phi = beam_size(image, **bs_args)
+    working_image = corner_subtract(image, **c_args)
+    min_ = image.min()
+    max_ = image.max()
+    rx = dx/2
+    ry = dy/2
+    vv, hh = image.shape
+
+    plt.subplots(2, 2, figsize=(12, 12))
+    plt.subplots_adjust(right=1.0)
+
+    # original image
+    plt.subplot(2, 2, 1)
+    plt.imshow(image, cmap='gist_ncar')
+    plt.title(title)
+    plt.clim(min_, max_)
+    plt.colorbar(fraction=0.046, pad=0.04)
+    plt.xlabel('Pixels')
+    plt.ylabel('Pixels')
+    plt.ylim(vv, 0)
+    plt.xlim(0, hh)
+
+    # working image
+    plt.subplot(2, 2, 2)
+    plt.imshow(working_image, cmap='gist_ncar')
+    xp, yp = axes_arrays(xc, yc, dx, dy, phi)
+    plt.plot(xp, yp, ':y')
+    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
+    plt.plot(xp, yp, 'w')
+
+    plt.title('Found (%d, %d), dx=%d, dy=%d' % (xc, yc, dx, dy))
+    plt.clim(min_, max_)
+    plt.colorbar(fraction=0.046, pad=0.04)
+    plt.xlabel('Pixels')
+    plt.ylabel('Pixels')
+    plt.ylim(vv, 0)
+    plt.xlim(0, hh)
+
+    # plot of values along semi-major axis
+    plt.subplot(2, 2, 3)
+    _, _, z, s = major_axis_arrays(image, xc, yc, dx, dy, phi)
+    a = np.sqrt(2/np.pi)/rx * np.sum(z)*abs(s[1]-s[0])
+    h = a*np.exp(-2)
+    plt.plot(s, z, 'or', label='data')
+    plt.plot(s, a*np.exp(-2*(s/rx)**2), ':k', label='fitted')
+    plt.xlabel('Distance from Center (pixels)')
+    plt.ylabel('Pixel Intensity Along Semi-Major Axis')
+    plt.title('Semi-Major Axis')
+    plt.annotate('', (-rx, h), (rx, h), arrowprops=dict(arrowstyle="<->"))
+    plt.text(0, 1.1*h, 'dx=%.1f' % dx, va='bottom', ha='center')
+    plt.text(0, a, '  Gaussian')
+
+    # plot of values along semi-minor axis
+    plt.subplot(2, 2, 4)
+    _, _, z, s = minor_axis_arrays(image, xc, yc, dx, dy, phi)
+    a = np.sqrt(2/np.pi)/ry * np.sum(z)*abs(s[1]-s[0])
+    h = a*np.exp(-2)
+    plt.plot(s, z, 'or', label='data')
+    plt.plot(s, a*np.exp(-2*(s/ry)**2), ':k', label='fitted')
+    plt.xlabel('Distance from Center (pixels)')
+    plt.ylabel('Pixel Intensity Along Semi-Minor Axis')
+    plt.title('Semi-Minor Axis')
+    plt.annotate('', (-ry, h), (ry, h), arrowprops=dict(arrowstyle="<->"))
+    plt.text(0, 1.1*h, 'dy=%.1f' % dy, va='bottom', ha='center')
+    plt.text(0, a, '  Gaussian')
