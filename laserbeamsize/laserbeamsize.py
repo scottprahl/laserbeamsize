@@ -86,7 +86,7 @@ def rotate_points(x, y, x0, y0, phi):
     return xf, yf
 
 
-def values_along_line(image, x0, y0, x1, y1, N=50):
+def values_along_line(image, x0, y0, x1, y1, N=100):
     """
     Return x, y, z, and distance values between (x0,y0) and (x1,y1).
 
@@ -838,6 +838,8 @@ def visual_report(image, title='Original', **kwargs):
 
     xc, yc, dx, dy, phi = beam_size(image, **bs_args)
     working_image = corner_subtract(image, **c_args)
+    background, _ = corner_background(image, **c_args)
+
     min_ = image.min()
     max_ = image.max()
     rx = dx/2
@@ -877,10 +879,11 @@ def visual_report(image, title='Original', **kwargs):
     # plot of values along semi-major axis
     plt.subplot(2, 2, 3)
     _, _, z, s = major_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2/np.pi)/rx * np.sum(z)*abs(s[1]-s[0])
-    h = a*np.exp(-2)
-    plt.plot(s, z, 'or', label='data')
-    plt.plot(s, a*np.exp(-2*(s/rx)**2), ':k', label='fitted')
+    a = np.sqrt(2/np.pi)/rx * np.sum(z-background)*abs(s[1]-s[0])
+    h = a*np.exp(-2)+background
+    
+    plt.plot(s, z, 'b')
+    plt.plot(s, a*np.exp(-2*(s/rx)**2)+background, ':k')
     plt.xlabel('Distance from Center (pixels)')
     plt.ylabel('Pixel Intensity Along Semi-Major Axis')
     plt.title('Semi-Major Axis')
@@ -891,10 +894,10 @@ def visual_report(image, title='Original', **kwargs):
     # plot of values along semi-minor axis
     plt.subplot(2, 2, 4)
     _, _, z, s = minor_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2/np.pi)/ry * np.sum(z)*abs(s[1]-s[0])
-    h = a*np.exp(-2)
-    plt.plot(s, z, 'or', label='data')
-    plt.plot(s, a*np.exp(-2*(s/ry)**2), ':k', label='fitted')
+    a = np.sqrt(2/np.pi)/ry * np.sum(z-background)*abs(s[1]-s[0])
+    h = a*np.exp(-2)+background
+    plt.plot(s, z, 'b')
+    plt.plot(s, a*np.exp(-2*(s/ry)**2)+background, ':k', label='fitted')
     plt.xlabel('Distance from Center (pixels)')
     plt.ylabel('Pixel Intensity Along Semi-Minor Axis')
     plt.title('Semi-Minor Axis')
