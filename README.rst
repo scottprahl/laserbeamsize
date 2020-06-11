@@ -44,6 +44,15 @@ Which will show something like
 
 .. image:: hene-report.png
 
+Alternatively::
+    tem02 = imageio.imread("TEM02_100mm.pgm") >> 4
+    lbs.visual_report(tem02, title = r"TEM$_{02}$ at z=100mm", pixel_size=3.75)
+    plt.savefig("tem02.png", bbox_inches = 'tight')
+
+Creates an image like
+
+.. image:: tem02.png
+
 Documentation about backgrounds, integrations, and other issues are explained 
 at <https://laserbeamsize.readthedocs.io>
 
