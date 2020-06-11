@@ -54,6 +54,7 @@ __all__ = ('subtract_image',
            'major_axis_arrays',
            'minor_axis_arrays',
            'visual_report',
+           'plot_beam_fit',
            )
 
 
@@ -531,7 +532,7 @@ def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
 
     x_rot, y_rot = rotate_points(x, y, xc, yc, phi)
 
-    return x_rot, y_rot
+    return np.array([x_rot, y_rot])
 
 
 def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
@@ -557,7 +558,7 @@ def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
 
     x_rot, y_rot = rotate_points(x, y, xc, yc, phi)
 
-    return x_rot, y_rot
+    return np.array([x_rot, y_rot])
 
 
 def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25):
@@ -691,7 +692,7 @@ def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     b = dy/2*np.sin(t)
     xp = xc + a*np.cos(phi) - b*np.sin(phi)
     yp = yc - a*np.sin(phi) - b*np.cos(phi)
-    return xp, yp
+    return np.array([xp, yp])
 
 
 def plot_image_and_ellipse(image, xc, yc, dx, dy, phi, scale=1):
@@ -820,16 +821,26 @@ def draw_beam_figure():
     plt.axis('off')
 
 
-def visual_report(image, title='Original', **kwargs):
+def visual_report(image, title='Original', pixel_size=None, units='µm', **kwargs):
     """
     Create a visual report for image fitting.
 
     Args:
         image: 2D image of laser beam
-        title: optional title for report
+        title: optional title for upper left plot
     Returns:
         nothing
     """
+    if pixel_size is None:
+        scale = 1
+        unit_str = ''
+        label = 'Pixels'
+        units = 'pixels'
+    else:
+        scale = pixel_size
+        unit_str = '[%s]' % units
+        label = 'Position %s' % unit_str
+
     beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
     bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
 
@@ -839,68 +850,132 @@ def visual_report(image, title='Original', **kwargs):
     xc, yc, dx, dy, phi = beam_size(image, **bs_args)
     working_image = corner_subtract(image, **c_args)
     background, _ = corner_background(image, **c_args)
+    rx = dx/2
+    ry = dy/2
 
     min_ = image.min()
     max_ = image.max()
-    rx = dx/2
-    ry = dy/2
     vv, hh = image.shape
 
+    # scale all the dimensions
+    v_s = vv * scale
+    h_s = hh * scale
+    xc_s = xc * scale
+    yc_s = yc * scale
+    dx_s = dx * scale
+    dy_s = dy * scale
+    
     plt.subplots(2, 2, figsize=(12, 12))
     plt.subplots_adjust(right=1.0)
 
     # original image
     plt.subplot(2, 2, 1)
-    plt.imshow(image, cmap='gist_ncar')
-    plt.title(title)
+    im = plt.imshow(image, extent=[0, h_s, v_s, 0], cmap='gist_ncar')
+    plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04) 
     plt.clim(min_, max_)
-    plt.colorbar(fraction=0.046, pad=0.04)
-    plt.xlabel('Pixels')
-    plt.ylabel('Pixels')
-    plt.ylim(vv, 0)
-    plt.xlim(0, hh)
+    plt.xlim(0, h_s)
+    plt.ylim(v_s, 0)
+    plt.xlabel(label)
+    plt.ylabel(label)
+    plt.title(title)
 
     # working image
     plt.subplot(2, 2, 2)
-    plt.imshow(working_image, cmap='gist_ncar')
-    xp, yp = axes_arrays(xc, yc, dx, dy, phi)
-    plt.plot(xp, yp, ':y')
-    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
+    im = plt.imshow(working_image, extent=[0, h_s, v_s, 0], cmap='gist_ncar')
+    xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
     plt.plot(xp, yp, 'w')
-
-    plt.title('Found (%d, %d), dx=%d, dy=%d' % (xc, yc, dx, dy))
+    xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
+    plt.plot(xp, yp, ':w')
+    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
+    plt.plot(xp, yp, 'w')
+    plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04) 
     plt.clim(min_, max_)
-    plt.colorbar(fraction=0.046, pad=0.04)
-    plt.xlabel('Pixels')
-    plt.ylabel('Pixels')
-    plt.ylim(vv, 0)
-    plt.xlim(0, hh)
+    plt.xlim(0, h_s)
+    plt.ylim(v_s, 0)
+    plt.xlabel(label)
+    plt.ylabel(label)
+    plt.title('Image w/o background, center at (%.0f, %.0f) %s' % (xc_s, yc_s, units))
 
     # plot of values along semi-major axis
-    plt.subplot(2, 2, 3)
     _, _, z, s = major_axis_arrays(image, xc, yc, dx, dy, phi)
     a = np.sqrt(2/np.pi)/rx * np.sum(z-background)*abs(s[1]-s[0])
-    h = a*np.exp(-2)+background
-    
-    plt.plot(s, z, 'b')
-    plt.plot(s, a*np.exp(-2*(s/rx)**2)+background, ':k')
-    plt.xlabel('Distance from Center (pixels)')
+    baseline = a*np.exp(-2)+background
+
+    plt.subplot(2, 2, 3)
+    plt.plot(s*scale, z, 'b')
+    plt.plot(s*scale, a*np.exp(-2*(s/rx)**2)+background, ':k')
+    plt.annotate('', (-rx*scale, baseline), (rx*scale, baseline), arrowprops=dict(arrowstyle="<->"))
+    plt.text(0, 1.1*baseline, 'dx=%.0f %s' % (dx_s,units), va='bottom', ha='center')
+    plt.text(0, a, '  Gaussian')
+    plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Major Axis')
     plt.title('Semi-Major Axis')
-    plt.annotate('', (-rx, h), (rx, h), arrowprops=dict(arrowstyle="<->"))
-    plt.text(0, 1.1*h, 'dx=%.1f' % dx, va='bottom', ha='center')
-    plt.text(0, a, '  Gaussian')
+    plt.gca().set_ylim(bottom=0)
 
     # plot of values along semi-minor axis
-    plt.subplot(2, 2, 4)
     _, _, z, s = minor_axis_arrays(image, xc, yc, dx, dy, phi)
     a = np.sqrt(2/np.pi)/ry * np.sum(z-background)*abs(s[1]-s[0])
-    h = a*np.exp(-2)+background
-    plt.plot(s, z, 'b')
-    plt.plot(s, a*np.exp(-2*(s/ry)**2)+background, ':k', label='fitted')
-    plt.xlabel('Distance from Center (pixels)')
+    baseline = a*np.exp(-2)+background
+
+    plt.subplot(2, 2, 4)
+    plt.plot(s*scale, z, 'b')
+    plt.plot(s*scale, a*np.exp(-2*(s/ry)**2)+background, ':k', label='fitted')
+    plt.annotate('', (-ry*scale, baseline), (ry*scale, baseline), arrowprops=dict(arrowstyle="<->"))
+    plt.text(0, 1.1*baseline, 'dy=%.0f %s' % (dy_s,units), va='bottom', ha='center')
+    plt.text(0, a, '  Gaussian')
+    plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Minor Axis')
     plt.title('Semi-Minor Axis')
-    plt.annotate('', (-ry, h), (ry, h), arrowprops=dict(arrowstyle="<->"))
-    plt.text(0, 1.1*h, 'dy=%.1f' % dy, va='bottom', ha='center')
-    plt.text(0, a, '  Gaussian')
+    plt.gca().set_ylim(bottom=0)
+    
+    # add more horizontal space between plots
+    plt.subplots_adjust(wspace=0.3)
+
+
+def plot_beam_fit(image, pixel_size=None, vmax=None, units='µm'):
+    """
+    Plot the image, fitted ellipse, integration area, and center lines.
+
+    Args:
+        image: 2D array of image with beam spot
+        pixel_size: (optional) size of pixels
+        vmax: (optional) maximum value for colorbar
+        units: (optional) string used for units used on axes
+    Returns:
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: horizontal diameter of beam
+        dy: vertical diameter of beam
+        phi: angle that elliptical beam is rotated [radians]
+    """
+    v,h = image.shape
+    xc, yc, dx, dy, phi = beam_size(image)
+    if vmax is None:
+        vmax = image.max()
+
+    if pixel_size is None:
+        scale = 1
+        label = 'Pixels'
+    else:
+        scale = pixel_size
+        label = 'Position (%s)' % units
+
+    plt.imshow(image, extent=[0, h*scale, v*scale, 0], cmap='gist_ncar', vmax=vmax)
+    plt.xlabel(label)
+    plt.ylabel(label)
+
+    xp,yp = axes_arrays(xc, yc, dx, dy, phi)
+    plt.plot(xp*scale, yp*scale, ':w')
+
+    # show ellipse around beam
+    xp,yp = ellipse_arrays(xc, yc, dx, dy, phi)
+    plt.plot(xp*scale, yp*scale,':w')
+
+    # show integration area around beam
+    xp,yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
+    plt.plot(xp*scale, yp*scale,'w')
+
+    plt.xlim(0,h*scale)
+    plt.ylim(v*scale,0)
+    
+    return xc, yc, dx, dy, phi
