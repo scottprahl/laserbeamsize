@@ -61,4 +61,4 @@ at <https://laserbeamsize.readthedocs.io>
 License
 --------
 
-laserbeamsize is licensed under the terms of the MIT license.
+`laserbeamsize` is licensed under the terms of the MIT license.

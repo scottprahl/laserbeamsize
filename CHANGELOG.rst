@@ -1,9 +1,16 @@
 Changelog
 =================================================
 
+v1.3.0
+------
+*    Add another figure to readme
+*    Improve `visual_report()`
+*    Add `plot_beam_fit()`
+
 v1.2.0
+------
 *    Add routines to plot values along semi axes
-*    Add visual_report() for simple beam analysis
+*    Add `visual_report()` for simple beam analysis
 *    Fix error when calculating circular radius
 *    Add missing scipy requirement
 *    Improve README.rst with figure
