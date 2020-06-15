@@ -13,8 +13,10 @@ Examples
    04-Harder-Images.ipynb
    05-Razor-Blade.ipynb
    06-Beam-Waist.ipynb
-   07-M2-Measurement.ipynb
-
+   07a-M2-Parameters.ipynb
+   07b-M2-Theory.ipynb
+   07c-M2-Measurement.ipynb
+   
 .. include:: ../CHANGELOG.rst
 
 API
