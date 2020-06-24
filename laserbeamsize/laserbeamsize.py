@@ -836,10 +836,12 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
         unit_str = ''
         label = 'Pixels'
         units = 'pixels'
+        label2 = 'Pixels from Center'
     else:
         scale = pixel_size
         unit_str = '[%s]' % units
         label = 'Position %s' % unit_str
+        label2 = 'Distance from Center %s' % unit_str
 
     beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
     bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
@@ -881,19 +883,20 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
 
     # working image
     plt.subplot(2, 2, 2)
-    im = plt.imshow(working_image, extent=[0, h_s, v_s, 0], cmap='gist_ncar')
+    extent=np.array([-xc_s, h_s-xc_s, v_s-yc_s, -yc_s])
+    im = plt.imshow(working_image, extent=extent, cmap='gist_ncar')
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp, yp, 'w')
+    plt.plot(xp-xc_s, yp-yc_s, 'w')
     xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp, yp, ':w')
+    plt.plot(xp-xc_s, yp-yc_s, ':w')
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp, yp, 'w')
+    plt.plot(xp-xc_s, yp-yc_s, ':w')
     plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04) 
     plt.clim(min_, max_)
-    plt.xlim(0, h_s)
-    plt.ylim(v_s, 0)
-    plt.xlabel(label)
-    plt.ylabel(label)
+    plt.xlim(-xc_s, h_s-xc_s)
+    plt.ylim(v_s-yc_s, -yc_s)
+    plt.xlabel(label2)
+    plt.ylabel(label2)
     plt.title('Image w/o background, center at (%.0f, %.0f) %s' % (xc_s, yc_s, units))
 
     # plot of values along semi-major axis
@@ -960,22 +963,23 @@ def plot_beam_fit(image, pixel_size=None, vmax=None, units='µm'):
         scale = pixel_size
         label = 'Position (%s)' % units
 
-    plt.imshow(image, extent=[0, h*scale, v*scale, 0], cmap='gist_ncar', vmax=vmax)
+    extent = np.array([-xc,h-xc,v-yc,-yc])*scale
+    plt.imshow(image, extent=extent, cmap='gist_ncar', vmax=vmax)
     plt.xlabel(label)
     plt.ylabel(label)
 
     xp,yp = axes_arrays(xc, yc, dx, dy, phi)
-    plt.plot(xp*scale, yp*scale, ':w')
+    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
 
     # show ellipse around beam
     xp,yp = ellipse_arrays(xc, yc, dx, dy, phi)
-    plt.plot(xp*scale, yp*scale,':w')
+    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
 
     # show integration area around beam
     xp,yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
-    plt.plot(xp*scale, yp*scale,'w')
+    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
 
-    plt.xlim(0,h*scale)
-    plt.ylim(v*scale,0)
+    plt.xlim(-xc*scale, (h-xc)*scale)
+    plt.ylim((v-yc)*scale, -yc*scale)
     
     return xc, yc, dx, dy, phi
