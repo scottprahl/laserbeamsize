@@ -34,8 +34,9 @@ __all__ = ('z_rayleigh',
            'beam_param_errors',
            'M2_analysis',
            'M2_graph',
-           'M2_report',
            'M2_graph2',
+           'M2_report',
+           'M2_report2',
            )
 
 def z_rayleigh(w0, lambda0):
@@ -384,7 +385,7 @@ def M2_graph2(z, d, lambda0):
     ax1.axvline(z0-zR)
 
     ax1.axvline(z0+zR)
-    ax1.axhspan(d0+dd0, d0-dd0, alpha=0.2)
+#    ax1.axhspan(d0+dd0, d0-dd0, alpha=0.2)
     ax1.axhline(d0, color='black', lw=1)
     ax1.set_title('$d(z) = a+bz+cz^2$')
 
