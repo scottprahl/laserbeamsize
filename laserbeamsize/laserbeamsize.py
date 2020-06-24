@@ -849,9 +849,11 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
     corner_keys = ['corner_fraction', 'nT']
     c_args = dict((k, kwargs[k]) for k in corner_keys if k in kwargs)
 
+    cb_args = dict((k, kwargs[k]) for k in ['corner_fraction'] if k in kwargs)
+
     xc, yc, dx, dy, phi = beam_size(image, **bs_args)
     working_image = corner_subtract(image, **c_args)
-    background, _ = corner_background(image, **c_args)
+    background, _ = corner_background(image, **cb_args)
     rx = dx/2
     ry = dy/2
 
@@ -892,7 +894,7 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
     plt.plot(xp-xc_s, yp-yc_s, ':w')
     plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04) 
-    plt.clim(min_, max_)
+#    plt.clim(min_, max_)
     plt.xlim(-xc_s, h_s-xc_s)
     plt.ylim(v_s-yc_s, -yc_s)
     plt.xlabel(label2)
@@ -935,7 +937,7 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
     plt.subplots_adjust(wspace=0.3)
 
 
-def plot_beam_fit(image, pixel_size=None, vmax=None, units='µm'):
+def plot_beam_fit(image, pixel_size=None, vmax=None, units='µm', **kwargs):
     """
     Plot the image, fitted ellipse, integration area, and center lines.
 
@@ -951,8 +953,11 @@ def plot_beam_fit(image, pixel_size=None, vmax=None, units='µm'):
         dy: vertical diameter of beam
         phi: angle that elliptical beam is rotated [radians]
     """
+    beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
+    bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
+
     v,h = image.shape
-    xc, yc, dx, dy, phi = beam_size(image)
+    xc, yc, dx, dy, phi = beam_size(image, **bs_args)
     if vmax is None:
         vmax = image.max()
 
