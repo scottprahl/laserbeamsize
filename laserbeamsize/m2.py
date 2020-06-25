@@ -346,51 +346,66 @@ def M2_report2(z, dx, dy, phi, lambda0, f=None):
 
     return s
 
-def M2_graph2(z, d, lambda0):
+def fit_plot(z,d,lambda0):
+    
     a, b, c, delta_a, delta_b, delta_c = abc_fit(z, d)
     d0, Theta0, z0, zR, M2 = beam_params(a, b, c, lambda0)
     dd0, dTheta0, dz0, dzR, dM2 = beam_param_errors(a, b, c, delta_a, delta_b, delta_c, lambda0)
-
-    # create fitting function from fitted parameters
-    z_fit = np.linspace(min(z), max(z), 128)
-    d_fit = np.sqrt(a + b * z_fit + c * z_fit**2)
-
-    # Calculate residuals and reduced chi squared
-    resids = d - np.sqrt(a + b * z + c * z**2)
-
-    # Create figure window to plot data
-    fig = plt.figure(1, figsize=(8, 8))
-    gs = matplotlib.gridspec.GridSpec(2, 1, height_ratios=[6, 2])
-
-    # Top plot: data and fit
-    ax1 = fig.add_subplot(gs[0])
-    ax1.plot(z_fit, d_fit, ':k')
-    ax1.plot(z, d, 'or')
-    ax1.set_xlabel('')
-    ax1.set_ylabel('beam diameter (mm)')
-    #ax1.text(0.7, 0.95, 'a = {0:0.1f}$\pm${1:0.1f}'.format(a, delta_a), transform = ax1.transAxes)
-    #ax1.text(0.7, 0.90, 'b = {0:0.6f}$\pm${1:0.4f}'.format(b, delta_b), transform = ax1.transAxes)
-    #ax1.text(0.7, 0.85, 'c = {0:0.7f}$\pm${1:0.7f}'.format(c, delta_c), transform = ax1.transAxes)
-    ax1.text(0.7, 0.95, '$d_0$ = %.2f±%.2f mm' % (d0, dd0), transform=ax1.transAxes)
     theta = Theta0*1000
     dtheta = dTheta0*1000
-    ax1.text(0.7, 0.90, r'$\Theta$  = %.2f±%.2f mrad' % (theta, dtheta), transform=ax1.transAxes)
 
-    ax1.text(0.7, 0.80, '$z_0$  = %.0f±%.0f mm' % (z0, dz0), transform=ax1.transAxes)
-    ax1.text(0.7, 0.75, '$z_R$  = %.0f±%.0f mm' % (zR, dzR), transform=ax1.transAxes)
-    ax1.text(0.7, 0.65, '$M^2$ = %.1f±%.1f ' % (M2, dM2), transform=ax1.transAxes)
+    # fitted line
+    z_fit = np.linspace(min(z), max(z))
+    d_fit = np.sqrt(a + b * z_fit + c * z_fit**2)
 
-    ax1.axvline(z0)
-    ax1.axvline(z0-zR)
+    plt.plot(z_fit, d_fit, ':k')
+    plt.plot(z, d, 'or')
+    plt.xlabel('')
+    plt.ylabel('')
 
-    ax1.axvline(z0+zR)
-    ax1.axhspan(d0+dd0, d0-dd0, alpha=0.2)
-    ax1.axhline(d0, color='black', lw=1)
-    ax1.set_title('$d(z) = a+bz+cz^2$')
+    tax = plt.gca().transAxes
+    plt.text(0.05, 0.95, '$d_0$ = %.2f±%.2f mm' % (d0, dd0), transform=tax)
+    plt.text(0.05, 0.90, r'$\Theta$  = %.2f±%.2f mrad' % (theta, dtheta), transform=tax)
+    plt.text(0.05, 0.80, '$z_0$  = %.0f±%.0f mm' % (z0, dz0), transform=tax)
+    plt.text(0.05, 0.75, '$z_R$  = %.0f±%.0f mm' % (zR, dzR), transform=tax)
+    plt.text(0.05, 0.65, '$M^2$ = %.1f±%.1f ' % (M2, dM2), transform=tax)
 
-    # Bottom plot: residuals
-    ax2 = fig.add_subplot(gs[1])
-    ax2.plot(z, resids, "ro")
-    ax2.axhline(color="gray", zorder=-1)
-    ax2.set_xlabel('axial position $z$ (mm)')
-    ax2.set_ylabel('residuals (mm)')
+    plt.axvline(z0, color='black', lw=1, ls='dashdot')
+    plt.axvspan(z0-zR,z0+zR,color='blue',alpha=0.1)
+#    plt.axvline(z0+zR)
+#    plt.axhspan(d0+dd0, d0-dd0, alpha=0.2)
+    plt.axhline(d0, color='black', lw=1)
+#    plt.title(r'$d^2(z) = d_0^2 + 0.41 M^4 (\lambda/d_0)^2 (z-z_0)^2$')
+    
+    residuals = d - np.sqrt(a + b * z + c * z**2)
+    return residuals, z0, zR
+
+
+def M2_graph2(z, dx, dy, lambda0):
+
+    # Create figure window to plot data
+    fig = plt.figure(1, figsize=(12, 8))
+    gs = matplotlib.gridspec.GridSpec(2, 2, height_ratios=[6, 2])
+
+    fig.add_subplot(gs[0,0])
+    residuals, z0, zR = fit_plot(z,dx,lambda0)
+    plt.ylabel('beam diameter (mm)')
+    plt.title('Semi-major Axis Diameters')
+
+    fig.add_subplot(gs[1,0])
+    plt.plot(z, residuals, "ro")
+    plt.axhline(color="gray", zorder=-1)
+    plt.xlabel('axial position $z$ (mm)')
+    plt.ylabel('residuals (mm)')
+    plt.axvspan(z0-zR,z0+zR,color='blue',alpha=0.1)
+
+    fig.add_subplot(gs[0,1])
+    residuals, z0, zR = fit_plot(z,dy,lambda0)
+    plt.title('Semi-minor Axis Diameters')
+
+    fig.add_subplot(gs[1,1])
+    plt.plot(z, residuals, "ro")
+    plt.axhline(color="gray", zorder=-1)
+    plt.xlabel('axial position $z$ (mm)')
+    plt.ylabel('')
+    plt.axvspan(z0-zR,z0+zR,color='blue',alpha=0.1)
