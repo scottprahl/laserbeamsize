@@ -383,29 +383,41 @@ def fit_plot(z,d,lambda0):
 
 def M2_graph2(z, dx, dy, lambda0):
 
+    ymax = max(np.max(dx),np.max(dy))
+    ymin = min(np.max(dx),np.min(dy))
+    
     # Create figure window to plot data
     fig = plt.figure(1, figsize=(12, 8))
     gs = matplotlib.gridspec.GridSpec(2, 2, height_ratios=[6, 2])
 
     fig.add_subplot(gs[0,0])
-    residuals, z0, zR = fit_plot(z,dx,lambda0)
+    residualsx, z0, zR = fit_plot(z,dx,lambda0)
     plt.ylabel('beam diameter (mm)')
     plt.title('Semi-major Axis Diameters')
+    plt.ylim(0,ymax)
 
     fig.add_subplot(gs[1,0])
-    plt.plot(z, residuals, "ro")
+    ax = plt.gca()
+    plt.plot(z, residualsx, "ro")
     plt.axhline(color="gray", zorder=-1)
     plt.xlabel('axial position $z$ (mm)')
     plt.ylabel('residuals (mm)')
     plt.axvspan(z0-zR,z0+zR,color='blue',alpha=0.1)
 
     fig.add_subplot(gs[0,1])
-    residuals, z0, zR = fit_plot(z,dy,lambda0)
+    residualsy, z0, zR = fit_plot(z,dy,lambda0)
     plt.title('Semi-minor Axis Diameters')
+    plt.ylim(0,ymax)
+
+    ymax = max(np.max(residualsx),np.max(residualsy))
+    ymin = min(np.min(residualsx),np.min(residualsy))
+    ax.set_ylim(ymin,ymax)
 
     fig.add_subplot(gs[1,1])
-    plt.plot(z, residuals, "ro")
+    plt.plot(z, residualsy, "ro")
     plt.axhline(color="gray", zorder=-1)
     plt.xlabel('axial position $z$ (mm)')
     plt.ylabel('')
     plt.axvspan(z0-zR,z0+zR,color='blue',alpha=0.1)
+    plt.ylim(ymin,ymax)
+    
