@@ -1,5 +1,6 @@
 include CHANGELOG.rst
 include LICENSE.txt
+include tem02.png
 exclude docs
 exclude docs/*
 include docs/hene-report.png
