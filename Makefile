@@ -4,10 +4,12 @@ SOURCEDIR     = docs
 BUILDDIR      = docs/_build
 
 check:
-	-pyroma -d .
-	-check-manifest
+	-pylint laserbeamsize/m2.py
+	-pep257 laserbeamsize/m2.py
 	-pylint laserbeamsize/laserbeamsize.py
 	-pep257 laserbeamsize/laserbeamsize.py
+	-pyroma -d .
+	-check-manifest
 
 html:
 	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
