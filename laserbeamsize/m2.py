@@ -126,12 +126,12 @@ def abc_fit(z, d, lambda0):
 
 
     z0 = -b/(2*c)
-    Theta = np.sqrt(c)/2
+    Theta = np.sqrt(c)
     disc = np.sqrt(4*a*c-b*b)/2
     M2 = np.pi/4/lambda0*disc
     d0 = disc / np.sqrt(c)
     zR = disc/c
-    params = [d0, z0, M2, Theta, zR]
+    params = [d0, z0, Theta, M2, zR]
 
 # unpack uncertainties in fitting parameters from diagonal of covariance matrix
 #c_std, b_std, a_std = [np.sqrt(_nlpcov[j, j]) for j in range(nlfit.size)]
@@ -186,17 +186,17 @@ def beam_fit(z, d, lambda0):
     d0_std, z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
 
     # divergence and Rayleigh range of Gaussian beam
-    Theta0 = 2 * lambda0 / (np.pi * d0)
-    zR = np.pi * d0**2 / (2 * lambda0)
+    Theta0 = 4 * lambda0 / (np.pi * d0)
+    zR = np.pi * d0**2 / (4 * lambda0)
 
     M2 = Theta/Theta0
-    zR = np.pi * d0**2 / (2 * lambda0 * M2)
+    zR = np.pi * d0**2 / (4 * lambda0 * M2)
 
     M2_std = M2 * np.sqrt((Theta_std/Theta)**2 + (d0_std/d0)**2)
     zR_std = zR * np.sqrt((M2_std/M2)**2 + (2*d0_std/d0)**2)
 
-    params = [d0, z0, M2, Theta, zR]
-    errors = [d0_std, z0_std, M2_std, Theta_std, zR_std]
+    params = [d0, z0, Theta, M2, zR]
+    errors = [d0_std, z0_std, Theta_std, M2_std, zR_std]
     return params, errors
 
 
@@ -213,19 +213,23 @@ def M2_report(z, d, lambda0, f=None):
         Formatted string suitable for printing.
     """
     params, errors = beam_fit(z, d, lambda0)
-    d0, z0, M2, Theta, zR = params
-    d0_std, z0_std, M2_std, Theta_std, zR_std = errors
+    d0, z0, Theta, M2, zR = params
+    d0_std, z0_std, Theta_std, M2_std, zR_std = errors
 
     tag = ''
     if f is not None:
         tag = " of the focused beam"
 
     s = "Beam propagation parameters derived from hyperbolic fit\n"
-    s += "        M2 = %.2f ± %.2f\n" % (M2, M2_std)
-    s += "        d0 = %.0f ± %.0f µm\n" % (d0*1e6, d0_std*1e6)
-    s += "        z0 = %.0f ± %.0f mm\n" % (z0*1e3, z0_std*1e3)
-    s += "        zR = %.0f ± %.0f mm\n" % (zR*1e3, zR_std*1e3)
-    s += "     theta = %.2f ± %.2f milliradians\n" % (Theta*1e3, Theta_std*1e3)
+    s += "       M^2 = %.2f ± %.2f\n" % (M2, M2_std)
+    s += "\n"
+    s += "       d_0 = %.0f ± %.0f µm\n" % (d0*1e6, d0_std*1e6)
+    s += "       w_0 = %.0f ± %.0f µm\n" % (d0/2*1e6, d0_std/2*1e6)
+    s += "\n"
+    s += "       z_0 = %.0f ± %.0f mm\n" % (z0*1e3, z0_std*1e3)
+    s += "       z_R = %.0f ± %.0f mm\n" % (zR*1e3, zR_std*1e3)
+    s += "\n"
+    s += "     Theta = %.2f ± %.2f milliradians\n" % (Theta*1e3, Theta_std*1e3)
 
     return s
 
@@ -244,12 +248,12 @@ def M2_report2(z, dx, dy, lambda0, f=None):
         Formatted string suitable for printing.
     """
     params, errors = beam_fit(z, dx, lambda0)
-    d0x, z0x, M2x, Thetax, zRx = params
-    d0x_std, z0x_std, M2x_std, Thetax_std, zRx_std = errors
+    d0x, z0x, Thetax, M2x, zRx = params
+    d0x_std, z0x_std, Thetax_std, M2x_std, zRx_std = errors
 
     params, errors = beam_fit(z, dy, lambda0)
-    d0y, z0y, M2y, Thetay, zRy = params
-    d0y_std, z0y_std, M2y_std, Thetay_std, zRy_std = errors
+    d0y, z0y, Thetay, M2y, zRy = params
+    d0y_std, z0y_std, Thetay_std, M2y_std, zRy_std = errors
 
     z0 = (z0x + z0y) / 2
     z0_std = np.sqrt(z0x_std**2 + z0y_std**2)
@@ -331,8 +335,8 @@ def _fit_plot(z, d, lambda0):
         residuals, z0, zR
     """
     params, errors = beam_fit(z, d, lambda0)
-    d0, z0, M2, Theta, zR = params
-    d0_std, z0_std, M2_std, Theta_std, zR_std = errors
+    d0, z0, Theta, M2, zR = params
+    d0_std, z0_std, Theta_std, M2_std, zR_std = errors
 
     # fitted line
     zmin = min(np.min(z), z0-zR)
@@ -455,17 +459,22 @@ def radius_fit_plot(z, d, lambda0):
         nothing
     """
     params, errors = beam_fit(z, d, lambda0)
-    d0, z0, M2, Theta, zR = params
-    d0_std, z0_std, M2_std, Theta_std, zR_std = errors
+    d0, z0, Theta, M2, zR = params
+    d0_std, z0_std, Theta_std, M2_std, zR_std = errors
 
     fig = plt.figure(1, figsize=(12, 8))
+
     # fitted line
-    zmin = min(np.min(z), z0-zR)
-    zmax = max(np.max(z), z0+zR)
+    zmin = min(np.min(z-z0), -4*zR) * 1.05 + z0
+    zmax = max(np.max(z-z0), +4*zR) * 1.05 + z0
+    plt.xlim((zmin-z0)*1e3,(zmax-z0)*1e3)
+
     z_fit = np.linspace(zmin, zmax)
     d_fit = np.sqrt(d0**2 + (Theta*(z_fit-z0))**2)
-    plt.plot((z_fit-z0)*1e3, d_fit*1e6/2, ':k')
-    plt.plot((z_fit-z0)*1e3, -d_fit*1e6/2, ':k')
+    plt.plot((z_fit-z0)*1e3, d_fit*1e6/2, ':r')
+    plt.plot((z_fit-z0)*1e3, -d_fit*1e6/2, ':r')
+    d_fit_lo = np.sqrt((d0-d0_std)**2 + ((Theta-Theta_std)*(z_fit-z0))**2)
+    d_fit_hi = np.sqrt((d0+d0_std)**2 + ((Theta+Theta_std)*(z_fit-z0))**2)
 
     # asymptotes
     r_left = -(z0-zmin)*np.tan(Theta/2)*1e6
@@ -473,27 +482,57 @@ def radius_fit_plot(z, d, lambda0):
     plt.plot([(zmin-z0)*1e3, (zmax-z0)*1e3], [r_left, r_right], '--b')
     plt.plot([(zmin-z0)*1e3, (zmax-z0)*1e3], [-r_left, -r_right], '--b')
 
-    # data points
-    plt.plot((z-z0)*1e3, d*1e6/2, 'or')
-    plt.plot((z-z0)*1e3, -d*1e6/2, 'or')
-    plt.xlabel('')
-    plt.ylabel('')
+    # xticks
+    ticks = [(i*zR)*1e3 for i in range(int((zmin-z0)/zR),int((zmax-z0)/zR)+1)]
+    ticklabels1 = ["%.0f" % (z+z0*1e3) for z in ticks]
+    ticklabels2 = [r"%d $z_R$" % round(z/1e3/zR) for z in ticks]
+    ax1 = plt.gca()
+    ax2 = ax1.twiny()
+    ax1.set_xticks(ticks)
+    ax1.set_xticklabels(ticklabels1, fontsize=14)
+    ax2.set_xbound(ax1.get_xbound())
+    ax2.set_xticks(ticks)
+    ax2.set_xticklabels(ticklabels2, fontsize=14)
 
-#     tax = plt.gca().transAxes
-#     plt.text(0.05, 0.30, '$M^2$ = %.1f±%.1f ' % (M2, M2_std), transform=tax)
-#     plt.text(0.05, 0.25, '$d_0$ = %.0f±%.0f µm' % (d0*1e6, d0_std*1e6), transform=tax)
-#     plt.text(0.05, 0.15, '$z_0$  = %.0f±%.0f mm' % (z0*1e3, z0_std*1e3), transform=tax)
-#     plt.text(0.05, 0.10, '$z_R$  = %.0f±%.0f mm' % (zR*1e3, zR_std*1e3), transform=tax)
-#     plt.text(0.05, 0.05, r'$\Theta$  = %.2f±%.2f mrad' % (Theta*1e3, Theta_std*1e3), transform=tax)
+    ax1.set_xlabel('Axial location in laboratory (mm)', fontsize=14)
+    ax1.set_ylabel('Beam radius (µm)', fontsize=14)
+#    ax2.set_xlabel('Axial location relative to beam waist (Rayleigh distances)', fontsize=14)
+    plt.title('$M^2$ = %.2f±%.2f, $\lambda$=%.0f nm' % (M2, M2_std, lambda0*1e9), fontsize=16)
 
-    plt.axvline(0, color='black', lw=1, ls='dashdot')
-    plt.axvspan((-zR)*1e3, (+zR)*1e3, color='blue', alpha=0.1)
+
+    tax = plt.gca().transAxes
+#     plt.text(0.5, 0.95, '$M^2$ = %.1f±%.1f ' % (M2, M2_std), transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#     plt.text(0.6, 0.5, r'$\Theta$  = %.2f±%.2f mrad' % (Theta*1e3, Theta_std*1e3), transform=tax, ha='left', va='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#     plt.text(0.5, 0.03, '$|z-z_0|<z_R$', transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#     plt.text(0.85, 0.03, '$2z_R < |z-z_0|$', transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#     plt.text(0.15, 0.03, '$|z-z_0|>2z_R$', transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#    plt.text(0.5, 0.95, '$M^2$ = %.1f±%.1f ' % (M2, M2_std), transform=tax, ha='center', fontsize=16)
+    plt.text(0.5, 0.03, '$-z_R<z-z_0<z_R$', transform=tax, ha='center', fontsize=16)
+    plt.text(0.85, 0.03, '$2z_R < z-z_0$', transform=tax, ha='center', fontsize=16)
+    plt.text(0.15, 0.03, '$z-z_0 < -2z_R$', transform=tax, ha='center', fontsize=16)
+    plt.text(2*zR*1e3, 0, r'$\Theta$  = %.2f±%.2f mrad' % (Theta*1e3, Theta_std*1e3), ha='left', va='center', fontsize=16)
+    arc_x = 1.5*zR*1e3
+    arc_y = 1.5*zR*np.tan(Theta/2)*1e6
+    plt.annotate('', (arc_x, -arc_y), (arc_x, arc_y),
+                 arrowprops=dict(arrowstyle="<->",connectionstyle="arc3,rad=-0.2"))
+
+#    plt.axvline(0, color='black', lw=1, ls='dashdot')
+    ax1.axvspan((-zR)*1e3, (+zR)*1e3, color='yellow', alpha=0.2)
+    ax1.axvspan((-2*zR)*1e3, (zmin-z0)*1e3, color='yellow', alpha=0.2)
+    ax1.axvspan((+2*zR)*1e3, (zmax-z0)*1e3, color='yellow', alpha=0.2)
 
 #    plt.axhline(d0*1e6, color='black', lw=1)
 #    plt.axhspan((d0+d0_std)*1e6, (d0-d0_std)*1e6, color='red', alpha=0.1)
-    s = r'$w^2(z) = w_0^2 + (M^4 \Theta^2/4) (z-z_0)^2$'
-    s += r"  $M^2$=%.2f," % M2
-    s += r"  $\Theta$=%.1f mrad" % (1000 * Theta)
-    plt.title(s)
-    plt.xlabel('Distance from beam waist (mm)')
-    plt.ylabel('Beam radius (µm)')
+#    s = r'$w^2(z) = w_0^2 + (M^4 \Theta^2/4) (z-z_0)^2$'
+#    s += r"  $M^2$=%.2f," % M2
+#    s += r"  $\Theta$=%.1f mrad" % (1000 * Theta)
+#    plt.title(s)
+#    ax1.grid(True)
+    ax1.fill_between((z_fit-z0)*1e3, d_fit_lo*1e6/2, d_fit_hi*1e6/2, color='red', alpha=0.5)
+    ax1.fill_between((z_fit-z0)*1e3, -d_fit_lo*1e6/2, -d_fit_hi*1e6/2, color='red', alpha=0.5)
+
+    # data points
+    ax1.plot((z-z0)*1e3, d*1e6/2, 'ok')
+    ax1.plot((z-z0)*1e3, -d*1e6/2, 'ok')
+
+
