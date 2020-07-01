@@ -31,6 +31,8 @@ __all__ = ('z_rayleigh',
            'beam_radius',
            'focused_diameter',
            'abc_fit',
+           'beam_fit',
+           'artificial_to_original',
            'M2_graph',
            'M2_graph2',
            'M2_report',
@@ -200,6 +202,87 @@ def beam_fit(z, d, lambda0):
     return params, errors
 
 
+def M2_string(params, errors):
+    """
+    Return string describing a single set of beam measurements.
+
+    Args:
+        z: array of axial position of beam measurements [m]
+        d: array of beam diameters [m]
+        lambda0: wavelength of the laser [m]
+
+    Returns:
+        Formatted string suitable for printing.
+    """
+    d0, z0, Theta, M2, zR = params
+    d0_std, z0_std, Theta_std, M2_std, zR_std = errors
+    s = ''
+    s += "       M^2 = %.2f ± %.2f\n" % (M2, M2_std)
+    s += "\n"
+    s += "       d_0 = %.0f ± %.0f µm\n" % (d0*1e6, d0_std*1e6)
+    s += "       w_0 = %.0f ± %.0f µm\n" % (d0/2*1e6, d0_std/2*1e6)
+    s += "\n"
+    s += "       z_0 = %.0f ± %.0f mm\n" % (z0*1e3, z0_std*1e3)
+    s += "       z_R = %.0f ± %.0f mm\n" % (zR*1e3, zR_std*1e3)
+    s += "\n"
+    s += "     Theta = %.2f ± %.2f mrad\n" % (Theta*1e3, Theta_std*1e3)
+    return s
+
+
+def artificial_to_original(params, errors, f, haitus=0):
+    """
+    Convert artificial beam parameters to original beam parameters.
+
+    ISO 11146-1 section 9 equations are used to retrieve the original beam
+    parameters from parameters measured for an artificial waist
+    created by focusing the beam with a lens.
+
+    M2 does not change.
+
+    Ideally, the waist position would be relative to the rear principal
+    plane of the lens and the original beam waist position would be corrected
+    by the hiatus between the principal planes of the lens.
+
+    d0: artificial beam waist diameter [m]
+    z0: artificial beam waist position relative to lens surface [m]
+    Theta: full beam divergence angle for artificial beam [radians]
+    M2: beam propagation parameter [-]
+    zR: Rayleigh distance for artificial beam [m]
+
+    The errors that are returned are not quite right at the moment.
+
+    Args:
+        params: [d0, z0, Theta, M2, zR]
+        errors: array with std dev of above parameters
+        f: focal length of lens [m]
+        hiatus: distance between principal planes of focusing lens [m]
+
+    Returns:
+        original beam parameters and errors.
+    """
+    art_d0, art_z0, art_Theta, M2, art_zR = params
+    art_d0_std, art_z0_std, art_Theta_std, M2_std, art_zR_std = errors
+
+    x2 = art_z0 - f
+    V = f / np.sqrt(art_zR**2 + x2**2)
+
+    orig_d0 = V * art_d0
+    orig_d0_std = V * art_d0_std
+
+    orig_z0 = V**2 * art_z0 + f * (1-V**2)
+    orig_z0_std = V**2 * art_z0_std
+
+    orig_zR = V**2 * art_zR
+    orig_zR_std = V**2 * art_zR_std
+
+    orig_Theta = art_Theta/V
+    orig_Theta_std = art_Theta_std/V
+
+    o_params = [orig_d0, orig_z0, orig_Theta, M2, orig_zR]
+    o_errors = [orig_d0_std, orig_z0_std, orig_Theta_std, M2_std, orig_zR_std]
+    return o_params, o_errors
+
+
 def M2_report(z, d, lambda0, f=None):
     """
     Return string describing a single set of beam measurements.
@@ -213,24 +296,17 @@ def M2_report(z, d, lambda0, f=None):
         Formatted string suitable for printing.
     """
     params, errors = beam_fit(z, d, lambda0)
-    d0, z0, Theta, M2, zR = params
-    d0_std, z0_std, Theta_std, M2_std, zR_std = errors
 
-    tag = ''
-    if f is not None:
-        tag = " of the focused beam"
+    if f is None:
+        s = "Beam propagation parameters\n"
+        s += M2_string(params, errors)
+        return s
 
-    s = "Beam propagation parameters derived from hyperbolic fit\n"
-    s += "       M^2 = %.2f ± %.2f\n" % (M2, M2_std)
-    s += "\n"
-    s += "       d_0 = %.0f ± %.0f µm\n" % (d0*1e6, d0_std*1e6)
-    s += "       w_0 = %.0f ± %.0f µm\n" % (d0/2*1e6, d0_std/2*1e6)
-    s += "\n"
-    s += "       z_0 = %.0f ± %.0f mm\n" % (z0*1e3, z0_std*1e3)
-    s += "       z_R = %.0f ± %.0f mm\n" % (zR*1e3, zR_std*1e3)
-    s += "\n"
-    s += "     Theta = %.2f ± %.2f milliradians\n" % (Theta*1e3, Theta_std*1e3)
-
+    s = "Beam propagation parameters for the focused beam\n"
+    s += M2_string(params, errors)
+    o_params, o_errors = artificial_to_original(params, errors, f)
+    s += "\nBeam propagation parameters for the laser beam\n"
+    s += M2_string(o_params, o_errors)
     return s
 
 
@@ -462,12 +538,12 @@ def radius_fit_plot(z, d, lambda0):
     d0, z0, Theta, M2, zR = params
     d0_std, z0_std, Theta_std, M2_std, zR_std = errors
 
-    fig = plt.figure(1, figsize=(12, 8))
+    plt.figure(1, figsize=(12, 8))
 
     # fitted line
     zmin = min(np.min(z-z0), -4*zR) * 1.05 + z0
     zmax = max(np.max(z-z0), +4*zR) * 1.05 + z0
-    plt.xlim((zmin-z0)*1e3,(zmax-z0)*1e3)
+    plt.xlim((zmin-z0)*1e3, (zmax-z0)*1e3)
 
     z_fit = np.linspace(zmin, zmax)
     d_fit = np.sqrt(d0**2 + (Theta*(z_fit-z0))**2)
@@ -483,7 +559,7 @@ def radius_fit_plot(z, d, lambda0):
     plt.plot([(zmin-z0)*1e3, (zmax-z0)*1e3], [-r_left, -r_right], '--b')
 
     # xticks
-    ticks = [(i*zR)*1e3 for i in range(int((zmin-z0)/zR),int((zmax-z0)/zR)+1)]
+    ticks = [(i*zR)*1e3 for i in range(int((zmin-z0)/zR), int((zmax-z0)/zR)+1)]
     ticklabels1 = ["%.0f" % (z+z0*1e3) for z in ticks]
     ticklabels2 = [r"%d $z_R$" % round(z/1e3/zR) for z in ticks]
     ax1 = plt.gca()
@@ -497,7 +573,7 @@ def radius_fit_plot(z, d, lambda0):
     ax1.set_xlabel('Axial location in laboratory (mm)', fontsize=14)
     ax1.set_ylabel('Beam radius (µm)', fontsize=14)
 #    ax2.set_xlabel('Axial location relative to beam waist (Rayleigh distances)', fontsize=14)
-    plt.title('$M^2$ = %.2f±%.2f, $\lambda$=%.0f nm' % (M2, M2_std, lambda0*1e9), fontsize=16)
+    plt.title(r'$M^2$ = %.2f±%.2f, $\lambda$=%.0f nm' % (M2, M2_std, lambda0*1e9), fontsize=16)
 
 
     tax = plt.gca().transAxes
@@ -514,7 +590,7 @@ def radius_fit_plot(z, d, lambda0):
     arc_x = 1.5*zR*1e3
     arc_y = 1.5*zR*np.tan(Theta/2)*1e6
     plt.annotate('', (arc_x, -arc_y), (arc_x, arc_y),
-                 arrowprops=dict(arrowstyle="<->",connectionstyle="arc3,rad=-0.2"))
+                 arrowprops=dict(arrowstyle="<->", connectionstyle="arc3,rad=-0.2"))
 
 #    plt.axvline(0, color='black', lw=1, ls='dashdot')
     ax1.axvspan((-zR)*1e3, (+zR)*1e3, color='yellow', alpha=0.2)
@@ -534,5 +610,3 @@ def radius_fit_plot(z, d, lambda0):
     # data points
     ax1.plot((z-z0)*1e3, d*1e6/2, 'ok')
     ax1.plot((z-z0)*1e3, -d*1e6/2, 'ok')
-
-
