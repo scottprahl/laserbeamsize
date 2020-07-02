@@ -15,7 +15,7 @@ Examples
    06-Beam-Waist.ipynb
    07a-M2-Parameters.ipynb
    07b-M2-Theory.ipynb
-   07c-M2-Measurement.ipynb
+   07c-M2-Fitting.ipynb
    
 .. include:: ../CHANGELOG.rst
 
