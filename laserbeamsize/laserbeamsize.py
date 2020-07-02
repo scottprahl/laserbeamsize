@@ -18,7 +18,7 @@ Finding the center and dimensions of a monochrome image of a beam is simple::
     beam = imageio.imread("t-hene.pgm")
     x, y, dx, dy, phi = lbs.beam_size(beam)
 
-    print("The center of the beam ellipse is at (%.0f, %.0f)" % (x,y))
+    print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
     print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
     print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
     print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi*180/3.1416))
@@ -50,7 +50,6 @@ __all__ = ('subtract_image',
            'draw_beam_figure',
            'ellipse_arrays',
            'elliptical_mask',
-           'plot_image_and_ellipse',
            'major_axis_arrays',
            'minor_axis_arrays',
            'visual_report',
@@ -60,7 +59,7 @@ __all__ = ('subtract_image',
 
 def rotate_points(x, y, x0, y0, phi):
     """
-    Rotate x and y around designated center (x0,y0).
+    Rotate x and y around designated center (x0, y0).
 
     Args:
         x: x-values of point or array of points to be rotated
@@ -70,7 +69,7 @@ def rotate_points(x, y, x0, y0, phi):
         phi: angle to rotate (+ is ccw) in radians
 
     Returns:
-        x,y locations of rotated points
+        x, y locations of rotated points
     """
     xp = x-x0
     yp = y-y0
@@ -89,13 +88,13 @@ def rotate_points(x, y, x0, y0, phi):
 
 def values_along_line(image, x0, y0, x1, y1, N=100):
     """
-    Return x, y, z, and distance values between (x0,y0) and (x1,y1).
+    Return x, y, z, and distance values between (x0, y0) and (x1, y1).
 
     This creates four arrays::
         x: index of horizontal pixel values along line
         y: index of vertical pixel values along line
-        z: image values at each of the x,y positions
-        s: distance from start of minor axis to x,y position
+        z: image values at each of the x, y positions
+        s: distance from start of minor axis to x, y position
 
     Args:
         image: the image to work with
@@ -129,8 +128,8 @@ def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
     This creates four arrays::
         x: index of horizontal pixel values along line
         y: index of vertical pixel values along line
-        z: image values at each of the x,y positions
-        s: distance from start of minor axis to x,y position
+        z: image values at each of the x, y positions
+        s: distance from start of minor axis to x, y position
 
     Args:
         image: the image to work with
@@ -170,8 +169,8 @@ def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
     This creates four arrays::
         x: index of horizontal pixel values along line
         y: index of vertical pixel values along line
-        z: image values at each of the x,y positions
-        s: distance from start of minor axis to x,y position
+        z: image values at each of the x, y positions
+        s: distance from start of minor axis to x, y position
 
     Args:
         image: the image to work with
@@ -276,7 +275,7 @@ def rotate_image(original, x0, y0, phi):
     # center of rotated image, defaults mode='constant' and cval=0.0
     ry, rx = (np.array(rotated.shape)-1)/2.0
 
-    # position of (x0,y0) in rotated image
+    # position of (x0, y0) in rotated image
     new_x0, new_y0 = rotate_points(x0, y0, cx, cy, phi)
     new_x0 += rx - cx
     new_y0 += ry - cy
@@ -317,9 +316,9 @@ def basic_beam_size(image):
 
     The returned parameters are::
 
-        `xc`,`yc` is the center of the elliptical spot.
+        `xc`, `yc` is the center of the elliptical spot.
 
-        `dx`,`dy` is the semi-major/minor diameters of the elliptical spot.
+        `dx`, `dy` is the semi-major/minor diameters of the elliptical spot.
 
         `phi` is tilt of the ellipse from the axis [radians]
 
@@ -511,7 +510,7 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
 
 def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
     """
-    Return x,y arrays to draw a rotated rectangle.
+    Return x, y arrays to draw a rotated rectangle.
 
     Args:
         xc: horizontal center of beam
@@ -521,12 +520,12 @@ def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
         phi: angle that elliptical beam is rotated [radians]
 
     Returns:
-        x,y : two arrays for points on corners of rotated rectangle
+        x, y : two arrays for points on corners of rotated rectangle
     """
     rx = mask_diameters * dx / 2
     ry = mask_diameters * dy / 2
 
-    # rectangle with center at (xc,yc)
+    # rectangle with center at (xc, yc)
     x = np.array([-rx, -rx, +rx, +rx, -rx]) + xc
     y = np.array([-ry, +ry, +ry, -ry, -ry]) + yc
 
@@ -537,7 +536,7 @@ def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
 
 def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
     """
-    Return x,y arrays needed to draw semi-axes of ellipse.
+    Return x, y arrays needed to draw semi-axes of ellipse.
 
     Args:
         xc: horizontal center of beam
@@ -547,12 +546,12 @@ def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
         phi: angle that elliptical beam is rotated [radians]
 
     Returns:
-        x,y arrays needed to draw semi-axes of ellipse
+        x, y arrays needed to draw semi-axes of ellipse
     """
     rx = mask_diameters * dx / 2
     ry = mask_diameters * dy / 2
 
-    # major and minor ellipse axes with center at (xc,yc)
+    # major and minor ellipse axes with center at (xc, yc)
     x = np.array([-rx, rx, 0, 0, 0]) + xc
     y = np.array([0, 0, 0, -ry, ry]) + yc
 
@@ -591,9 +590,9 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
 
     The returned parameters are::
 
-        `xc`,`yc` is the center of the elliptical spot.
+        `xc`, `yc` is the center of the elliptical spot.
 
-        `dx`,`dy` are the diameters of the elliptical spot.
+        `dx`, `dy` are the diameters of the elliptical spot.
 
         `phi` is tilt of the ellipse from the axis [radians]
 
@@ -676,7 +675,7 @@ def beam_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
 
 def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     """
-    Return x,y arrays to draw a rotated ellipse.
+    Return x, y arrays to draw a rotated ellipse.
 
     Args:
         xc: horizontal center of beam
@@ -685,7 +684,7 @@ def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
         dy: vertical diameter of beam
         phi: angle that elliptical beam is rotated [radians]
     Returns:
-        x,y : two arrays of points on the ellipse
+        x, y : two arrays of points on the ellipse
     """
     t = np.linspace(0, 2*np.pi, npoints)
     a = dx/2*np.cos(t)
@@ -693,41 +692,6 @@ def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     xp = xc + a*np.cos(phi) - b*np.sin(phi)
     yp = yc - a*np.sin(phi) - b*np.cos(phi)
     return np.array([xp, yp])
-
-
-def plot_image_and_ellipse(image, xc, yc, dx, dy, phi, scale=1):
-    """
-    Plot the image, an ellipse, and center lines.
-
-    Args:
-        image: 2D array of image with beam spot
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
-        scale: factor to increase/decrease ellipse size
-    """
-    v, h = image.shape
-    xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
-    xp *= scale
-    yp *= scale
-    xcc = xc * scale
-    ycc = yc * scale
-    dxx = dx * scale
-    dyy = dy * scale
-    ph = phi * 180/np.pi
-
-    # show the beam image with actual dimensions on the axes
-    plt.imshow(image, extent=[0, h*scale, v*scale, 0], cmap='gray')
-    plt.plot(xp, yp, ':y')
-    plt.plot([xcc, xcc], [0, v*scale], ':y')
-    plt.plot([0, h*scale], [ycc, ycc], ':y')
-    plt.title(r'c=(%.0f,%.0f), (dx,dy)=(%.1f,%.1f), $\phi$=%.1f°' %
-              (xcc, ycc, dxx, dyy, ph))
-    plt.xlim(0, h*scale)
-    plt.ylim(v*scale, 0)
-    plt.colorbar()
 
 
 def basic_beam_size_naive(image):
@@ -811,7 +775,7 @@ def draw_beam_figure():
 
     plt.annotate(r'$\phi$', xy=(13, -2.5), fontsize=16)
     plt.annotate('', xy=(15.5, 0), xytext=(
-        14, -8.0), arrowprops=dict(arrowstyle="<-", connectionstyle="arc3,rad=-0.2"))
+        14, -8.0), arrowprops=dict(arrowstyle="<-", connectionstyle="arc3, rad=-0.2"))
 
     plt.annotate(r'$d_x$', xy=(-17, 7), color='blue', fontsize=16)
     plt.annotate(r'$d_y$', xy=(-4, -8), color='red', fontsize=16)
@@ -821,13 +785,45 @@ def draw_beam_figure():
     plt.axis('off')
 
 
-def visual_report(image, title='Original', pixel_size=None, units='µm', **kwargs):
+def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
+    """
+    Return image cropped to integration rectangle.
+
+    Since the image is being cropped, the center of the beam will move.
+
+    Args:
+        image: image of beam
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: horizontal diameter of beam
+        dy: vertical diameter of beam
+        phi: angle that elliptical beam is rotated [radians]
+    Returns:
+        cropped_image: cropped image
+        new_xc: x-position of beam center in cropped image
+        new_yc: y-position of beam center in cropped image
+    """
+    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
+    v, h = image.shape
+    xmin = max(0, int(min(xp)))
+    xmax = min(h, int(max(xp)))
+    ymin = max(0, int(min(yp)))
+    ymax = min(v, int(max(yp)))
+    new_xc = xc-xmin
+    new_yc = yc-ymin
+    return image[ymin:ymax, xmin:xmax], new_xc, new_yc
+
+
+def visual_report(o_image, title='Original', pixel_size=None, units='µm', crop=False, **kwargs):
     """
     Create a visual report for image fitting.
 
     Args:
         image: 2D image of laser beam
         title: optional title for upper left plot
+        pixel_size: (optional) size of pixels
+        units: (optional) string used for units used on axes
+        crop: (optional) crop image to integration rectangle
     Returns:
         nothing
     """
@@ -851,7 +847,13 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
 
     cb_args = dict((k, kwargs[k]) for k in ['corner_fraction'] if k in kwargs)
 
-    xc, yc, dx, dy, phi = beam_size(image, **bs_args)
+    xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
+
+    if crop:
+        image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
+    else:
+        image = o_image
+
     working_image = corner_subtract(image, **c_args)
     background, _ = corner_background(image, **cb_args)
     rx = dx/2
@@ -868,14 +870,14 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
     yc_s = yc * scale
     dx_s = dx * scale
     dy_s = dy * scale
-    
+
     plt.subplots(2, 2, figsize=(12, 12))
     plt.subplots_adjust(right=1.0)
 
     # original image
     plt.subplot(2, 2, 1)
     im = plt.imshow(image, extent=[0, h_s, v_s, 0], cmap='gist_ncar')
-    plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04) 
+    plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04)
     plt.clim(min_, max_)
     plt.xlim(0, h_s)
     plt.ylim(v_s, 0)
@@ -885,7 +887,7 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
 
     # working image
     plt.subplot(2, 2, 2)
-    extent=np.array([-xc_s, h_s-xc_s, v_s-yc_s, -yc_s])
+    extent = np.array([-xc_s, h_s-xc_s, v_s-yc_s, -yc_s])
     im = plt.imshow(working_image, extent=extent, cmap='gist_ncar')
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
     plt.plot(xp-xc_s, yp-yc_s, 'w')
@@ -893,7 +895,7 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
     plt.plot(xp-xc_s, yp-yc_s, ':w')
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
     plt.plot(xp-xc_s, yp-yc_s, ':w')
-    plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04) 
+    plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04)
 #    plt.clim(min_, max_)
     plt.xlim(-xc_s, h_s-xc_s)
     plt.ylim(v_s-yc_s, -yc_s)
@@ -910,7 +912,7 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
     plt.plot(s*scale, z, 'b')
     plt.plot(s*scale, a*np.exp(-2*(s/rx)**2)+background, ':k')
     plt.annotate('', (-rx*scale, baseline), (rx*scale, baseline), arrowprops=dict(arrowstyle="<->"))
-    plt.text(0, 1.1*baseline, 'dx=%.0f %s' % (dx_s,units), va='bottom', ha='center')
+    plt.text(0, 1.1*baseline, 'dx=%.0f %s' % (dx_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Major Axis')
@@ -926,18 +928,18 @@ def visual_report(image, title='Original', pixel_size=None, units='µm', **kwarg
     plt.plot(s*scale, z, 'b')
     plt.plot(s*scale, a*np.exp(-2*(s/ry)**2)+background, ':k', label='fitted')
     plt.annotate('', (-ry*scale, baseline), (ry*scale, baseline), arrowprops=dict(arrowstyle="<->"))
-    plt.text(0, 1.1*baseline, 'dy=%.0f %s' % (dy_s,units), va='bottom', ha='center')
+    plt.text(0, 1.1*baseline, 'dy=%.0f %s' % (dy_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Minor Axis')
     plt.title('Semi-Minor Axis')
     plt.gca().set_ylim(bottom=0)
-    
+
     # add more horizontal space between plots
     plt.subplots_adjust(wspace=0.3)
 
 
-def plot_beam_fit(image, pixel_size=None, vmax=None, units='µm', **kwargs):
+def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, **kwargs):
     """
     Plot the image, fitted ellipse, integration area, and center lines.
 
@@ -946,6 +948,7 @@ def plot_beam_fit(image, pixel_size=None, vmax=None, units='µm', **kwargs):
         pixel_size: (optional) size of pixels
         vmax: (optional) maximum value for colorbar
         units: (optional) string used for units used on axes
+        crop: (optional) crop image to integration rectangle
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
@@ -956,8 +959,14 @@ def plot_beam_fit(image, pixel_size=None, vmax=None, units='µm', **kwargs):
     beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
     bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
 
-    v,h = image.shape
-    xc, yc, dx, dy, phi = beam_size(image, **bs_args)
+    xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
+
+    if crop:
+        image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
+    else:
+        image = o_image
+
+    v, h = image.shape
     if vmax is None:
         vmax = image.max()
 
@@ -968,23 +977,23 @@ def plot_beam_fit(image, pixel_size=None, vmax=None, units='µm', **kwargs):
         scale = pixel_size
         label = 'Position (%s)' % units
 
-    extent = np.array([-xc,h-xc,v-yc,-yc])*scale
+    extent = np.array([-xc, h-xc, v-yc, -yc])*scale
     plt.imshow(image, extent=extent, cmap='gist_ncar', vmax=vmax)
     plt.xlabel(label)
     plt.ylabel(label)
 
-    xp,yp = axes_arrays(xc, yc, dx, dy, phi)
+    xp, yp = axes_arrays(xc, yc, dx, dy, phi)
     plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
 
     # show ellipse around beam
-    xp,yp = ellipse_arrays(xc, yc, dx, dy, phi)
+    xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
     plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
 
     # show integration area around beam
-    xp,yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
+    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
     plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
 
     plt.xlim(-xc*scale, (h-xc)*scale)
     plt.ylim((v-yc)*scale, -yc*scale)
-    
+
     return xc, yc, dx, dy, phi

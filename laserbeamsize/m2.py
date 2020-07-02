@@ -24,26 +24,29 @@ Finding the center and dimensions of a monochrome image of a beam is simple::
 import numpy as np
 import matplotlib.gridspec
 import matplotlib.pyplot as plt
+import scipy.optimize
 
 
 __all__ = ('z_rayleigh',
            'beam_radius',
            'focused_diameter',
            'abc_fit',
-           'beam_params',
-           'beam_param_errors',
-           'M2_analysis',
+           'basic_beam_fit',
+           'beam_fit',
+           'artificial_to_original',
            'M2_graph',
            'M2_graph2',
            'M2_report',
            'M2_report2',
+           'radius_fit_plot',
            )
 
 def z_rayleigh(w0, lambda0):
     """
-    Return the Rayleigh distance.
+    Return the Rayleigh distance for a Gaussian beam.
+
     Args:
-        w0 : minimum beam radius [m]
+        w0: minimum beam radius [m]
         lambda0: wavelength of light [m]
     Returns:
         distance where irradiance drops by 1/2 [m]
@@ -56,11 +59,11 @@ def beam_radius(w0, lambda0, z, M2=1, z0=0, model='laboratory'):
     Return the beam radius at an axial location.
 
     Args:
-        w0 : minimum beam radius [m]
-        z0 : axial location of beam waist [m]
-        M2 : beam propagation factor [-]
+        w0: minimum beam radius [m]
+        z0: axial location of beam waist [m]
+        M2: beam propagation factor [-]
         lambda0: wavelength of light [m]
-        z : axial location of desired beam radius [m]
+        z: axial location of desired beam radius [m]
     Returns:
         Beam radius [m]
     """
@@ -84,246 +87,402 @@ def focused_diameter(f, lambda0, d, M2=1):
 
     Args:
         lambda0: wavelength of light [m]
-        f : focal length of lens [m]
-        d : diameter of limiting aperture [m]
-        M2: beam propagation factor
+        f: focal length of lens [m]
+        d: diameter of limiting aperture [m]
+        M2: beam propagation factor [-]
     Returns:
         Beam diameter [m]
     """
     return 4 * M2**2 * lambda0 * f / (np.pi * d)
 
-def _quad_fn(z, a, b, c):
-    return a + b*z + c*z*z
 
-def abc_fit(z, d):
+def abc_fit(z, d, lambda0):
     """
-    Return the hyperbolic fit to the measured diameters.
+    Return beam parameters for beam diameter measurements.
 
-    Follows ISO 11146-1 section 9
+    Follows ISO 11146-1 section 9 and uses the standard `polyfit` routine
+    in `numpy` to find the coefficients `a`, `b`, and `c`.
 
     d(z)**2 = a + b*z + c*z**2
 
+    These coefficients are used to determine the beam parameters using
+    equations 25-29 from ISO 11146-1.
+
+    Unfortunately, standard error propagation fails to accurately determine
+    the standard deviations of these parameters.  Therefore the error calculation
+    lines are commented out and only the beam parameters are returned.
+
     Args:
-        z : axial position of beam measurement [mm]
-        d : beam diameter [mm]
+        z: axial position of beam measurement [m]
+        d: beam diameter [m]
     Returns:
-        coefficients and their errors
+        d0: beam waist diameter [m]
+        z0: axial location of beam waist [m]
+        M2: beam propagation parameter [-]
+        Theta: full beam divergence angle [radians]
+        zR: Rayleigh distance [m]
     """
-    # fit data using SciPy's Levenberg-Marquart method
-    nlfit, nlpcov = np.polyfit(z, d**2, 2, cov=True)
+    nlfit, _nlpcov = np.polyfit(z, d**2, 2, cov=True)
 
     # unpack fitting parameters
     c, b, a = nlfit
 
-    # unpack uncertainties in fitting parameters from diagonal of covariance matrix
-    delta_c, delta_b, delta_a = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
 
-    return a, b, c, delta_a, delta_b, delta_c
-
-
-def abc_fit_old(z, d):
-    """
-    Return the hyperbolic fit to the measured diameters.
-
-    Follows ISO 11146-1 section 9
-
-    d(z)**2 = a + b*z + c*z**2
-
-    Args:
-        z : axial position of beam measurement [mm]
-        d : beam diameter [mm]
-    Returns:
-        coefficients and their errors
-    """
-    # fit data using SciPy's Levenberg-Marquart method
-    nlfit, nlpcov = scipy.optimize.curve_fit(_quad_fn, z, d**2)
-
-    # unpack fitting parameters
-    a, b, c = nlfit
-
-    # unpack uncertainties in fitting parameters from diagonal of covariance matrix
-    delta_a, delta_b, delta_c = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
-
-    return a, b, c, delta_a, delta_b, delta_c
-
-
-def beam_params(a, b, c, lambda0):
-    """"
-    Return beam parameters associated with hyperbolic fit
-
-    d**2(z) = a + b*z + c*z
-
-    Args:
-        a, b, c: fitted coefficients
-        lambda0: wavelength [mm]
-    Returns:
-        d0, Theta0, z0, zR, M2
-    """
     z0 = -b/(2*c)
-    Theta0 = np.sqrt(c)/2
-
+    Theta = np.sqrt(c)
     disc = np.sqrt(4*a*c-b*b)/2
     M2 = np.pi/4/lambda0*disc
     d0 = disc / np.sqrt(c)
     zR = disc/c
+    params = [d0, z0, Theta, M2, zR]
 
-    return d0, Theta0, z0, zR, M2
+# unpack uncertainties in fitting parameters from diagonal of covariance matrix
+#c_std, b_std, a_std = [np.sqrt(_nlpcov[j, j]) for j in range(nlfit.size)]
+#z0_std = z0*np.sqrt(b_std**2/b**2 + c_std**2/c**2)
+#d0_std = np.sqrt((4*c**2*a_std)**2 + (2*b*c*b_std)**2 + (b**2*c_std)**2) / (8*c**2*d0)
+#Theta_std = c_std/2/np.sqrt(c)
+#zR_std = np.sqrt(4*c**4*a_std**2 + b**2*c**2*b_std**2 + (b**2-2*a*c)**2*c_std**2)/(4*c**3) / zR
+#M2_std = np.pi**2 * np.sqrt(4*c**2*a_std**2 + b**2*b_std**2 + 4*a**2*c_std**2)/(64*lambda0**2) / M2
+#errors = [d0_std, z0_std, M2_std, Theta_std, zR_std]
+    return params
 
 
-def beam_param_errors(a, b, c, delta_a, delta_b, delta_c, lambda0):
-    """"
-    Return errors in beam parameters associated with hyperbolic fit
+def _beam_diameter_squared(z, d0, z0, Theta):
+    """Fitting function."""
+    return d0**2 + (Theta*(z-z0))**2
 
-    d**2(z) = a + b*z + c*z
+def basic_beam_fit(z, d, lambda0):
+    """
+    Return the hyperbolic fit to the supplied diameters.
+
+    Follows ISO 11146-1 section 9 but `a`, `b`, and `c` have been
+    replaced by beam parameters `d0`, `z0`, and Theta.  The equation
+    for the beam diameter `d(z)` is
+
+    d(z)**2 = d0**2 + Theta**2 * (z-z0)**2
+
+    A non-linear curve fit is done to determine the beam parameters and the
+    standard deviations of those parameters.  The beam parameters are returned
+    in one array and the errors in a separate array::
+
+        d0: beam waist diameter [m]
+        z0: axial location of beam waist [m]
+        M2: beam propagation parameter [-]
+        Theta: full beam divergence angle [radians]
+        zR: Rayleigh distance [m]
 
     Args:
-        a, b, c: fitted coefficients
-        lambda0: wavelength [mm]
+        z: array of axial position of beam measurements [m]
+        d: array of beam diameters [m]
+        lambda0: wavelength of the laser [m]
+
     Returns:
-        dd0, dTheta0, dz0, dzR, dM2
+        params, errors
     """
-    d0, _, z0, zR, M2 = beam_params(a, b, c, lambda0)
+    # approximate answer
+    i = np.argmin(d)
+    d0_guess = d[i]
+    z0_guess = z[i]
+    i = np.argmax(abs(z))
+    theta_guess = abs(z[i]/d[i])
+    p0 = [d0_guess, z0_guess, theta_guess]
 
-    delta_z0 = z0*np.sqrt(delta_b**2/b**2 + delta_c**2/c**2)
+    # fit data using SciPy's Levenberg-Marquart method
+    nlfit, nlpcov = scipy.optimize.curve_fit(_beam_diameter_squared, z, d**2, p0=p0)
 
-    delta_d0 = np.sqrt(delta_a**2/4 + (b*delta_b/4/c)**2 + (b**2*delta_c/8/c**2)**2) / d0
+    # unpack fitting parameters
+    d0, z0, Theta = nlfit
 
-    delta_Theta0 = delta_c/2/np.sqrt(c)
+    # unpack uncertainties in fitting parameters from diagonal of covariance matrix
+    d0_std, z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
 
-    delta_zR = np.sqrt(4*c**4*delta_a**2 + b**2*c**2*delta_b**2 + (b**2-2*a*c)**2*delta_c**2)/(4*c**3) / zR
+    # divergence and Rayleigh range of Gaussian beam
+    Theta0 = 4 * lambda0 / (np.pi * d0)
+    zR = np.pi * d0**2 / (4 * lambda0)
 
-    delta_M2 = np.pi**2 * np.sqrt(4*c**2*delta_a**2 + b**2*delta_b**2 + 4*a**2*delta_c**2)/(64*lambda0**2) / M2
+    M2 = Theta/Theta0
+    zR = np.pi * d0**2 / (4 * lambda0 * M2)
 
-    return delta_d0, delta_Theta0, delta_z0, delta_zR, delta_M2
+    M2_std = M2 * np.sqrt((Theta_std/Theta)**2 + (d0_std/d0)**2)
+    zR_std = zR * np.sqrt((M2_std/M2)**2 + (2*d0_std/d0)**2)
+
+    params = [d0, z0, Theta, M2, zR]
+    errors = [d0_std, z0_std, Theta_std, M2_std, zR_std]
+    return params, errors
+
+def max_index_in_focal_zone(z, zone):
+    """Return index farthest from focus in inner zone."""
+    _max = -1e32
+    imax = None
+    for i, zz in enumerate(z):
+        if zone[i] == 1:
+            if _max < zz:
+                _max = zz
+                imax = i
+    return imax
+
+def min_index_in_outer_zone(z, zone):
+    """Return index of measurement closest to focus in outer zone."""
+    _min = 1e32
+    imin = None
+    for i, zz in enumerate(z):
+        if zone[i] == 2:
+            if zz < _min:
+                _min = zz
+                imin = i
+    return imin
 
 
-def M2_graph(z, d, lambda0, extra=0.2):
+def beam_fit(z, d, lambda0, strict=False):
+    """
+    Return the hyperbolic fit to the supplied diameters.
 
-    c, b, a = np.polyfit(z, d**2, 2)
-    d0, Theta0, z0, zR, M2 = beam_params(a, b, c, lambda0)
+    See `base_beam_fit()` for details.
 
-    zz = np.linspace(min(z)*(1-extra), max(z)*(1+extra), 100)
-    ffit = np.sqrt(a + b * zz + c * zz**2)
-    plt.plot(zz, ffit/2, ':k')
-    plt.plot(zz, -ffit/2, ':k')
+    This function differs when strict is True.  In this case, an estimate
+    is made for the location of the beam focus and the Rayleigh distance.
+    These values are then used to divide the measurements into three zones:
+    those within one Rayleigh distance of the focus, those between 1 and 2
+    Rayleigh distances, and those beyond two Rayleigh distances.
 
-    plt.plot(z, d/2, 'ob', markersize=2)
-    plt.plot(z, -d/2, 'ob', markersize=2)
-    plt.title(r'$\Theta$=%.2f mradians, $M^2$=%.2f' % (Theta0, M2))
+    The ISO 11146-1 states::
+        ... measurements at at least 10 different z positions shall be taken.
+        Approximately half of the measurements shall be distributed within
+        one Rayleigh length on either side of the beam waist, and approximately
+        half of them shall be distributed beyond two Rayleigh lengths
+        from the beam waist.
 
-    plt.axvline(z0)
-    plt.axvline(z0-zR)
+    Args:
+        z: array of axial position of beam measurements [m]
+        d: array of beam diameters [m]
+        lambda0: wavelength of the laser [m]
+        strict: boolean to indicate strict application of ISO 11146
 
-    plt.axhline(w0)
-    plt.axhline(-w0)
+    Returns:
+        params, errors, used
+    """
+
+    used = np.full_like(z, True, dtype=bool)
+    params, errors = basic_beam_fit(z, d, lambda0)
+    if not strict:
+        return params, errors, used
+
+    # identify zones (0=unused, 1=focal region, 2=outer region)
+    z0 = params[1]
+    zR = params[4]
+
+    zone = np.zeros_like(z)
+    for i, zz in enumerate(z):
+        if abs(zz-z0) <= 1.01*zR:
+            zone[i] = 1
+        if 1.99*zR <= abs(zz-z0):
+            zone[i] = 2
+
+    # count points in each zone
+    n_focal = np.sum(zone == 1)
+    n_outer = np.sum(zone == 2)
+
+    if n_focal+n_outer < 10 or n_focal < 4 or n_outer < 4:
+        print("Invalid distribution of measurements for ISO 11146")
+        print("%d points within 1 Rayleigh distance" % n_focal)
+        print("%d points greater than 2 Rayleigh distances" % n_outer)
+        return params, errors, used
+
+    # mark extra points in outer zone closest to focus as unused
+    extra = n_outer-n_focal
+    if n_focal == 4:
+        extra = n_outer - 6
+    for _ in range(extra):
+        zone[min_index_in_outer_zone(abs(z-z0), zone)] = 0
+
+    # mark extra points in focal zone farthest from focus as unused
+    extra = n_outer-n_focal
+    if n_outer == 4:
+        extra = n_focal - 6
+    for _ in range(n_focal-n_outer):
+        zone[max_index_in_focal_zone(abs(z-z0), zone)] = 0
+
+    # now find beam parameters with 50% focal and 50% outer zone values
+    used = zone != 0
+    dd = d[used]
+    zz = z[used]
+    params, errors = basic_beam_fit(zz, dd, lambda0)
+    return params, errors, used
 
 
-def M2_report(z, d, lambda0):
+def M2_string(params, errors):
+    """
+    Return string describing a single set of beam measurements.
 
-    c, b, a = np.polyfit(z, d**2, 2)
-    d0, Theta0, z0, zR, M2 = beam_params(a, b, c, lambda0)
-    w0 = d0/2
+    Args:
+        z: array of axial position of beam measurements [m]
+        d: array of beam diameters [m]
+        lambda0: wavelength of the laser [m]
 
-    s = "M2    = %.2f\n" % M2
-    s += "w0    = %.2f mm\n" % w0
-    s += "Theta = %.2f milliradians\n" % (1000*Theta0)
-    s += "zR    = %.0f mm\n" % zR
-    s += "z0    = %.0f mm\n" % z0
-
+    Returns:
+        Formatted string suitable for printing.
+    """
+    d0, z0, Theta, M2, zR = params
+    d0_std, z0_std, Theta_std, M2_std, zR_std = errors
+    s = ''
+    s += "       M^2 = %.2f ± %.2f\n" % (M2, M2_std)
+    s += "\n"
+    s += "       d_0 = %.0f ± %.0f µm\n" % (d0*1e6, d0_std*1e6)
+    s += "       w_0 = %.0f ± %.0f µm\n" % (d0/2*1e6, d0_std/2*1e6)
+    s += "\n"
+    s += "       z_0 = %.0f ± %.0f mm\n" % (z0*1e3, z0_std*1e3)
+    s += "       z_R = %.0f ± %.0f mm\n" % (zR*1e3, zR_std*1e3)
+    s += "\n"
+    s += "     Theta = %.2f ± %.2f mrad\n" % (Theta*1e3, Theta_std*1e3)
     return s
 
 
-def M2_analysis(z, dx, dy, lambda0, f):
+def artificial_to_original(params, errors, f, hiatus=0):
+    """
+    Convert artificial beam parameters to original beam parameters.
 
-    cx, bx, ax = np.polyfit(z, dx**2, 2)
-    d0x, Theta0x, z0x, zRx, M2x = beam_params(ax, bx, cx, lambda0)
-    w0x = d0x/2
+    ISO 11146-1 section 9 equations are used to retrieve the original beam
+    parameters from parameters measured for an artificial waist
+    created by focusing the beam with a lens.
 
-    cy, by, ay = np.polyfit(z, dy**2, 2)
-    d0y, Theta0y, z0y, zRy, M2y = beam_params(ay, by, cy, lambda0)
-    w0y = d0y/2
+    M2 does not change.
 
-#    w0 = np.sqrt((w0x**2 + w0y**2)/2)
-#    delta_z0 = abs(z0x - z0y)
+    Ideally, the waist position would be relative to the rear principal
+    plane of the lens and the original beam waist position would be corrected
+    by the hiatus between the principal planes of the lens.
 
-    s = "M2    = %.2f\n" % M2x
-    s += "w0    = %.2f mm\n" % w0x
-    s += "Theta = %.2f milliradians\n" % (1000*Theta0x)
-    s += "zR    = %.0f mm\n" % zRx
-    s += "beam waist z0    = %.0f mm\n" % z0x
+    d0: artificial beam waist diameter [m]
+    z0: artificial beam waist position relative to lens surface [m]
+    Theta: full beam divergence angle for artificial beam [radians]
+    M2: beam propagation parameter [-]
+    zR: Rayleigh distance for artificial beam [m]
 
-    s = "M2    = %.2f\n" % M2y
-    s += "w0    = %.2f mm\n" % w0y
-    s += "Theta = %.2f milliradians\n" % (1000*Theta0y)
-    s += "zR    = %.0f mm\n" % zRy
-    s += "beam waist z0    = %.0f mm\n" % z0y
+    The errors that are returned are not quite right at the moment.
 
+    Args:
+        params: [d0, z0, Theta, M2, zR]
+        errors: array with std dev of above parameters
+        f: focal length of lens [m]
+        hiatus: distance between principal planes of focusing lens [m]
+
+    Returns:
+        original beam parameters and errors.
+    """
+    art_d0, art_z0, art_Theta, M2, art_zR = params
+    art_d0_std, art_z0_std, art_Theta_std, M2_std, art_zR_std = errors
+
+    x2 = art_z0 - f
+    V = f / np.sqrt(art_zR**2 + x2**2)
+
+    orig_d0 = V * art_d0
+    orig_d0_std = V * art_d0_std
+
+    orig_z0 = V**2 * x2 + f - hiatus
+    orig_z0_std = V**2 * art_z0_std
+
+    orig_zR = V**2 * art_zR
+    orig_zR_std = V**2 * art_zR_std
+
+    orig_Theta = art_Theta/V
+    orig_Theta_std = art_Theta_std/V
+
+    o_params = [orig_d0, orig_z0, orig_Theta, M2, orig_zR]
+    o_errors = [orig_d0_std, orig_z0_std, orig_Theta_std, M2_std, orig_zR_std]
+    return o_params, o_errors
+
+
+def M2_report(z, d, lambda0, f=None, strict=False):
+    """
+    Return string describing a single set of beam measurements.
+
+    Args:
+        z: array of axial position of beam measurements [m]
+        d: array of beam diameters [m]
+        lambda0: wavelength of the laser [m]
+
+    Returns:
+        Formatted string suitable for printing.
+    """
+    params, errors, _ = beam_fit(z, d, lambda0, strict)
+
+    if f is None:
+        s = "Beam propagation parameters\n"
+        s += M2_string(params, errors)
+        return s
+
+    s = "Beam propagation parameters for the focused beam\n"
+    s += M2_string(params, errors)
+    o_params, o_errors = artificial_to_original(params, errors, f)
+    s += "\nBeam propagation parameters for the laser beam\n"
+    s += M2_string(o_params, o_errors)
     return s
 
 
-def M2_report2(z, dx, dy, phi, lambda0, f=None):
+def M2_report2(z, dx, dy, lambda0, f=None, strict=False):
+    """
+    Return string describing a two sets of beam measurements.
 
-    a, b, c, delta_a, delta_b, delta_c = lbs.abc_fit(z, dx)
-    d0x, Theta0x, z0x, zRx, M2x = lbs.beam_params(a, b, c, lambda0)
-    dd0x, dTheta0x, dz0x, dzRx, dM2x = lbs.beam_param_errors(a, b, c, delta_a, delta_b, delta_c, lambda0)
+    Args:
+        z: array of axial position of beam measurements [m]
+        dx: array of beam diameters for semi-major axis [m]
+        dy: array of beam diameters for semi-minor axis [m]
+        lambda0: wavelength of the laser [m]
 
-    a, b, c, delta_a, delta_b, delta_c = lbs.abc_fit(z, dy)
-    d0y, Theta0y, z0y, zRy, M2y = lbs.beam_params(a, b, c, lambda0)
-    dd0y, dTheta0y, dz0y, dzRy, dM2y = lbs.beam_param_errors(a, b, c, delta_a, delta_b, delta_c, lambda0)
+    Returns:
+        Formatted string suitable for printing.
+    """
+    params, errors, _ = beam_fit(z, dx, lambda0, strict)
+    d0x, z0x, Thetax, M2x, zRx = params
+    d0x_std, z0x_std, Thetax_std, M2x_std, zRx_std = errors
 
-    w0x = d0x/2
-    w0y = d0y/2
+    params, errors, _ = beam_fit(z, dy, lambda0, strict)
+    d0y, z0y, Thetay, M2y, zRy = params
+    d0y_std, z0y_std, Thetay_std, M2y_std, zRy_std = errors
 
     z0 = (z0x + z0y) / 2
-    dz0 = np.sqrt((dz0x**2+dz0y**2)/2)
+    z0_std = np.sqrt(z0x_std**2 + z0y_std**2)
 
     d0 = (d0x + d0y) / 2
-    dd0 = np.sqrt((dd0x**2+dd0y**2)/2)
+    d0_std = np.sqrt(d0x_std**2 + d0y_std**2)
 
     zR = (zRx + zRy) / 2
-    dzR = np.sqrt((dzRx**2+dzRy**2)/2)
+    zR_std = np.sqrt(zRx_std**2 + zRy_std**2)
 
-    Theta0 = (Theta0x + Theta0y) / 2
-    dTheta0 = np.sqrt((dTheta0x**2+dTheta0y**2)/2)
+    Theta = (Thetax + Thetay) / 2
+    Theta_std = np.sqrt(Thetax_std**2 + Thetay_std**2)
 
-    M2 = (M2x + M2y) / 2
-    dM2 = np.sqrt((dM2x**2+dM2y**2)/2)
-
-    phi_ave = np.degrees(np.mean(phi))
-    phi_std = np.degrees(np.std(phi))
+    M2 = np.sqrt(M2x * M2y)
+    M2_std = np.sqrt(M2x_std**2 + M2y_std**2)
 
     tag = ''
     if f is not None:
         tag = " of the focused beam"
 
     s = "Beam propagation parameters derived from hyperbolic fit\n"
-    s += "Beam waist location%s\n"  %tag
-    s += "        z0 = %.0f ± %.0f mm\n" % (z0, dz0)
-    s += "       z0x = %.0f ± %.0f mm\n" % (z0x, dz0x)
-    s += "       z0y = %.0f ± %.0f mm\n" % (z0y, dz0y)
+    s += "Beam Propagation Ratio%s\n"  %tag
+    s += "        M2 = %.2f ± %.2f\n" % (M2, M2_std)
+    s += "       M2x = %.2f ± %.2f\n" % (M2x, M2x_std)
+    s += "       M2y = %.2f ± %.2f\n" % (M2y, M2y_std)
 
     s += "Beam waist diameter%s\n"  %tag
-    s += "        d0 = %.2f ± %.2f mm\n" % (d0, dd0)
-    s += "       d0x = %.2f ± %.2f mm\n" % (d0x, dd0x)
-    s += "       d0y = %.2f ± %.2f mm\n" % (d0y, dd0y)
+    s += "        d0 = %.0f ± %.0f µm\n" % (d0*1e6, d0_std*1e6)
+    s += "       d0x = %.0f ± %.0f µm\n" % (d0x*1e6, d0x_std*1e6)
+    s += "       d0y = %.0f ± %.0f µm\n" % (d0y*1e6, d0y_std*1e6)
 
-    s += "Azimuthal Angle%s\n"  %tag
-    s += "       phi = %.0f ± %.0f°\n" % (phi_ave, phi_std)
+    s += "Beam waist location%s\n"  %tag
+    s += "        z0 = %.0f ± %.0f mm\n" % (z0*1e3, z0_std*1e3)
+    s += "       z0x = %.0f ± %.0f mm\n" % (z0x*1e3, z0x_std*1e3)
+    s += "       z0y = %.0f ± %.0f mm\n" % (z0y*1e3, z0y_std*1e3)
 
     s += "Rayleigh Length%s\n"  %tag
-    s += "        zR = %.0f ± %.0f mm\n" % (zR, dzR)
-    s += "       zRx = %.0f ± %.0f mm\n" % (zRx, dzRx)
-    s += "       zRy = %.0f ± %.0f mm\n" % (zRy, dzRy)
+    s += "        zR = %.0f ± %.0f mm\n" % (zR*1e3, zR_std*1e3)
+    s += "       zRx = %.0f ± %.0f mm\n" % (zRx*1e3, zRx_std*1e3)
+    s += "       zRy = %.0f ± %.0f mm\n" % (zRy*1e3, zRy_std*1e3)
 
     s += "Divergence Angle%s\n"  %tag
-    s += "     theta = %.2f ± %.2f milliradians\n" % (Theta0*1000, dTheta0*1000)
-    s += "   theta_x = %.2f ± %.2f milliradians\n" % (Theta0x*1000, dTheta0x*1000)
-    s += "   theta_y = %.2f ± %.2f milliradians\n" % (Theta0y*1000, dTheta0y*1000)
-
-    s += "Beam Propagation Ratio%s\n"  %tag
-    s += "        M2 = %.2f ± %.2f\n" % (M2, dM2)
-    s += "       M2x = %.2f ± %.2f\n" % (M2x, dM2x)
-    s += "       M2y = %.2f ± %.2f\n" % (M2y, dM2y)
+    s += "     theta = %.2f ± %.2f milliradians\n" % (Theta*1e3, Theta_std*1e3)
+    s += "   theta_x = %.2f ± %.2f milliradians\n" % (Thetax*1e3, Thetax_std*1e3)
+    s += "   theta_y = %.2f ± %.2f milliradians\n" % (Thetay*1e3, Thetay_std*1e3)
 
     if f is None:
         return s
@@ -347,51 +506,262 @@ def M2_report2(z, dx, dy, phi, lambda0, f=None):
 
     return s
 
-def M2_graph2(z, d, lambda0):
-    a, b, c, delta_a, delta_b, delta_c = abc_fit(z, d)
-    d0, Theta0, z0, zR, M2 = beam_params(a, b, c, lambda0)
-    dd0, dTheta0, dz0, dzR, dM2 = beam_param_errors(a, b, c, delta_a, delta_b, delta_c, lambda0)
+def _fit_plot(z, d, lambda0, strict=False):
+    """
+    Helper function that plots the beam and its fit.
 
-    # create fitting function from fitted parameters
-    z_fit = np.linspace(min(z), max(z), 128)
-    d_fit = np.sqrt(a + b * z_fit + c * z_fit**2)
+    Args:
+        z: array of axial position of beam measurements [m]
+        d: array of beam diameters  [m]
+        lambda0: wavelength of the laser [m]
 
-    # Calculate residuals and reduced chi squared
-    resids = d - np.sqrt(a + b * z + c * z**2)
+    Returns:
+        residuals, z0, zR
+    """
+    params, errors, used = beam_fit(z, d, lambda0, strict)
+    unused = used == False
+    d0, z0, Theta, M2, zR = params
+    d0_std, z0_std, Theta_std, M2_std, zR_std = errors
 
-    # Create figure window to plot data
-    fig = plt.figure(1, figsize=(8, 8))
+    # fitted line
+    zmin = min(np.min(z), z0-4*zR)
+    zmax = max(np.max(z), z0+4*zR)
+#    plt.xlim(zmin,zmax)
+    z_fit = np.linspace(zmin, zmax)
+#    d_fit = np.sqrt(d0**2 + (Theta*(z_fit-z0))**2)
+#    plt.plot(z_fit*1e3, d_fit*1e6, ':k')
+    d_fit_lo = np.sqrt((d0-d0_std)**2 + ((Theta-Theta_std)*(z_fit-z0))**2)
+    d_fit_hi = np.sqrt((d0+d0_std)**2 + ((Theta+Theta_std)*(z_fit-z0))**2)
+    plt.fill_between(z_fit*1e3, d_fit_lo*1e6, d_fit_hi*1e6, color='red', alpha=0.5)
+
+    # data points
+    plt.plot(z[used]*1e3, d[used]*1e6, 'o', color='black', label='used')
+    plt.plot(z[unused]*1e3, d[unused]*1e6, 'ok', mfc='none', label='unused')
+    plt.xlabel('')
+    plt.ylabel('')
+
+    tax = plt.gca().transAxes
+    plt.text(0.05, 0.30, '$M^2$ = %.2f±%.2f ' % (M2, M2_std), transform=tax)
+    plt.text(0.05, 0.25, '$d_0$ = %.0f±%.0f µm' % (d0*1e6, d0_std*1e6), transform=tax)
+    plt.text(0.05, 0.15, '$z_0$  = %.0f±%.0f mm' % (z0*1e3, z0_std*1e3), transform=tax)
+    plt.text(0.05, 0.10, '$z_R$  = %.0f±%.0f mm' % (zR*1e3, zR_std*1e3), transform=tax)
+    plt.text(0.05, 0.05, r'$\Theta$  = %.2f±%.2f mrad' % (Theta*1e3, Theta_std*1e3), transform=tax)
+
+    plt.axvline(z0*1e3, color='black', lw=1)
+    plt.axvspan((z0-zR)*1e3, (z0+zR)*1e3, color='cyan', alpha=0.3)
+    plt.axvspan((z0-2*zR)*1e3, (zmin)*1e3, color='cyan', alpha=0.3)
+    plt.axvspan((z0+2*zR)*1e3, (zmax)*1e3, color='cyan', alpha=0.3)
+
+#    plt.axhline(d0*1e6, color='black', lw=1)
+#    plt.axhspan((d0+d0_std)*1e6, (d0-d0_std)*1e6, color='red', alpha=0.1)
+    plt.title(r'$d^2(z) = d_0^2 + M^4 \Theta^2 (z-z_0)^2$')
+    if sum(z[unused]) > 0:
+        plt.legend(loc='upper right')
+
+    residuals = d - np.sqrt(d0**2 + (Theta*(z-z0))**2)
+    return residuals, z0, zR, used
+
+
+def M2_graph(z, d, lambda0, strict=False):
+    """
+    Plot the fitted beam and the residuals.
+
+    Args:
+        z: array of axial position of beam measurements [m]
+        d: array of beam diameters  [m]
+        lambda0: wavelength of the laser [m]
+
+    Returns:
+        nothing
+    """
+    fig = plt.figure(1, figsize=(12, 8))
     gs = matplotlib.gridspec.GridSpec(2, 1, height_ratios=[6, 2])
 
-    # Top plot: data and fit
-    ax1 = fig.add_subplot(gs[0])
-    ax1.plot(z_fit, d_fit, ':k')
-    ax1.plot(z, d, 'or')
-    ax1.set_xlabel('')
-    ax1.set_ylabel('beam diameter (mm)')
-    #ax1.text(0.7, 0.95, 'a = {0:0.1f}$\pm${1:0.1f}'.format(a, delta_a), transform = ax1.transAxes)
-    #ax1.text(0.7, 0.90, 'b = {0:0.6f}$\pm${1:0.4f}'.format(b, delta_b), transform = ax1.transAxes)
-    #ax1.text(0.7, 0.85, 'c = {0:0.7f}$\pm${1:0.7f}'.format(c, delta_c), transform = ax1.transAxes)
-    ax1.text(0.7, 0.95, '$d_0$ = %.2f±%.2f mm' % (d0, dd0), transform=ax1.transAxes)
-    theta = Theta0*1000
-    dtheta = dTheta0*1000
-    ax1.text(0.7, 0.90, r'$\Theta$  = %.2f±%.2f mrad' % (theta, dtheta), transform=ax1.transAxes)
+    fig.add_subplot(gs[0])
+    residualsx, z0, zR, used = _fit_plot(z, d, lambda0, strict)
+    unused = used == False
+    zmin = min(np.min(z), z0-4*zR)
+    zmax = max(np.max(z), z0+4*zR)
 
-    ax1.text(0.7, 0.80, '$z_0$  = %.0f±%.0f mm' % (z0, dz0), transform=ax1.transAxes)
-    ax1.text(0.7, 0.75, '$z_R$  = %.0f±%.0f mm' % (zR, dzR), transform=ax1.transAxes)
-    ax1.text(0.7, 0.65, '$M^2$ = %.1f±%.1f ' % (M2, dM2), transform=ax1.transAxes)
+    plt.ylabel('beam diameter (µm)')
+    plt.ylim(0, 1.1*max(d)*1e6)
 
-    ax1.axvline(z0)
-    ax1.axvline(z0-zR)
+    fig.add_subplot(gs[1])
+    plt.plot(z*1e3, residualsx*1e6, "ro")
+    plt.plot(z[used]*1e3, residualsx[used]*1e6, 'ok', label='used')
+    plt.plot(z[unused]*1e3, residualsx[unused]*1e6, 'ok', mfc='none', label='unused')
 
-    ax1.axvline(z0+zR)
-#    ax1.axhspan(d0+dd0, d0-dd0, alpha=0.2)
-    ax1.axhline(d0, color='black', lw=1)
-    ax1.set_title('$d(z) = a+bz+cz^2$')
+    plt.axhline(color="gray", zorder=-1)
+    plt.xlabel('axial position $z$ (mm)')
+    plt.ylabel('residuals (µm)')
+    plt.axvspan((z0-zR)*1e3, (z0+zR)*1e3, color='cyan', alpha=0.3)
+    plt.axvspan((z0-2*zR)*1e3, (zmin)*1e3, color='cyan', alpha=0.3)
+    plt.axvspan((z0+2*zR)*1e3, (zmax)*1e3, color='cyan', alpha=0.3)
 
-    # Bottom plot: residuals
-    ax2 = fig.add_subplot(gs[1])
-    ax2.plot(z, resids, "ro")
-    ax2.axhline(color="gray", zorder=-1)
-    ax2.set_xlabel('axial position $z$ (mm)')
-    ax2.set_ylabel('residuals (mm)')
+
+def M2_graph2(z, dx, dy, lambda0, strict=False):
+    """
+    Plot the semi-major and semi-minor beam fits and residuals.
+
+    Args:
+        z: array of axial position of beam measurements [m]
+        d: array of beam diameters  [m]
+        lambda0: wavelength of the laser [m]
+
+    Returns:
+        nothing
+    """
+    ymax = 1.1 * max(np.max(dx), np.max(dy)) * 1e6
+
+    # Create figure window to plot data
+    fig = plt.figure(1, figsize=(12, 8))
+    gs = matplotlib.gridspec.GridSpec(2, 2, height_ratios=[6, 2])
+
+    fig.add_subplot(gs[0, 0])
+    residualsx, z0, zR, used = _fit_plot(z, dx, lambda0, strict)
+    zmin = min(np.min(z), z0-4*zR)
+    zmax = max(np.max(z), z0+4*zR)
+    unused = used == False
+    plt.ylabel('beam diameter (µm)')
+    plt.title('Semi-major Axis Diameters')
+    plt.ylim(0, ymax)
+
+    fig.add_subplot(gs[1, 0])
+    ax = plt.gca()
+    plt.plot(z[used]*1e3, residualsx[used]*1e6, 'ok', label='used')
+    plt.plot(z[unused]*1e3, residualsx[unused]*1e6, 'ok', mfc='none', label='unused')
+    plt.axhline(color="gray", zorder=-1)
+    plt.xlabel('axial position $z$ (mm)')
+    plt.ylabel('residuals (µm)')
+    plt.axvspan((z0-zR)*1e3, (z0+zR)*1e3, color='cyan', alpha=0.3)
+    plt.axvspan((z0-2*zR)*1e3, (zmin)*1e3, color='cyan', alpha=0.3)
+    plt.axvspan((z0+2*zR)*1e3, (zmax)*1e3, color='cyan', alpha=0.3)
+
+    fig.add_subplot(gs[0, 1])
+    residualsy, z0, zR, used = _fit_plot(z, dy, lambda0, strict)
+    unused = used == False
+    plt.title('Semi-minor Axis Diameters')
+    plt.ylim(0, ymax)
+
+    ymax = max(np.max(residualsx), np.max(residualsy)) * 1e6
+    ymin = min(np.min(residualsx), np.min(residualsy)) * 1e6
+    ax.set_ylim(ymin, ymax)
+
+    fig.add_subplot(gs[1, 1])
+    plt.plot(z[used]*1e3, residualsy[used]*1e6, 'ok', label='used')
+    plt.plot(z[unused]*1e3, residualsy[unused]*1e6, 'ok', mfc='none', label='unused')
+    plt.axhline(color="gray", zorder=-1)
+    plt.xlabel('axial position $z$ (mm)')
+    plt.ylabel('')
+    plt.axvspan((z0-zR)*1e3, (z0+zR)*1e3, color='cyan', alpha=0.3)
+    plt.axvspan((z0-2*zR)*1e3, (zmin)*1e3, color='cyan', alpha=0.3)
+    plt.axvspan((z0+2*zR)*1e3, (zmax)*1e3, color='cyan', alpha=0.3)
+    plt.ylim(ymin, ymax)
+
+
+def radius_fit_plot(z, d, lambda0, strict=False):
+    """
+    Plot radii, beam fits, and asymptotes.
+
+    Args:
+        z: array of axial position of beam measurements [m]
+        d: array of beam diameters  [m]
+        lambda0: wavelength of the laser [m]
+
+    Returns:
+        nothing
+    """
+    params, errors, used = beam_fit(z, d, lambda0, strict)
+    unused = used == False
+    d0, z0, Theta, M2, zR = params
+    d0_std, _, Theta_std, M2_std, _ = errors
+
+    plt.figure(1, figsize=(12, 8))
+
+    # fitted line
+    zmin = min(np.min(z-z0), -4*zR) * 1.05 + z0
+    zmax = max(np.max(z-z0), +4*zR) * 1.05 + z0
+    plt.xlim((zmin-z0)*1e3, (zmax-z0)*1e3)
+
+    z_fit = np.linspace(zmin, zmax)
+    d_fit = np.sqrt(d0**2 + (Theta*(z_fit-z0))**2)
+#    plt.plot((z_fit-z0)*1e3, d_fit*1e6/2, ':r')
+#    plt.plot((z_fit-z0)*1e3, -d_fit*1e6/2, ':r')
+    d_fit_lo = np.sqrt((d0-d0_std)**2 + ((Theta-Theta_std)*(z_fit-z0))**2)
+    d_fit_hi = np.sqrt((d0+d0_std)**2 + ((Theta+Theta_std)*(z_fit-z0))**2)
+
+    # asymptotes
+    r_left = -(z0-zmin)*np.tan(Theta/2)*1e6
+    r_right = (zmax-z0)*np.tan(Theta/2)*1e6
+    plt.plot([(zmin-z0)*1e3, (zmax-z0)*1e3], [r_left, r_right], '--b')
+    plt.plot([(zmin-z0)*1e3, (zmax-z0)*1e3], [-r_left, -r_right], '--b')
+
+    # xticks
+    ticks = [(i*zR)*1e3 for i in range(int((zmin-z0)/zR), int((zmax-z0)/zR)+1)]
+    ticklabels1 = ["%.0f" % (z+z0*1e3) for z in ticks]
+    ticklabels2 = []
+    for i in  range(int((zmin-z0)/zR), int((zmax-z0)/zR)+1):
+        if i == 0:
+            ticklabels2 = np.append(ticklabels2, "0")
+        elif i == -1:
+            ticklabels2 = np.append(ticklabels2, r"-$z_R$")
+        elif i == 1:
+            ticklabels2 = np.append(ticklabels2, r"$z_R$")
+        else:
+            ticklabels2 = np.append(ticklabels2, r"%d$z_R$"%i)
+    ax1 = plt.gca()
+    ax2 = ax1.twiny()
+    ax1.set_xticks(ticks)
+    ax1.set_xticklabels(ticklabels1, fontsize=14)
+    ax2.set_xbound(ax1.get_xbound())
+    ax2.set_xticks(ticks)
+    ax2.set_xticklabels(ticklabels2, fontsize=14)
+
+    ax1.set_xlabel('Axial Location (mm)', fontsize=14)
+    ax1.set_ylabel('Beam radius (µm)', fontsize=14)
+#    ax2.set_xlabel('Axial location relative to beam waist (Rayleigh distances)', fontsize=14)
+    plt.title(r'$w_0=d_0/2$=%.0f±%.0fµm,  $M^2$ = %.2f±%.2f,  $\lambda$=%.0f nm' % (d0/2*1e6, d0_std/2*1e6, M2, M2_std, lambda0*1e9), fontsize=16)
+
+
+#    tax = plt.gca().transAxes
+#     plt.text(0.5, 0.95, '$M^2$ = %.1f±%.1f ' % (M2, M2_std), transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#     plt.text(0.6, 0.5, r'$\Theta$  = %.2f±%.2f mrad' % (Theta*1e3, Theta_std*1e3), transform=tax, ha='left', va='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#     plt.text(0.5, 0.03, '$|z-z_0|<z_R$', transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#     plt.text(0.85, 0.03, '$2z_R < |z-z_0|$', transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#     plt.text(0.15, 0.03, '$|z-z_0|>2z_R$', transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
+#    plt.text(0.5, 0.95, '$M^2$ = %.1f±%.1f ' % (M2, M2_std), transform=tax, ha='center', fontsize=16)
+    ymin = max(max(d_fit), max(d))
+    ymin *= -1/2 * 1e6
+    plt.text(0, ymin, '$-z_R<z-z_0<z_R$', ha='center', va='bottom', fontsize=16)
+    x = (zmax-z0 + 2*zR)/2 * 1e3
+    plt.text(x, ymin, '$2z_R < z-z_0$', ha='center', va='bottom', fontsize=16)
+    x = (zmin-z0 - 2*zR)/2 * 1e3
+    plt.text(x, ymin, '$z-z_0 < -2z_R$', ha='center', va='bottom', fontsize=16)
+    plt.text(2*zR*1e3, 0, r'$\Theta$  = %.2f±%.2f mrad' % (Theta*1e3, Theta_std*1e3), ha='left', va='center', fontsize=16)
+    arc_x = 1.5*zR*1e3
+    arc_y = 1.5*zR*np.tan(Theta/2)*1e6
+    plt.annotate('', (arc_x, -arc_y), (arc_x, arc_y),
+                 arrowprops=dict(arrowstyle="<->", connectionstyle="arc3,rad=-0.2"))
+
+#    plt.axvline(0, color='black', lw=1, ls='dashdot')
+    ax1.axvspan((-zR)*1e3, (+zR)*1e3, color='cyan', alpha=0.3)
+    ax1.axvspan((-2*zR)*1e3, (zmin-z0)*1e3, color='cyan', alpha=0.3)
+    ax1.axvspan((+2*zR)*1e3, (zmax-z0)*1e3, color='cyan', alpha=0.3)
+
+#    plt.axhline(d0*1e6, color='black', lw=1)
+#    plt.axhspan((d0+d0_std)*1e6, (d0-d0_std)*1e6, color='red', alpha=0.1)
+#    s = r'$w^2(z) = w_0^2 + (M^4 \Theta^2/4) (z-z_0)^2$'
+#    s += r"  $M^2$=%.2f," % M2
+#    s += r"  $\Theta$=%.1f mrad" % (1000 * Theta)
+#    plt.title(s)
+#    ax1.grid(True)
+    ax1.fill_between((z_fit-z0)*1e3, d_fit_lo*1e6/2, d_fit_hi*1e6/2, color='red', alpha=0.5)
+    ax1.fill_between((z_fit-z0)*1e3, -d_fit_lo*1e6/2, -d_fit_hi*1e6/2, color='red', alpha=0.5)
+
+    # data points
+    ax1.plot((z[used]-z0)*1e3, d[used]*1e6/2, 'ok', label='used')
+    ax1.plot((z[used]-z0)*1e3, -d[used]*1e6/2, 'ok')
+    ax1.plot((z[unused]-z0)*1e3, d[unused]*1e6/2, 'ok', mfc='none', label='unused')
+    ax1.plot((z[unused]-z0)*1e3, -d[unused]*1e6/2, 'ok', mfc='none')
+    if sum(z[unused]) > 0:
+        ax1.legend(loc='center left')
