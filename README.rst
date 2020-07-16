@@ -5,6 +5,9 @@ Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make the 
 algorithm less sensitive to background offset and noise.
 
+Extensive documentation about backgrounds, integrations, and other issues can be found at
+at <https://laserbeamsize.readthedocs.io>
+
 Installation
 ------------
 
@@ -54,8 +57,18 @@ Creates an image like
 
 .. image:: tem02.png
 
-Documentation about backgrounds, integrations, and other issues are explained 
-at <https://laserbeamsize.readthedocs.io>
+Determining M² for a laser beam is also straightforward.  Collect beam diameters from
+five beam locations within one Rayleigh distance of the focus and from five locations more
+than two Rayleigh distances::
+
+    lambda1=308e-9
+    z1_all=np.array([-200,-180,-160,-140,-120,-100,-80,-60,-40,-20,0,20,40,60,80,99,120,140,160,180,200])*1e-3
+    d1_all=2*np.array([416,384,366,311,279,245,216,176,151,120,101,93,102,120,147,177,217,256,291,316,348])*1e-6
+    lbs.radius_fit_plot(z1_all, d1_all, lambda1, strict=True)
+
+Produces
+
+.. image:: m2fit.png
 
 
 License
