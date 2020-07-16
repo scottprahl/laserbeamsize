@@ -5,9 +5,9 @@
 # pylint: disable=unbalanced-tuple-unpacking
 
 """
-A module for finding M2 values for a laser beam.
+A module for finding M² values for a laser beam.
 
-Finding the center and dimensions of a monochrome image of a beam is simple::
+Finding the beam waist size, location, and M² for a beam is straightforward::
 
     import numpy as np
     import laserbeamsize as lbs
@@ -26,10 +26,14 @@ import matplotlib.gridspec
 import matplotlib.pyplot as plt
 import scipy.optimize
 
-
 __all__ = ('z_rayleigh',
            'beam_radius',
            'focused_diameter',
+           'magnification',
+           'image_distance',
+           'curvature',
+           'divergence',
+           'gouy_phase',
            'abc_fit',
            'basic_beam_fit',
            'beam_fit',
@@ -39,9 +43,10 @@ __all__ = ('z_rayleigh',
            'M2_report',
            'M2_report2',
            'radius_fit_plot',
+           'beam_focus_plot'
            )
 
-def z_rayleigh(w0, lambda0):
+def z_rayleigh(w0, lambda0, M2=1):
     """
     Return the Rayleigh distance for a Gaussian beam.
 
@@ -51,31 +56,117 @@ def z_rayleigh(w0, lambda0):
     Returns:
         distance where irradiance drops by 1/2 [m]
     """
-    return np.pi * w0**2/lambda0
+    return np.pi * w0**2/lambda0/M2
 
 
-def beam_radius(w0, lambda0, z, M2=1, z0=0, model='laboratory'):
+def beam_radius(w0, lambda0, z, z0=0, M2=1):
     """
     Return the beam radius at an axial location.
 
     Args:
         w0: minimum beam radius [m]
-        z0: axial location of beam waist [m]
-        M2: beam propagation factor [-]
         lambda0: wavelength of light [m]
         z: axial location of desired beam radius [m]
+        z0: axial location of beam waist [m]
+        M2: beam propagation factor [-]
     Returns:
         Beam radius [m]
     """
-    zz = (z-z0)/z_rayleigh(w0, lambda0)
+    zz = (z-z0)/z_rayleigh(w0, lambda0, M2)
+    return w0*np.sqrt(1+zz**2)
 
-    if model in ('illuminator', 'constant waist'):
-        return w0*np.sqrt(1+(M2*zz)**2)
 
-    if model in ('laboratory', 'constant divergence'):
-        return w0*np.sqrt(M2**2+zz**2)
+def magnification(w0, lambda0, s, f, M2=1):
+    """
+    Return the magnification of a Gaussian beam.
 
-    return w0*M2*np.sqrt(1+zz**2)
+    If the beam waist is before the lens, then the distance s
+    will be negative, i.e. if it is at the front focus of the lens (s=-f).
+
+    The new beam waist will be `m*w0` and the new Rayleigh
+    distance will be `m**2 * zR`
+
+    Args:
+        f: focal distance of lens [m]
+        zR: Rayleigh distance [m]
+        s: distance of beam waist to lens [m]
+
+    Returns:
+        magnification m [-]
+    """
+    zR2 = z_rayleigh(w0, lambda0, M2)**2
+    return f/np.sqrt((s+f)**2+zR2)
+
+
+def image_distance(w0, lambda0, s, f, M2=1):
+    """
+    Return the image location of a Gaussian beam.
+
+    The default case is when the beam waist is located at
+    the front focus of the lens (s=-f).
+
+    Args:
+        s: distance of beam waist to lens [m]
+        f: focal distance of lens [m]
+        w0: minimum beam radius [m]
+        lambda0: wavelength of light [m]
+        M2: beam propagation factor [-]
+
+    Returns:
+        location of new beam waist [m]
+    """
+    zR2 = z_rayleigh(w0, lambda0, M2)**2
+    return f * (s*f + s*s + zR2)/((f+s)**2+ zR2)
+
+
+def curvature(w0, lambda0, z, z0=0, M2=1):
+    """
+    Calculate the radius of curvature of a Gaussian beam.
+
+    The curvature will be a maximum at the Rayleigh distance and
+    it will be infinite at the beam waist.
+
+    Args:
+        w0: minimum beam radius [m]
+        lambda0: wavelength of light [m]
+        z   axial position along beam  [m]
+        z0  axial position of the beam waist  [m]
+        M2: beam propagation factor [-]
+    returns
+        radius of curvature of field at z          [m]
+    """
+    zR2 = z_rayleigh(w0, lambda0, M2)**2
+    return (z - z0) + zR2/(z - z0)
+
+
+def divergence(w0, lambda0, M2=1):
+    """
+    Calculate the full angle of divergence of a Gaussian beam.
+
+    Args:
+        w0: minimum beam radius [m]
+        lambda0: wavelength of light [m]
+        M2: beam propagation factor [-]
+    returns
+        divergence of beam [radians]
+    """
+    return 2*w0/z_rayleigh(w0, lambda0, M2)
+
+
+def gouy_phase(w0, lambda0, z, z0=0):
+    """
+    Calculate the Gouy phase of a Gaussian beam.
+
+    Args:
+        w0: minimum beam radius [m]
+        lambda0: wavelength of light [m]
+        z: axial position along beam  [m]
+        z0: axial position of beam waist  [m]
+    returns
+        Gouy phase                     [radians]
+    """
+    zR = z_rayleigh(w0, lambda0)
+    return -np.arctan2(z-z0, zR)
 
 
 def focused_diameter(f, lambda0, d, M2=1):
@@ -86,8 +177,8 @@ def focused_diameter(f, lambda0, d, M2=1):
     in Laser Beam Shaping: Theory and Techniques by Dickey, 2000
 
     Args:
-        lambda0: wavelength of light [m]
         f: focal length of lens [m]
+        lambda0: wavelength of light [m]
         d: diameter of limiting aperture [m]
         M2: beam propagation factor [-]
     Returns:
@@ -261,7 +352,6 @@ def beam_fit(z, d, lambda0, strict=False):
     Returns:
         params, errors, used
     """
-
     used = np.full_like(z, True, dtype=bool)
     params, errors = basic_beam_fit(z, d, lambda0)
     if not strict:
@@ -519,14 +609,14 @@ def _fit_plot(z, d, lambda0, strict=False):
         residuals, z0, zR
     """
     params, errors, used = beam_fit(z, d, lambda0, strict)
-    unused = used == False
+    unused = np.logical_not(used)
     d0, z0, Theta, M2, zR = params
     d0_std, z0_std, Theta_std, M2_std, zR_std = errors
 
     # fitted line
     zmin = min(np.min(z), z0-4*zR)
     zmax = max(np.max(z), z0+4*zR)
-#    plt.xlim(zmin,zmax)
+#    plt.xlim(zmin, zmax)
     z_fit = np.linspace(zmin, zmax)
 #    d_fit = np.sqrt(d0**2 + (Theta*(z_fit-z0))**2)
 #    plt.plot(z_fit*1e3, d_fit*1e6, ':k')
@@ -579,7 +669,7 @@ def M2_graph(z, d, lambda0, strict=False):
 
     fig.add_subplot(gs[0])
     residualsx, z0, zR, used = _fit_plot(z, d, lambda0, strict)
-    unused = used == False
+    unused = np.logical_not(used)
     zmin = min(np.min(z), z0-4*zR)
     zmax = max(np.max(z), z0+4*zR)
 
@@ -621,7 +711,7 @@ def M2_graph2(z, dx, dy, lambda0, strict=False):
     residualsx, z0, zR, used = _fit_plot(z, dx, lambda0, strict)
     zmin = min(np.min(z), z0-4*zR)
     zmax = max(np.max(z), z0+4*zR)
-    unused = used == False
+    unused = np.logical_not(used)
     plt.ylabel('beam diameter (µm)')
     plt.title('Semi-major Axis Diameters')
     plt.ylim(0, ymax)
@@ -639,7 +729,7 @@ def M2_graph2(z, dx, dy, lambda0, strict=False):
 
     fig.add_subplot(gs[0, 1])
     residualsy, z0, zR, used = _fit_plot(z, dy, lambda0, strict)
-    unused = used == False
+    unused = np.logical_not(used)
     plt.title('Semi-minor Axis Diameters')
     plt.ylim(0, ymax)
 
@@ -672,7 +762,7 @@ def radius_fit_plot(z, d, lambda0, strict=False):
         nothing
     """
     params, errors, used = beam_fit(z, d, lambda0, strict)
-    unused = used == False
+    unused = np.logical_not(used)
     d0, z0, Theta, M2, zR = params
     d0_std, _, Theta_std, M2_std, _ = errors
 
@@ -696,7 +786,7 @@ def radius_fit_plot(z, d, lambda0, strict=False):
     plt.plot([(zmin-z0)*1e3, (zmax-z0)*1e3], [r_left, r_right], '--b')
     plt.plot([(zmin-z0)*1e3, (zmax-z0)*1e3], [-r_left, -r_right], '--b')
 
-    # xticks
+    # xticks along top axis
     ticks = [(i*zR)*1e3 for i in range(int((zmin-z0)/zR), int((zmax-z0)/zR)+1)]
     ticklabels1 = ["%.0f" % (z+z0*1e3) for z in ticks]
     ticklabels2 = []
@@ -717,19 +807,24 @@ def radius_fit_plot(z, d, lambda0, strict=False):
     ax2.set_xticks(ticks)
     ax2.set_xticklabels(ticklabels2, fontsize=14)
 
+    # usual labels for graph
     ax1.set_xlabel('Axial Location (mm)', fontsize=14)
     ax1.set_ylabel('Beam radius (µm)', fontsize=14)
-#    ax2.set_xlabel('Axial location relative to beam waist (Rayleigh distances)', fontsize=14)
-    plt.title(r'$w_0=d_0/2$=%.0f±%.0fµm,  $M^2$ = %.2f±%.2f,  $\lambda$=%.0f nm' % (d0/2*1e6, d0_std/2*1e6, M2, M2_std, lambda0*1e9), fontsize=16)
+    title = r'$w_0=d_0/2$=%.0f±%.0fµm,  ' % (d0/2*1e6, d0_std/2*1e6)
+    title += r'$M^2$ = %.2f±%.2f,  ' % (M2, M2_std)
+    title += r'$\lambda$=%.0f nm' % (lambda0*1e9)
+    plt.title(title, fontsize=16)
 
+    # show the divergence angle
+    s = r'$\Theta$  = %.2f±%.2f mrad' % (Theta*1e3, Theta_std*1e3)
+    plt.text(2*zR*1e3, 0, s, ha='left', va='center', fontsize=16)
+    arc_x = 1.5*zR*1e3
+    arc_y = 1.5*zR*np.tan(Theta/2)*1e6
+    plt.annotate('', (arc_x, -arc_y), (arc_x, arc_y),
+                 arrowprops=dict(arrowstyle="<->",
+                                 connectionstyle="arc3, rad=-0.2"))
 
-#    tax = plt.gca().transAxes
-#     plt.text(0.5, 0.95, '$M^2$ = %.1f±%.1f ' % (M2, M2_std), transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
-#     plt.text(0.6, 0.5, r'$\Theta$  = %.2f±%.2f mrad' % (Theta*1e3, Theta_std*1e3), transform=tax, ha='left', va='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
-#     plt.text(0.5, 0.03, '$|z-z_0|<z_R$', transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
-#     plt.text(0.85, 0.03, '$2z_R < |z-z_0|$', transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
-#     plt.text(0.15, 0.03, '$|z-z_0|>2z_R$', transform=tax, ha='center', fontsize=16, bbox=dict(facecolor='white',edgecolor='white'))
-#    plt.text(0.5, 0.95, '$M^2$ = %.1f±%.1f ' % (M2, M2_std), transform=tax, ha='center', fontsize=16)
+    # show the Rayleigh ranges
     ymin = max(max(d_fit), max(d))
     ymin *= -1/2 * 1e6
     plt.text(0, ymin, '$-z_R<z-z_0<z_R$', ha='center', va='bottom', fontsize=16)
@@ -737,26 +832,17 @@ def radius_fit_plot(z, d, lambda0, strict=False):
     plt.text(x, ymin, '$2z_R < z-z_0$', ha='center', va='bottom', fontsize=16)
     x = (zmin-z0 - 2*zR)/2 * 1e3
     plt.text(x, ymin, '$z-z_0 < -2z_R$', ha='center', va='bottom', fontsize=16)
-    plt.text(2*zR*1e3, 0, r'$\Theta$  = %.2f±%.2f mrad' % (Theta*1e3, Theta_std*1e3), ha='left', va='center', fontsize=16)
-    arc_x = 1.5*zR*1e3
-    arc_y = 1.5*zR*np.tan(Theta/2)*1e6
-    plt.annotate('', (arc_x, -arc_y), (arc_x, arc_y),
-                 arrowprops=dict(arrowstyle="<->", connectionstyle="arc3,rad=-0.2"))
-
-#    plt.axvline(0, color='black', lw=1, ls='dashdot')
+    
     ax1.axvspan((-zR)*1e3, (+zR)*1e3, color='cyan', alpha=0.3)
     ax1.axvspan((-2*zR)*1e3, (zmin-z0)*1e3, color='cyan', alpha=0.3)
     ax1.axvspan((+2*zR)*1e3, (zmax-z0)*1e3, color='cyan', alpha=0.3)
 
-#    plt.axhline(d0*1e6, color='black', lw=1)
-#    plt.axhspan((d0+d0_std)*1e6, (d0-d0_std)*1e6, color='red', alpha=0.1)
-#    s = r'$w^2(z) = w_0^2 + (M^4 \Theta^2/4) (z-z_0)^2$'
-#    s += r"  $M^2$=%.2f," % M2
-#    s += r"  $\Theta$=%.1f mrad" % (1000 * Theta)
-#    plt.title(s)
-#    ax1.grid(True)
-    ax1.fill_between((z_fit-z0)*1e3, d_fit_lo*1e6/2, d_fit_hi*1e6/2, color='red', alpha=0.5)
-    ax1.fill_between((z_fit-z0)*1e3, -d_fit_lo*1e6/2, -d_fit_hi*1e6/2, color='red', alpha=0.5)
+    # show the fit
+    zz = (z_fit-z0)*1e3
+    lo = d_fit_lo*1e6/2
+    hi = d_fit_hi*1e6/2
+    ax1.fill_between(zz, lo, hi, color='red', alpha=0.5)
+    ax1.fill_between(zz, -lo, -hi, color='red', alpha=0.5)
 
     # data points
     ax1.plot((z[used]-z0)*1e3, d[used]*1e6/2, 'ok', label='used')
@@ -765,3 +851,63 @@ def radius_fit_plot(z, d, lambda0, strict=False):
     ax1.plot((z[unused]-z0)*1e3, -d[unused]*1e6/2, 'ok', mfc='none')
     if sum(z[unused]) > 0:
         ax1.legend(loc='center left')
+
+def beam_focus_plot(w0, lambda0, f, z0=None, M2=1):
+    """
+    Plot a beam from its waist through a lens to its focus.
+
+    The lens is at `z=0` with the beam waist. All distances to the left of
+    the lens are negative and those to the right are positive.
+
+    The beam has a waist at z0.  The default is to place the beam waist
+    at the front focal plane of the lens (`z0=-f`).
+
+    Args:
+        w0: beam radius at waist [m]
+        lambda0: wavelength of beam [m]
+        f: focal length of lens [m]
+        z0: location of beam waist [m]
+        M2: beam propagation factor [-]
+
+    Returns:
+        nothing.
+    """
+    if z0 is None:
+        z0 = -f
+
+    # plot the beam from just before the waist to the lens
+    left = 1.1*z0
+    z = np.linspace(left, 0)
+    r = beam_radius(w0, lambda0, z, z0=z0, M2=M2)
+    plt.fill_between(z*1e3, -r*1e6, r*1e6, color='red', alpha=0.2)
+
+    # find the gaussian beam parameters for the beam after the lens
+    w0_after = w0 * magnification(w0, lambda0, z0, f, M2=M2)
+    z0_after = image_distance(w0, lambda0, z0, f, M2=M2)
+    zR_after = z_rayleigh(w0_after, lambda0, M2)
+
+    # plot the beam after the lens
+    right = max(2*f, z0_after+4*zR_after)
+    z_after = np.linspace(0, right)
+    r_after = beam_radius(w0_after, lambda0, z_after, z0=z0_after, M2=M2)
+
+    # plt.axhline(w0_after*1.41e6)
+    plt.fill_between(z_after*1e3, -r_after*1e6, r_after*1e6, color='red', alpha=0.2)
+
+    # locate the lens and the two beam waists
+    plt.axhline(0, color='black', lw=1)
+    plt.axvline(0, color='black')
+    plt.axvline(z0*1e3, color='black', linestyle=':')
+    plt.axvline(z0_after*1e3, color='black', linestyle=':')
+
+    # finally, show the ±1 Rayleigh distance
+    zRmin = max(0, (z0_after-zR_after))*1e3
+    zRmax = (z0_after+zR_after)*1e3
+    plt.axvspan(zRmin, zRmax, color='blue', alpha=0.1)
+
+    plt.xlabel('Axial Position Relative to Lens (mm)')
+    plt.ylabel('Beam Radius (microns)')
+    title = "$w_0$=%.0fµm, $z_0$=%.0fmm, " % (w0*1e6, z0*1e3)
+    title += "$w_0'$=%.0fµm, $z_0'$=%.0fmm, " % (w0_after*1e6, z0_after*1e3)
+    title += "$z_R'$=%.0fmm" % (zR_after*1e3)
+    plt.title(title)
