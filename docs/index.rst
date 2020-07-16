@@ -1,7 +1,7 @@
 .. include:: ../README.rst
 
-Examples
-========
+Beam Size in an Image
+=====================
 
 .. toctree::
    :maxdepth: 2
@@ -13,9 +13,17 @@ Examples
    04-Harder-Images.ipynb
    05-Razor-Blade.ipynb
    06-Beam-Waist.ipynb
+   
+M² Calculation From Beam Sizes
+==============================
+
+.. toctree::
+   :maxdepth: 2
+   
    07a-M2-Parameters.ipynb
    07b-M2-Theory.ipynb
-   07c-M2-Fitting.ipynb
+   07c-M2-Experiment.ipynb
+   07d-M2-Examples.ipynb
    
 .. include:: ../CHANGELOG.rst
 
