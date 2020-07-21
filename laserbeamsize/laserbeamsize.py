@@ -785,6 +785,35 @@ def draw_beam_figure():
     plt.axis('off')
 
 
+def crop_image_to_rect(image, xmin, xmax, ymin, ymax):
+    """
+    Return image cropped to integration rectangle.
+
+    Since the image is being cropped, the center of the beam will move.
+
+    Args:
+        image: image of beam
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: horizontal diameter of beam
+        dy: vertical diameter of beam
+        phi: angle that elliptical beam is rotated [radians]
+    Returns:
+        cropped_image: cropped image
+        new_xc: x-position of beam center in cropped image
+        new_yc: y-position of beam center in cropped image
+    """
+    v, h = image.shape
+    xc = (xmin+xmax)/2
+    yc = (ymin+ymax)/2
+    xmin = max(0, int(xmin))
+    xmax = min(h, int(xmax))
+    ymin = max(0, int(ymin))
+    ymax = min(v, int(ymax))
+    new_xc = xc-xmin
+    new_yc = yc-ymin
+    return image[ymin:ymax, xmin:xmax], new_xc, new_yc
+
 def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
     """
     Return image cropped to integration rectangle.
@@ -804,14 +833,7 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
         new_yc: y-position of beam center in cropped image
     """
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
-    v, h = image.shape
-    xmin = max(0, int(min(xp)))
-    xmax = min(h, int(max(xp)))
-    ymin = max(0, int(min(yp)))
-    ymax = min(v, int(max(yp)))
-    new_xc = xc-xmin
-    new_yc = yc-ymin
-    return image[ymin:ymax, xmin:xmax], new_xc, new_yc
+    return crop_image_to_rect(image, min(xp), max(xp), min(yp), max(yp))
 
 
 def visual_report(o_image, title='Original', pixel_size=None, units='µm', crop=False, **kwargs):
@@ -890,7 +912,7 @@ def visual_report(o_image, title='Original', pixel_size=None, units='µm', crop=
     extent = np.array([-xc_s, h_s-xc_s, v_s-yc_s, -yc_s])
     im = plt.imshow(working_image, extent=extent, cmap='gist_ncar')
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp-xc_s, yp-yc_s, 'w')
+    plt.plot(xp-xc_s, yp-yc_s, ':k')
     xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
     plt.plot(xp-xc_s, yp-yc_s, ':w')
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
@@ -943,6 +965,9 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
     """
     Plot the image, fitted ellipse, integration area, and center lines.
 
+    If pixel_size is defined, then the returned measurements are in units of
+    pixel_size.
+    
     Args:
         image: 2D array of image with beam spot
         pixel_size: (optional) size of pixels
@@ -961,7 +986,20 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
 
     xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
 
-    if crop:
+    if pixel_size is None:
+        scale = 1
+        label = 'Pixels'
+    else:
+        scale = pixel_size
+        label = 'Position (%s)' % units
+
+    if isinstance(crop, list):
+        ymin = yc-crop[0]/scale # in pixels
+        ymax = yc+crop[0]/scale
+        xmin = xc-crop[1]/scale
+        xmax = xc+crop[1]/scale
+        image, xc, yc = crop_image_to_rect(o_image, xmin, xmax, ymin, ymax)
+    elif crop:
         image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
     else:
         image = o_image
@@ -970,12 +1008,6 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
     if vmax is None:
         vmax = image.max()
 
-    if pixel_size is None:
-        scale = 1
-        label = 'Pixels'
-    else:
-        scale = pixel_size
-        label = 'Position (%s)' % units
 
     extent = np.array([-xc, h-xc, v-yc, -yc])*scale
     plt.imshow(image, extent=extent, cmap='gist_ncar', vmax=vmax)
@@ -987,7 +1019,7 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
 
     # show ellipse around beam
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
+    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':k')
 
     # show integration area around beam
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
@@ -996,4 +1028,4 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
     plt.xlim(-xc*scale, (h-xc)*scale)
     plt.ylim((v-yc)*scale, -yc*scale)
 
-    return xc, yc, dx, dy, phi
+    return xc*scale, yc*scale, dx*scale, dy*scale, phi
