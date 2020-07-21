@@ -2,6 +2,7 @@
 # pylint: disable=too-many-locals
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-statements
+# pylint: disable=too-many-lines
 """
 A module for finding the beam size in an monochrome image.
 
@@ -787,32 +788,27 @@ def draw_beam_figure():
 
 def crop_image_to_rect(image, xmin, xmax, ymin, ymax):
     """
-    Return image cropped to integration rectangle.
-
-    Since the image is being cropped, the center of the beam will move.
+    Return image cropped to specified rectangle.
 
     Args:
         image: image of beam
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
+        xmin: left edge (pixels)
+        xmax: right edge (pixels)
+        ymin: top edge (pixels)
+        ymax: bottom edge (pixels)
     Returns:
         cropped_image: cropped image
-        new_xc: x-position of beam center in cropped image
-        new_yc: y-position of beam center in cropped image
+        xc,yc: new beam center (pixels)
     """
     v, h = image.shape
-    xc = (xmin+xmax)/2
-    yc = (ymin+ymax)/2
     xmin = max(0, int(xmin))
     xmax = min(h, int(xmax))
     ymin = max(0, int(ymin))
     ymax = min(v, int(ymax))
-    new_xc = xc-xmin
-    new_yc = yc-ymin
+    new_xc = (xmax-xmin)//2
+    new_yc = (ymax-ymin)//2
     return image[ymin:ymax, xmin:xmax], new_xc, new_yc
+
 
 def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
     """
@@ -849,6 +845,14 @@ def visual_report(o_image, title='Original', pixel_size=None, units='µm', crop=
     Returns:
         nothing
     """
+    # only pass along arguments that apply to beam_size()
+    beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
+    bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
+
+    # find center and diameters
+    xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
+
+    # determine scaling and labels
     if pixel_size is None:
         scale = 1
         unit_str = ''
@@ -861,23 +865,26 @@ def visual_report(o_image, title='Original', pixel_size=None, units='µm', crop=
         label = 'Position %s' % unit_str
         label2 = 'Distance from Center %s' % unit_str
 
-    beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
-    bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
-
-    corner_keys = ['corner_fraction', 'nT']
-    c_args = dict((k, kwargs[k]) for k in corner_keys if k in kwargs)
-
-    cb_args = dict((k, kwargs[k]) for k in ['corner_fraction'] if k in kwargs)
-
-    xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
-
-    if crop:
+    # crop image as appropriate
+    if isinstance(crop, list):
+        ymin = yc-crop[0]/scale # in pixels
+        ymax = yc+crop[0]/scale
+        xmin = xc-crop[1]/scale
+        xmax = xc+crop[1]/scale
+        image, xc, yc = crop_image_to_rect(o_image, xmin, xmax, ymin, ymax)
+    elif crop:
         image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
     else:
         image = o_image
 
+    # subtract background based on corners
+    c_args = dict((k, kwargs[k]) for k in ['corner_fraction', 'nT'] if k in kwargs)
     working_image = corner_subtract(image, **c_args)
+
+    # get background value to use when calculating fitted beam
+    cb_args = dict((k, kwargs[k]) for k in ['corner_fraction'] if k in kwargs)
     background, _ = corner_background(image, **cb_args)
+
     rx = dx/2
     ry = dy/2
 
@@ -967,7 +974,7 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
 
     If pixel_size is defined, then the returned measurements are in units of
     pixel_size.
-    
+
     Args:
         image: 2D array of image with beam spot
         pixel_size: (optional) size of pixels
@@ -981,11 +988,14 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
         dy: vertical diameter of beam
         phi: angle that elliptical beam is rotated [radians]
     """
+    # only pass along arguments that apply to beam_size()
     beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
     bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
 
+    # find center and diameters
     xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
 
+    # establish scale and correct label
     if pixel_size is None:
         scale = 1
         label = 'Pixels'
@@ -993,6 +1003,7 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
         scale = pixel_size
         label = 'Position (%s)' % units
 
+    # crop image if necessary
     if isinstance(crop, list):
         ymin = yc-crop[0]/scale # in pixels
         ymax = yc+crop[0]/scale
@@ -1004,16 +1015,20 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
     else:
         image = o_image
 
-    v, h = image.shape
+    # establish maximum colorbar value
     if vmax is None:
         vmax = image.max()
 
-
+    # extents may be changed by scale
+    v, h = image.shape
     extent = np.array([-xc, h-xc, v-yc, -yc])*scale
+
+    # display image and axes labels
     plt.imshow(image, extent=extent, cmap='gist_ncar', vmax=vmax)
     plt.xlabel(label)
     plt.ylabel(label)
 
+    # draw semi-major and semi-minor axes
     xp, yp = axes_arrays(xc, yc, dx, dy, phi)
     plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
 
@@ -1025,6 +1040,7 @@ def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, 
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
     plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
 
+    # finally set limits on axes
     plt.xlim(-xc*scale, (h-xc)*scale)
     plt.ylim((v-yc)*scale, -yc*scale)
 
