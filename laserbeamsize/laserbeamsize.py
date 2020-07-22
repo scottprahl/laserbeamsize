@@ -10,25 +10,35 @@ Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make
 the algorithm less sensitive to background offset and noise.
 
-Finding the center and dimensions of a monochrome image of a beam is simple::
+Finding the center and diameters of a beam in a monochrome image is simple::
 
     import imageio
     import numpy as np
     import laserbeamsize as lbs
 
-    beam = imageio.imread("t-hene.pgm")
-    x, y, dx, dy, phi = lbs.beam_size(beam)
+    beam_image = imageio.imread("t-hene.pgm")
+    x, y, dx, dy, phi = lbs.beam_size(beam_image)
 
     print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
     print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
     print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
     print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi*180/3.1416))
 
-    ellipticity = dy/dx
-    if ellipticity>0.87:
-        print()
-        print("The beam is circular because the ellipticity=%.2f > 0.87")
-        print("The circular beam diameter is %.0f pixels" % np.sqrt((dx**2+dy**2)/2))
+A full graphic can be created by::
+
+    beam_image = imageio.imread("t-hene.pgm")
+    lbs.beam_size_graphic(beam_image)
+    plt.show()
+    
+A mosaic of images might be created by:
+
+    # read images for each location
+    z = np.array([89,94,99,104,109,114,119,124,129,134,139], dtype=float) #[mm]
+    filenames = ["%d.pgm" % location for location in z]
+    images = [imageio.imread(filename) for filename in filenames]
+
+    lbs.beam_size_montage(images, z*1e-3, pixel_size=3.75, crop=True)
+    plt.show()
 """
 
 import matplotlib.pyplot as plt
@@ -53,8 +63,9 @@ __all__ = ('subtract_image',
            'elliptical_mask',
            'major_axis_arrays',
            'minor_axis_arrays',
-           'visual_report',
-           'plot_beam_fit',
+           'beam_size_graphic',
+           'beam_size_and_plot',
+           'beam_size_montage'
            )
 
 
@@ -832,7 +843,106 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
     return crop_image_to_rect(image, min(xp), max(xp), min(yp), max(yp))
 
 
-def visual_report(o_image, title='Original', pixel_size=None, units='µm', crop=False, **kwargs):
+def beam_size_and_plot(o_image, 
+                  pixel_size=None, 
+                  vmax=None, 
+                  units='µm', 
+                  crop=False,
+                  colorbar=False,
+                  **kwargs):
+    """
+    Plot the image, fitted ellipse, integration area, and semi-major/minor axes.
+
+    If pixel_size is defined, then the returned measurements are in units of
+    pixel_size.
+    
+    This is helpful for creating a mosaics of all the images created for an
+    experiment.
+
+    Args:
+        image: 2D array of image with beam spot
+        pixel_size: (optional) size of pixels
+        vmax: (optional) maximum value for colorbar
+        units: (optional) string used for units used on axes
+        crop: (optional) crop image to integration rectangle
+        
+    Returns:
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: horizontal diameter of beam
+        dy: vertical diameter of beam
+        phi: angle that elliptical beam is rotated [radians]
+    """
+    # only pass along arguments that apply to beam_size()
+    beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
+    bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
+
+    # find center and diameters
+    xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
+
+    # establish scale and correct label
+    if pixel_size is None:
+        scale = 1
+        label = 'Pixels'
+    else:
+        scale = pixel_size
+        label = 'Position (%s)' % units
+
+    # crop image if necessary
+    if isinstance(crop, list):
+        ymin = yc-crop[0]/2/scale # in pixels
+        ymax = yc+crop[0]/2/scale
+        xmin = xc-crop[1]/2/scale
+        xmax = xc+crop[1]/2/scale
+        image, xc, yc = crop_image_to_rect(o_image, xmin, xmax, ymin, ymax)
+    elif crop:
+        image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
+    else:
+        image = o_image
+
+    # establish maximum colorbar value
+    if vmax is None:
+        vmax = image.max()
+
+    # extents may be changed by scale
+    v, h = image.shape
+    extent = np.array([-xc, h-xc, v-yc, -yc])*scale
+
+    # display image and axes labels
+    im = plt.imshow(image, extent=extent, cmap='gist_ncar', vmax=vmax)
+    plt.xlabel(label)
+    plt.ylabel(label)
+
+    # draw semi-major and semi-minor axes
+    xp, yp = axes_arrays(xc, yc, dx, dy, phi)
+    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
+
+    # show ellipse around beam
+    xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
+    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':k')
+
+    # show integration area around beam
+    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
+    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
+
+    # set limits on axes
+    plt.xlim(-xc*scale, (h-xc)*scale)
+    plt.ylim((v-yc)*scale, -yc*scale)
+
+    # show colorbar
+    if colorbar:
+        v, h = image.shape
+        plt.colorbar(im, fraction=0.046*v/h, pad=0.04)
+
+    return xc*scale, yc*scale, dx*scale, dy*scale, phi
+
+
+def beam_size_graphic(o_image, 
+                      title='Original', 
+                      pixel_size=None, 
+                      units='µm', 
+                      crop=False,
+                      **kwargs):
     """
     Create a visual report for image fitting.
 
@@ -867,10 +977,10 @@ def visual_report(o_image, title='Original', pixel_size=None, units='µm', crop=
 
     # crop image as appropriate
     if isinstance(crop, list):
-        ymin = yc-crop[0]/scale # in pixels
-        ymax = yc+crop[0]/scale
-        xmin = xc-crop[1]/scale
-        xmax = xc+crop[1]/scale
+        ymin = yc-crop[0]/2/scale # in pixels
+        ymax = yc+crop[0]/2/scale
+        xmin = xc-crop[1]/2/scale
+        xmax = xc+crop[1]/2/scale
         image, xc, yc = crop_image_to_rect(o_image, xmin, xmax, ymin, ymax)
     elif crop:
         image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
@@ -905,13 +1015,11 @@ def visual_report(o_image, title='Original', pixel_size=None, units='µm', crop=
 
     # original image
     plt.subplot(2, 2, 1)
-    im = plt.imshow(image, extent=[0, h_s, v_s, 0], cmap='gist_ncar')
+    im = plt.imshow(image, cmap='gist_ncar')
     plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04)
     plt.clim(min_, max_)
-    plt.xlim(0, h_s)
-    plt.ylim(v_s, 0)
-    plt.xlabel(label)
-    plt.ylabel(label)
+    plt.xlabel('Position (pixels)')
+    plt.ylabel('Position (pixels)')
     plt.title(title)
 
     # working image
@@ -967,81 +1075,75 @@ def visual_report(o_image, title='Original', pixel_size=None, units='µm', crop=
     # add more horizontal space between plots
     plt.subplots_adjust(wspace=0.3)
 
-
-def plot_beam_fit(o_image, pixel_size=None, vmax=None, units='µm', crop=False, **kwargs):
+def beam_size_montage(images, 
+                      z_locations=None,
+                      cols = 3,
+                      pixel_size=None, 
+                      vmax=None, 
+                      units='µm', 
+                      crop=False):
     """
-    Plot the image, fitted ellipse, integration area, and center lines.
-
-    If pixel_size is defined, then the returned measurements are in units of
-    pixel_size.
+    Create a beam size montage for a set of images.
 
     Args:
-        image: 2D array of image with beam spot
+        images: a list of 2D images of the laser beam
+        z_locations: (optional) list of axial positions of images (always in meters!)
+        cols: (optional) number of columns in the montage
         pixel_size: (optional) size of pixels
-        vmax: (optional) maximum value for colorbar
         units: (optional) string used for units used on axes
         crop: (optional) crop image to integration rectangle
     Returns:
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
+        dx,dy: semi-major and semi-minor diameters
     """
-    # only pass along arguments that apply to beam_size()
-    beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT', 'max_iter']
-    bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
+    # arrays to save diameters
+    dx = np.zeros(len(images))
+    dy = np.zeros(len(images))
 
-    # find center and diameters
-    xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
+    # calculate the number of rows needed in the montage
+    rows = (len(images)-1) // cols + 1
 
-    # establish scale and correct label
+    # when pixel_size is not specified, units default to pixels
     if pixel_size is None:
-        scale = 1
-        label = 'Pixels'
-    else:
-        scale = pixel_size
-        label = 'Position (%s)' % units
+        units = 'pixels'
 
-    # crop image if necessary
-    if isinstance(crop, list):
-        ymin = yc-crop[0]/scale # in pixels
-        ymax = yc+crop[0]/scale
-        xmin = xc-crop[1]/scale
-        xmax = xc+crop[1]/scale
-        image, xc, yc = crop_image_to_rect(o_image, xmin, xmax, ymin, ymax)
-    elif crop:
-        image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
-    else:
-        image = o_image
+    # gather all the options that are fixed for every image in the montage
+    options = {'pixel_size':pixel_size, 'vmax':vmax, 'units':units, 'crop':crop}
+    
+    # now set up the grid of subplots
+    plt.subplots(rows,cols,figsize=(cols*5,rows*5))
 
-    # establish maximum colorbar value
-    if vmax is None:
-        vmax = image.max()
+    for i, im in enumerate(images):
+        plt.subplot(rows,cols,i+1)
 
-    # extents may be changed by scale
-    v, h = image.shape
-    extent = np.array([-xc, h-xc, v-yc, -yc])*scale
+        # should we add color bar?
+        cb = not (vmax is None) and (i+1 == cols)
 
-    # display image and axes labels
-    plt.imshow(image, extent=extent, cmap='gist_ncar', vmax=vmax)
-    plt.xlabel(label)
-    plt.ylabel(label)
+        # plot the image and gather the beam diameters
+        _, _, dx[i], dy[i], _ = beam_size_and_plot(im, **options, colorbar=cb)
+        
+        # add a title
+        s = "dx=%.0f%s, dy=%.0f%s" % (dx[i], units, dy[i], units)
+        if z_locations is None:
+            plt.title(s)
+        else:
+            plt.title("%.0fmm, %s" % (z_locations[i]*1e3, s))
+        
+        # omit y-labels on all but first column
+        if i%cols:
+            plt.ylabel("")
+            if isinstance(crop, list):
+                plt.yticks([])
+        
+        # omit x-labels on all but last row
+        if i<(rows-1)*cols:
+            plt.xlabel("")
+            if isinstance(crop, list):
+                plt.xticks([])
 
-    # draw semi-major and semi-minor axes
-    xp, yp = axes_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
+    for i in range(len(images),rows*cols):
+        plt.subplot(rows, cols, i+1)
+        plt.axis("off")
+        
+    return dx, dy
 
-    # show ellipse around beam
-    xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':k')
 
-    # show integration area around beam
-    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
-
-    # finally set limits on axes
-    plt.xlim(-xc*scale, (h-xc)*scale)
-    plt.ylim((v-yc)*scale, -yc*scale)
-
-    return xc*scale, yc*scale, dx*scale, dy*scale, phi
