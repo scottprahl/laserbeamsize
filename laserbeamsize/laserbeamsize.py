@@ -797,27 +797,28 @@ def draw_beam_figure():
     plt.axis('off')
 
 
-def crop_image_to_rect(image, xmin, xmax, ymin, ymax):
+def crop_image_to_rect(image, xc, yc, xmin, xmax, ymin, ymax):
     """
     Return image cropped to specified rectangle.
 
     Args:
         image: image of beam
+        xc,yc: beam center (pixels)
         xmin: left edge (pixels)
         xmax: right edge (pixels)
         ymin: top edge (pixels)
         ymax: bottom edge (pixels)
     Returns:
         cropped_image: cropped image
-        xc,yc: new beam center (pixels)
+        new_xc, new_yc: new beam center (pixels)
     """
     v, h = image.shape
     xmin = max(0, int(xmin))
     xmax = min(h, int(xmax))
     ymin = max(0, int(ymin))
     ymax = min(v, int(ymax))
-    new_xc = (xmax-xmin)//2
-    new_yc = (ymax-ymin)//2
+    new_xc = xc-xmin
+    new_yc = yc-ymin
     return image[ymin:ymax, xmin:xmax], new_xc, new_yc
 
 
@@ -840,7 +841,7 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
         new_yc: y-position of beam center in cropped image
     """
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
-    return crop_image_to_rect(image, min(xp), max(xp), min(yp), max(yp))
+    return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
 
 
 def beam_size_and_plot(o_image, 
@@ -858,6 +859,18 @@ def beam_size_and_plot(o_image,
     
     This is helpful for creating a mosaics of all the images created for an
     experiment.
+
+    If `crop` is a two parameter list `[v,h]` then `v` and `h` are
+    interpreted as the vertical and horizontal sizes of the rectangle.  The
+    size is in pixels unless `pixel_size` is specified.  In that case the
+    rectangle sizes are in whatever units `pixel_size` is .
+    
+    If `crop==True` then the displayed image is cropped to the ISO 11146 integration
+    rectangle.
+    
+    All cropping is done after analysis and therefosre only affects
+    what is displayed.  If the image needs to be cropped before analysis
+    then that must be done before calling this function.
 
     Args:
         image: 2D array of image with beam spot
@@ -894,7 +907,7 @@ def beam_size_and_plot(o_image,
         ymax = yc+crop[0]/2/scale
         xmin = xc-crop[1]/2/scale
         xmax = xc+crop[1]/2/scale
-        image, xc, yc = crop_image_to_rect(o_image, xmin, xmax, ymin, ymax)
+        image, xc, yc = crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
     elif crop:
         image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
     else:
@@ -945,6 +958,18 @@ def beam_size_graphic(o_image,
                       **kwargs):
     """
     Create a visual report for image fitting.
+    
+    If `crop` is a two parameter list `[v,h]` then `v` and `h` are
+    interpreted as the vertical and horizontal sizes of the rectangle.  The
+    size is in pixels unless `pixel_size` is specified.  In that case the
+    rectangle sizes are in whatever units `pixel_size` is .
+    
+    If `crop==True` then the displayed image is cropped to the ISO 11146 integration
+    rectangle.
+    
+    All cropping is done after analysis and therefosre only affects
+    what is displayed.  If the image needs to be cropped before analysis
+    then that must be done before calling this function.
 
     Args:
         image: 2D image of laser beam
@@ -1084,6 +1109,18 @@ def beam_size_montage(images,
                       crop=False):
     """
     Create a beam size montage for a set of images.
+
+    If `crop` is a two parameter list `[v,h]` then `v` and `h` are
+    interpreted as the vertical and horizontal sizes of the rectangle.  The
+    size is in pixels unless `pixel_size` is specified.  In that case the
+    rectangle sizes are in whatever units `pixel_size` is .
+    
+    If `crop==True` then the displayed image is cropped to the ISO 11146 integration
+    rectangle.
+    
+    All cropping is done after analysis and therefosre only affects
+    what is displayed.  If the image needs to be cropped before analysis
+    then that must be done before calling this function.
 
     Args:
         images: array of 2D images of the laser beam
