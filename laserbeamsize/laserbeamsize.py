@@ -1076,7 +1076,7 @@ def beam_size_graphic(o_image,
     plt.subplots_adjust(wspace=0.3)
 
 def beam_size_montage(images, 
-                      z_locations=None,
+                      z=None,
                       cols = 3,
                       pixel_size=None, 
                       vmax=None, 
@@ -1086,8 +1086,8 @@ def beam_size_montage(images,
     Create a beam size montage for a set of images.
 
     Args:
-        images: a list of 2D images of the laser beam
-        z_locations: (optional) list of axial positions of images (always in meters!)
+        images: array of 2D images of the laser beam
+        z: (optional) array of axial positions of images (always in meters!)
         cols: (optional) number of columns in the montage
         pixel_size: (optional) size of pixels
         units: (optional) string used for units used on axes
@@ -1123,10 +1123,10 @@ def beam_size_montage(images,
         
         # add a title
         s = "dx=%.0f%s, dy=%.0f%s" % (dx[i], units, dy[i], units)
-        if z_locations is None:
+        if z is None:
             plt.title(s)
         else:
-            plt.title("%.0fmm, %s" % (z_locations[i]*1e3, s))
+            plt.title("z=%.0fmm, %s" % (z[i]*1e3, s))
         
         # omit y-labels on all but first column
         if i%cols:
