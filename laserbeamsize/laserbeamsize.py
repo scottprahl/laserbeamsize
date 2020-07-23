@@ -1159,7 +1159,10 @@ def beam_size_montage(images,
         _, _, dx[i], dy[i], _ = beam_size_and_plot(im, **options, colorbar=cb)
         
         # add a title
-        s = "dx=%.0f%s, dy=%.0f%s" % (dx[i], units, dy[i], units)
+        if units=='mm':
+            s = "dx=%.2f%s, dy=%.2f%s" % (dx[i], units, dy[i], units)
+        else:
+            s = "dx=%.0f%s, dy=%.0f%s" % (dx[i], units, dy[i], units)
         if z is None:
             plt.title(s)
         else:
