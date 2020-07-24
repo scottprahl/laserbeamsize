@@ -27,7 +27,7 @@ Finding the center and diameters of a beam in a monochrome image is simple::
 A full graphic can be created by::
 
     beam_image = imageio.imread("t-hene.pgm")
-    lbs.beam_size_graphic(beam_image)
+    lbs.beam_size_plot(beam_image)
     plt.show()
     
 A mosaic of images might be created by:
@@ -63,7 +63,7 @@ __all__ = ('subtract_image',
            'elliptical_mask',
            'major_axis_arrays',
            'minor_axis_arrays',
-           'beam_size_graphic',
+           'beam_size_plot',
            'beam_size_and_plot',
            'beam_size_montage'
            )
@@ -950,7 +950,7 @@ def beam_size_and_plot(o_image,
     return xc*scale, yc*scale, dx*scale, dy*scale, phi
 
 
-def beam_size_graphic(o_image, 
+def beam_size_plot(o_image, 
                       title='Original', 
                       pixel_size=None, 
                       units='µm', 

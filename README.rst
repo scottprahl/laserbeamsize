@@ -40,20 +40,21 @@ Finding the center and dimensions of a good beam image::
 
 Alternatively, one can get a quick visual report::
 
-    lbs.visual_report(beam)
+    lbs.beam_size_plot(beam)
     plt.show()
     
-Which will show something like
+Which will show
 
 .. image:: hene-report.png
 
 Alternatively::
 
+    # read a monochrome image file (each value needs to be shifted 4 bits)
     tem02 = imageio.imread("TEM02_100mm.pgm") >> 4
-    lbs.visual_report(tem02, title = r"TEM$_{02}$ at z=100mm", pixel_size=3.75)
-    plt.savefig("tem02.png", bbox_inches = 'tight')
+    lbs.M2_diameter_plot(tem02, title = r"TEM$_{02}$ at z=100mm", pixel_size=3.75)
+    plt.show()
 
-Creates an image like
+Creates
 
 .. image:: tem02.png
 
@@ -64,7 +65,8 @@ than two Rayleigh distances::
     lambda1=308e-9
     z1_all=np.array([-200,-180,-160,-140,-120,-100,-80,-60,-40,-20,0,20,40,60,80,99,120,140,160,180,200])*1e-3
     d1_all=2*np.array([416,384,366,311,279,245,216,176,151,120,101,93,102,120,147,177,217,256,291,316,348])*1e-6
-    lbs.radius_fit_plot(z1_all, d1_all, lambda1, strict=True)
+    lbs.M2_radius_plot(z1_all, d1_all, lambda1, strict=True)
+    plt.show()
 
 Produces
 
