@@ -32,29 +32,30 @@ Finding the center and dimensions of a good beam image::
     print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
     print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi*180/3.1416))
 
-    ellipticity = dy/dx
-    if ellipticity>0.87:
-        print()
-        print("The beam is circular because the ellipticity=%.2f > 0.87")
-        print("The circular beam diameter is %.0f pixels" % np.sqrt((dx**2+dy**2)/2))
+to produce::
 
-Alternatively, one can get a quick visual report::
+    The center of the beam ellipse is at (651, 491)
+    The ellipse diameter (closest to horizontal) is 334 pixels
+    The ellipse diameter (closest to   vertical) is 327 pixels
+    The ellipse is rotated 29° ccw from the horizontal
+
+A visual report can be done with one function call::
 
     lbs.beam_size_plot(beam)
     plt.show()
     
-Which will show
+produces
 
 .. image:: hene-report.png
 
-Alternatively::
+Non-gaussian beams work too::
 
-    # read a monochrome image file (each value needs to be shifted 4 bits)
+    # 12-bit pixel image stored as high-order bits in 16-bit values
     tem02 = imageio.imread("TEM02_100mm.pgm") >> 4
-    lbs.M2_diameter_plot(tem02, title = r"TEM$_{02}$ at z=100mm", pixel_size=3.75)
+    lbs.beam_size_plot(tem02, title = r"TEM$_{02}$ at z=100mm", pixel_size=3.75)
     plt.show()
 
-Creates
+produces
 
 .. image:: tem02.png
 
