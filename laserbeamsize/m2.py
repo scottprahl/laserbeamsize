@@ -33,16 +33,13 @@ __all__ = ('z_rayleigh',
            'curvature',
            'divergence',
            'gouy_phase',
-           'basic_beam_fit',
-           'beam_fit',
-           'M2_graph',
-           'M2_graph2',
-           'M2_report',
-           'M2_report2',
-           'radius_fit_plot',
            'focused_diameter',
            'artificial_to_original',
-           'beam_focus_plot'
+           'M2_fit',
+           'M2_report',
+           'M2_diameter_plot',
+           'M2_radius_plot',
+           'M2_focus_plot'
            )
 
 def z_rayleigh(w0, lambda0, M2=1):
@@ -237,19 +234,19 @@ def _abc_fit(z, d, lambda0):
     return params
 
 
-def _beam_diameter_squared(z, d0, z0, Theta):
+def _beam_fit_fn_(z, d0, z0, Theta):
     """Fitting function for d0, z0, and Theta."""
     return d0**2 + (Theta*(z-z0))**2
 
-def _beam_diameter_squared2(z, d0, Theta):
+def _beam_fit_fn_2(z, d0, Theta):
     """Fitting function for d0 and Theta."""
     return d0**2 + (Theta*z)**2
 
-def _beam_diameter_squared3(z, z0, Theta):
+def _beam_fit_fn_3(z, z0, Theta):
     """Fitting function for z0 and Theta."""
     return (Theta*(z-z0))**2
 
-def _beam_diameter_squared4(z, Theta):
+def _beam_fit_fn_4(z, Theta):
     """Fitting function for just Theta."""
     return (Theta*z)**2
 
@@ -292,14 +289,14 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
             i = np.argmax(abs(z-z0_guess))
             theta_guess = abs(d[i]/(z[i]-z0_guess))
             p0 = [d0_guess, z0_guess, theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_diameter_squared, z, d**2, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_, z, d**2, p0=p0)
             d0, z0, Theta = nlfit
             d0_std, z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
         else:
             i = np.argmax(abs(z-z0_guess))
             theta_guess = abs(d[i]/(z[i]-z0_guess))
             p0 = [z0_guess, theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_diameter_squared3, z, d**2-d0**2, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_3, z, d**2-d0**2, p0=p0)
             z0, Theta = nlfit
             z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
             d0_std = 0
@@ -308,13 +305,13 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
         theta_guess = abs(d[i]/(z[i]-z0))
         if d0 is None:
             p0 = [d0_guess, theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_diameter_squared2, z-z0, d**2, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_2, z-z0, d**2, p0=p0)
             d0, Theta = nlfit
             d0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
             z0_std = 0
         else:
             p0 = [theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_diameter_squared4, z-z0, d**2-d0**2, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_4, z-z0, d**2-d0**2, p0=p0)
             Theta = nlfit[0]
             Theta_std = np.sqrt(nlpcov[0, 0])
             z0_std = 0
@@ -357,7 +354,7 @@ def min_index_in_outer_zone(z, zone):
     return imin
 
 
-def beam_fit(z, d, lambda0, strict=False, z0=None, d0=None):
+def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
     """
     Return the hyperbolic fit to the supplied diameters.
 
@@ -514,7 +511,7 @@ def artificial_to_original(params, errors, f, hiatus=0):
     return o_params, o_errors
 
 
-def M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
+def _M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
     """
     Return string describing a single set of beam measurements.
 
@@ -526,7 +523,7 @@ def M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
     Returns:
         Formatted string suitable for printing.
     """
-    params, errors, _ = beam_fit(z, d, lambda0, strict, z0=z0, d0=d0)
+    params, errors, _ = M2_fit(z, d, lambda0, strict, z0=z0, d0=d0)
 
     if f is None:
         s = "Beam propagation parameters\n"
@@ -541,9 +538,9 @@ def M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
     return s
 
 
-def M2_report2(z, dx, dy, lambda0, f=None, strict=False, z0=None, d0=None):
+def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
     """
-    Return string describing a two sets of beam measurements.
+    Return string describing a one or sets of beam measurements.
 
     Args:
         z: array of axial position of beam measurements [m]
@@ -554,11 +551,15 @@ def M2_report2(z, dx, dy, lambda0, f=None, strict=False, z0=None, d0=None):
     Returns:
         Formatted string suitable for printing.
     """
-    params, errors, _ = beam_fit(z, dx, lambda0, strict=strict, z0=z0, d0=d0)
+    if dy is None:
+        s = _M2_report(z, dx, lambda0, f=f, strict=strict, z0=z0, d0=d0)
+        return s
+
+    params, errors, _ = M2_fit(z, dx, lambda0, strict=strict, z0=z0, d0=d0)
     d0x, z0x, Thetax, M2x, zRx = params
     d0x_std, z0x_std, Thetax_std, M2x_std, zRx_std = errors
 
-    params, errors, _ = beam_fit(z, dy, lambda0, strict=strict, z0=z0, d0=d0)
+    params, errors, _ = M2_fit(z, dy, lambda0, strict=strict, z0=z0, d0=d0)
     d0y, z0y, Thetay, M2y, zRy = params
     d0y_std, z0y_std, Thetay_std, M2y_std, zRy_std = errors
 
@@ -641,7 +642,7 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     Returns:
         residuals, z0, zR
     """
-    params, errors, used = beam_fit(z, d, lambda0, strict=strict, z0=z0, d0=d0)
+    params, errors, used = M2_fit(z, d, lambda0, strict=strict, z0=z0, d0=d0)
     unused = np.logical_not(used)
     d0, z0, Theta, M2, zR = params
     d0_std, z0_std, Theta_std, M2_std, zR_std = errors
@@ -657,13 +658,13 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     d_fit_hi = np.sqrt((d0+d0_std)**2 + ((Theta+Theta_std)*(z_fit-z0))**2)
     plt.fill_between(z_fit*1e3, d_fit_lo*1e6, d_fit_hi*1e6, color='red', alpha=0.5)
 
-    # show perfect gaussian when unphysical M2 arises
-    if M2<1:
+    # show perfect gaussian caustic when unphysical M2 arises
+    if M2 < 1:
         Theta00 = 4 * lambda0 / (np.pi * d0)
         d_00 = np.sqrt(d0**2 + (Theta00*(z_fit-z0))**2)
         plt.plot(z_fit*1e3, d_00*1e6, ':k', lw=2, label="M²=1")
         plt.legend(loc="lower right")
-    
+
     plt.fill_between(z_fit*1e3, d_fit_lo*1e6, d_fit_hi*1e6, color='red', alpha=0.5)
     # data points
     plt.plot(z[used]*1e3, d[used]*1e6, 'o', color='black', label='used')
@@ -693,7 +694,7 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     return residuals, z0, zR, used
 
 
-def M2_graph(z, d, lambda0, strict=False, z0=None, d0=None):
+def _M2_diameter_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     """
     Plot the fitted beam and the residuals.
 
@@ -730,18 +731,22 @@ def M2_graph(z, d, lambda0, strict=False, z0=None, d0=None):
     plt.axvspan((z0+2*zR)*1e3, (zmax)*1e3, color='cyan', alpha=0.3)
 
 
-def M2_graph2(z, dx, dy, lambda0, strict=False, z0=None, d0=None):
+def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     """
     Plot the semi-major and semi-minor beam fits and residuals.
 
     Args:
         z: array of axial position of beam measurements [m]
-        d: array of beam diameters  [m]
         lambda0: wavelength of the laser [m]
+        dx: array of beam diameters  [m]
 
     Returns:
         nothing
     """
+    if dy is None:
+        _M2_diameter_plot(z, dx, lambda0, strict=strict, z0=z0, d0=d0)
+        return
+
     ymax = 1.1 * max(np.max(dx), np.max(dy)) * 1e6
 
     # Create figure window to plot data
@@ -794,7 +799,7 @@ def M2_graph2(z, dx, dy, lambda0, strict=False, z0=None, d0=None):
     plt.ylim(ymin, ymax)
 
 
-def radius_fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
+def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     """
     Plot radii, beam fits, and asymptotes.
 
@@ -806,7 +811,7 @@ def radius_fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     Returns:
         nothing
     """
-    params, errors, used = beam_fit(z, d, lambda0, strict=strict, z0=z0, d0=d0)
+    params, errors, used = M2_fit(z, d, lambda0, strict=strict, z0=z0, d0=d0)
     unused = np.logical_not(used)
     d0, z0, Theta, M2, zR = params
     d0_std, _, Theta_std, M2_std, _ = errors
@@ -877,7 +882,7 @@ def radius_fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     plt.text(x, ymin, '$2z_R < z-z_0$', ha='center', va='bottom', fontsize=16)
     x = (zmin-z0 - 2*zR)/2 * 1e3
     plt.text(x, ymin, '$z-z_0 < -2z_R$', ha='center', va='bottom', fontsize=16)
-    
+
     ax1.axvspan((-zR)*1e3, (+zR)*1e3, color='cyan', alpha=0.3)
     ax1.axvspan((-2*zR)*1e3, (zmin-z0)*1e3, color='cyan', alpha=0.3)
     ax1.axvspan((+2*zR)*1e3, (zmax-z0)*1e3, color='cyan', alpha=0.3)
@@ -898,11 +903,11 @@ def radius_fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
         ax1.legend(loc='center left')
 
 
-def beam_focus_plot(w0, lambda0, f, z0, M2=1):
+def M2_focus_plot(w0, lambda0, f, z0, M2=1):
     """
     Plot a beam from its waist through a lens to its focus.
 
-    The lens is at `z=0` with respect to the beam waist. All distances to 
+    The lens is at `z=0` with respect to the beam waist. All distances to
     the left of the lens are negative and those to the right are positive.
 
     The beam has a waist at `z0`.  If the beam waist is at the front focal
