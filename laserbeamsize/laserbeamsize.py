@@ -46,6 +46,7 @@ import numpy as np
 import scipy.ndimage
 
 # cubeYF palette described at https://mycarta.wordpress.com
+# the default gist_ncar colormap works better for most beams
 import matplotlib._cm, matplotlib.cm
 specs   = matplotlib._cm.cubehelix(gamma=1.4,s=0.4,r=-0.8,h=2.0)
 matplotlib.cm.register_cmap(name='cubeYF', data=specs)
@@ -855,7 +856,7 @@ def beam_size_and_plot(o_image,
                        units='µm',
                        crop=False,
                        colorbar=False,
-                       cmap='cubeYF',
+                       cmap='gist_ncar',
                        **kwargs):
     """
     Plot the image, fitted ellipse, integration area, and semi-major/minor axes.
@@ -961,7 +962,7 @@ def beam_size_plot(o_image,
                    pixel_size=None,
                    units='µm',
                    crop=False,
-                   cmap='cubeYF',
+                   cmap='gist_ncar',
                    **kwargs):
     """
     Create a visual report for image fitting.
@@ -1112,7 +1113,7 @@ def beam_size_montage(images,
                       vmax=None,
                       units='µm',
                       crop=False,
-                      cmap='cubeYF'):
+                      cmap='gist_ncar'):
     """
     Create a beam size montage for a set of images.
 
