@@ -18,6 +18,9 @@ Just use pip::
 Usage
 -----
 
+Beam size in an image
+~~~~~~~~~~~~~~~~~~~~~
+
 Finding the center and dimensions of a good beam image::
 
     import imageio
@@ -59,11 +62,14 @@ produces
 
 .. image:: tem02.png
 
-Determining M² for a laser beam is also straightforward.  Collect beam diameters from
+Determining M² 
+~~~~~~~~~~~~~~
+
+Determining M² for a laser beam is also straightforward.  Just collect beam diameters from
 five beam locations within one Rayleigh distance of the focus and from five locations more
 than two Rayleigh distances::
 
-    lambda1=308e-9
+    lambda1=308e-9 # meters
     z1_all=np.array([-200,-180,-160,-140,-120,-100,-80,-60,-40,-20,0,20,40,60,80,99,120,140,160,180,200])*1e-3
     d1_all=2*np.array([416,384,366,311,279,245,216,176,151,120,101,93,102,120,147,177,217,256,291,316,348])*1e-6
     lbs.M2_radius_plot(z1_all, d1_all, lambda1, strict=True)
@@ -72,6 +78,33 @@ than two Rayleigh distances::
 Produces
 
 .. image:: m2fit.png
+
+Here is an analysis of a set of images that were insufficient for ISO 11146::
+
+    lambda0 = 632.8e-9 # meters
+    z10 = np.array([247,251,259,266,281,292])*1e-3 # meters
+    filenames = ["sb_%.0fmm_10.pgm" % (number*1e3) for number in z10]
+
+    # the 12-bit pixel images are stored in high-order bits in 16-bit values
+    tem10 = [imageio.imread(name)>>4 for name in filenames]
+
+    # remove top to eliminate artifact 
+    for i in range(len(z10)):
+        tem10[i] = tem10[i][200:,:]
+
+    # find beam in all the images and create arrays of beam diameters
+    options = {'pixel_size': 3.75, 'units': "µm", 'crop': [1400,1400], 'z':z10}
+    dy, dx= lbs.beam_size_montage(tem10, **options)  # dy and dx in microns
+    plt.show()
+
+    # fit and show 
+    lbs.M2_radius_plot(z10, dx10*1e-6, lambda0)
+    plt.show()
+
+Produces
+
+.. image:: sbmontage.png
+.. image:: sbfit.png
 
 
 License
