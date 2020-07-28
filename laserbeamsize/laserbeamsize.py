@@ -29,7 +29,7 @@ A full graphic can be created by::
     beam_image = imageio.imread("t-hene.pgm")
     lbs.beam_size_plot(beam_image)
     plt.show()
-    
+
 A mosaic of images might be created by:
 
     # read images for each location
@@ -44,6 +44,11 @@ A mosaic of images might be created by:
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage
+
+# cubeYF palette described at https://mycarta.wordpress.com
+import matplotlib._cm, matplotlib.cm
+specs   = matplotlib._cm.cubehelix(gamma=1.4,s=0.4,r=-0.8,h=2.0)
+matplotlib.cm.register_cmap(name='cubeYF', data=specs)
 
 __all__ = ('subtract_image',
            'subtract_threshold',
@@ -844,19 +849,19 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
     return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
 
 
-def beam_size_and_plot(o_image, 
-                  pixel_size=None, 
-                  vmax=None, 
-                  units='µm', 
-                  crop=False,
-                  colorbar=False,
-                  **kwargs):
+def beam_size_and_plot(o_image,
+                       pixel_size=None,
+                       vmax=None,
+                       units='µm',
+                       crop=False,
+                       colorbar=False,
+                       **kwargs):
     """
     Plot the image, fitted ellipse, integration area, and semi-major/minor axes.
 
     If pixel_size is defined, then the returned measurements are in units of
     pixel_size.
-    
+
     This is helpful for creating a mosaics of all the images created for an
     experiment.
 
@@ -864,10 +869,10 @@ def beam_size_and_plot(o_image,
     interpreted as the vertical and horizontal sizes of the rectangle.  The
     size is in pixels unless `pixel_size` is specified.  In that case the
     rectangle sizes are in whatever units `pixel_size` is .
-    
+
     If `crop==True` then the displayed image is cropped to the ISO 11146 integration
     rectangle.
-    
+
     All cropping is done after analysis and therefosre only affects
     what is displayed.  If the image needs to be cropped before analysis
     then that must be done before calling this function.
@@ -878,7 +883,7 @@ def beam_size_and_plot(o_image,
         vmax: (optional) maximum value for colorbar
         units: (optional) string used for units used on axes
         crop: (optional) crop image to integration rectangle
-        
+
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
@@ -922,7 +927,7 @@ def beam_size_and_plot(o_image,
     extent = np.array([-xc, h-xc, v-yc, -yc])*scale
 
     # display image and axes labels
-    im = plt.imshow(image, extent=extent, cmap='gist_ncar', vmax=vmax)
+    im = plt.imshow(image, extent=extent, cmap='cubeYF', vmax=vmax)
     plt.xlabel(label)
     plt.ylabel(label)
 
@@ -932,7 +937,7 @@ def beam_size_and_plot(o_image,
 
     # show ellipse around beam
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':k')
+    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
 
     # show integration area around beam
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
@@ -950,23 +955,23 @@ def beam_size_and_plot(o_image,
     return xc*scale, yc*scale, dx*scale, dy*scale, phi
 
 
-def beam_size_plot(o_image, 
-                      title='Original', 
-                      pixel_size=None, 
-                      units='µm', 
-                      crop=False,
-                      **kwargs):
+def beam_size_plot(o_image,
+                   title='Original',
+                   pixel_size=None,
+                   units='µm',
+                   crop=False,
+                   **kwargs):
     """
     Create a visual report for image fitting.
-    
+
     If `crop` is a two parameter list `[v,h]` then `v` and `h` are
     interpreted as the vertical and horizontal sizes of the rectangle.  The
     size is in pixels unless `pixel_size` is specified.  In that case the
     rectangle sizes are in whatever units `pixel_size` is .
-    
+
     If `crop==True` then the displayed image is cropped to the ISO 11146 integration
     rectangle.
-    
+
     All cropping is done after analysis and therefosre only affects
     what is displayed.  If the image needs to be cropped before analysis
     then that must be done before calling this function.
@@ -991,14 +996,12 @@ def beam_size_plot(o_image,
     if pixel_size is None:
         scale = 1
         unit_str = ''
-        label = 'Pixels'
         units = 'pixels'
-        label2 = 'Pixels from Center'
+        label = 'Pixels from Center'
     else:
         scale = pixel_size
         unit_str = '[%s]' % units
-        label = 'Position %s' % unit_str
-        label2 = 'Distance from Center %s' % unit_str
+        label = 'Distance from Center %s' % unit_str
 
     # crop image as appropriate
     if isinstance(crop, list):
@@ -1006,7 +1009,7 @@ def beam_size_plot(o_image,
         ymax = yc+crop[0]/2/scale
         xmin = xc-crop[1]/2/scale
         xmax = xc+crop[1]/2/scale
-        image, xc, yc = crop_image_to_rect(o_image, xmin, xmax, ymin, ymax)
+        image, xc, yc = crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
     elif crop:
         image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
     else:
@@ -1040,7 +1043,7 @@ def beam_size_plot(o_image,
 
     # original image
     plt.subplot(2, 2, 1)
-    im = plt.imshow(image, cmap='gist_ncar')
+    im = plt.imshow(image, cmap='cubeYF')
     plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04)
     plt.clim(min_, max_)
     plt.xlabel('Position (pixels)')
@@ -1050,9 +1053,9 @@ def beam_size_plot(o_image,
     # working image
     plt.subplot(2, 2, 2)
     extent = np.array([-xc_s, h_s-xc_s, v_s-yc_s, -yc_s])
-    im = plt.imshow(working_image, extent=extent, cmap='gist_ncar')
+    im = plt.imshow(working_image, extent=extent, cmap='cubeYF')
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp-xc_s, yp-yc_s, ':k')
+    plt.plot(xp-xc_s, yp-yc_s, ':w')
     xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
     plt.plot(xp-xc_s, yp-yc_s, ':w')
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
@@ -1061,8 +1064,8 @@ def beam_size_plot(o_image,
 #    plt.clim(min_, max_)
     plt.xlim(-xc_s, h_s-xc_s)
     plt.ylim(v_s-yc_s, -yc_s)
-    plt.xlabel(label2)
-    plt.ylabel(label2)
+    plt.xlabel(label)
+    plt.ylabel(label)
     plt.title('Image w/o background, center at (%.0f, %.0f) %s' % (xc_s, yc_s, units))
 
     # plot of values along semi-major axis
@@ -1100,12 +1103,12 @@ def beam_size_plot(o_image,
     # add more horizontal space between plots
     plt.subplots_adjust(wspace=0.3)
 
-def beam_size_montage(images, 
+def beam_size_montage(images,
                       z=None,
-                      cols = 3,
-                      pixel_size=None, 
-                      vmax=None, 
-                      units='µm', 
+                      cols=3,
+                      pixel_size=None,
+                      vmax=None,
+                      units='µm',
                       crop=False):
     """
     Create a beam size montage for a set of images.
@@ -1114,10 +1117,10 @@ def beam_size_montage(images,
     interpreted as the vertical and horizontal sizes of the rectangle.  The
     size is in pixels unless `pixel_size` is specified.  In that case the
     rectangle sizes are in whatever units `pixel_size` is .
-    
+
     If `crop==True` then the displayed image is cropped to the ISO 11146 integration
     rectangle.
-    
+
     All cropping is done after analysis and therefosre only affects
     what is displayed.  If the image needs to be cropped before analysis
     then that must be done before calling this function.
@@ -1145,21 +1148,21 @@ def beam_size_montage(images,
 
     # gather all the options that are fixed for every image in the montage
     options = {'pixel_size':pixel_size, 'vmax':vmax, 'units':units, 'crop':crop}
-    
+
     # now set up the grid of subplots
-    plt.subplots(rows,cols,figsize=(cols*5,rows*5))
+    plt.subplots(rows, cols, figsize=(cols*5, rows*5))
 
     for i, im in enumerate(images):
-        plt.subplot(rows,cols,i+1)
+        plt.subplot(rows, cols, i+1)
 
         # should we add color bar?
         cb = not (vmax is None) and (i+1 == cols)
 
         # plot the image and gather the beam diameters
         _, _, dx[i], dy[i], _ = beam_size_and_plot(im, **options, colorbar=cb)
-        
+
         # add a title
-        if units=='mm':
+        if units == 'mm':
             s = "dx=%.2f%s, dy=%.2f%s" % (dx[i], units, dy[i], units)
         else:
             s = "dx=%.0f%s, dy=%.0f%s" % (dx[i], units, dy[i], units)
@@ -1167,23 +1170,21 @@ def beam_size_montage(images,
             plt.title(s)
         else:
             plt.title("z=%.0fmm, %s" % (z[i]*1e3, s))
-        
+
         # omit y-labels on all but first column
         if i%cols:
             plt.ylabel("")
             if isinstance(crop, list):
                 plt.yticks([])
-        
+
         # omit x-labels on all but last row
-        if i<(rows-1)*cols:
+        if i < (rows-1)*cols:
             plt.xlabel("")
             if isinstance(crop, list):
                 plt.xticks([])
 
-    for i in range(len(images),rows*cols):
+    for i in range(len(images), rows*cols):
         plt.subplot(rows, cols, i+1)
         plt.axis("off")
-        
+
     return dx, dy
-
-
