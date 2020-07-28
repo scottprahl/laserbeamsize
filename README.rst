@@ -25,6 +25,7 @@ Finding the center and dimensions of a good beam image::
 
     import imageio
     import numpy as np
+    import matplotlib.pyplot as plt
     import laserbeamsize as lbs
 
     beam = imageio.imread("t-hene.pgm")
@@ -97,13 +98,20 @@ Here is an analysis of a set of images that were insufficient for ISO 11146::
     dy, dx= lbs.beam_size_montage(tem10, **options)  # dy and dx in microns
     plt.show()
 
-    # fit and show 
-    lbs.M2_radius_plot(z10, dx10*1e-6, lambda0)
-    plt.show()
-
 Produces
 
 .. image:: sbmontage.png
+
+Here is one way to plot the fit using the above diameters::
+
+    lbs.M2_diameter_plot(z10, dx*1e-6, lambda0, dy=dy*1e-6)
+    plt.show()
+
+In the graph on the below right, the dashed line shows the expected divergence
+of a pure gaussian beam.  Since real beams should diverge faster than this (not slower)
+there is some problem with the measurements (too few!).  On the other hand, the M² value 
+the semi-major axis 2.6±0.7 is consistent with the expected value of 3 for the TEM₁₀ mode.
+
 .. image:: sbfit.png
 
 
