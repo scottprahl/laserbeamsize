@@ -1,6 +1,15 @@
 Changelog
 =================================================
 
+v1.5.0
+------
+*    Add M² fitting and plotting
+*    rename `visual_report()` to `beam_size_plot()`
+*    add `plot_size_montage()`
+*    hopefully stable API now
+*    allow any colormap, but default to `gist_ncar`
+*    extensive documentation of M² fitting process
+
 v1.3.0
 ------
 *    Add another figure to readme
