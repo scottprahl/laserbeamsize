@@ -3,8 +3,14 @@ include LICENSE.txt
 include tem02.png
 exclude docs
 exclude docs/*
-include docs/hene-report.png
+exclude docs/hene-report.png
+exclude docs/sbmontage.png
+exclude docs/sbfit.png
+exclude docs/m2fit.png
 include hene-report.png
+include m2fit.png
+include sbfit.png
+include sbmontage.png
 exclude release.txt
 exclude Makefile
 exclude .gitignore
