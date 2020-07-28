@@ -855,6 +855,7 @@ def beam_size_and_plot(o_image,
                        units='µm',
                        crop=False,
                        colorbar=False,
+                       cmap='cubeYF',
                        **kwargs):
     """
     Plot the image, fitted ellipse, integration area, and semi-major/minor axes.
@@ -927,7 +928,7 @@ def beam_size_and_plot(o_image,
     extent = np.array([-xc, h-xc, v-yc, -yc])*scale
 
     # display image and axes labels
-    im = plt.imshow(image, extent=extent, cmap='cubeYF', vmax=vmax)
+    im = plt.imshow(image, extent=extent, cmap=cmap, vmax=vmax)
     plt.xlabel(label)
     plt.ylabel(label)
 
@@ -960,6 +961,7 @@ def beam_size_plot(o_image,
                    pixel_size=None,
                    units='µm',
                    crop=False,
+                   cmap='cubeYF',
                    **kwargs):
     """
     Create a visual report for image fitting.
@@ -1043,7 +1045,7 @@ def beam_size_plot(o_image,
 
     # original image
     plt.subplot(2, 2, 1)
-    im = plt.imshow(image, cmap='cubeYF')
+    im = plt.imshow(image, cmap=cmap)
     plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04)
     plt.clim(min_, max_)
     plt.xlabel('Position (pixels)')
@@ -1053,7 +1055,7 @@ def beam_size_plot(o_image,
     # working image
     plt.subplot(2, 2, 2)
     extent = np.array([-xc_s, h_s-xc_s, v_s-yc_s, -yc_s])
-    im = plt.imshow(working_image, extent=extent, cmap='cubeYF')
+    im = plt.imshow(working_image, extent=extent, cmap=cmap)
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
     plt.plot(xp-xc_s, yp-yc_s, ':w')
     xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
@@ -1109,7 +1111,8 @@ def beam_size_montage(images,
                       pixel_size=None,
                       vmax=None,
                       units='µm',
-                      crop=False):
+                      crop=False,
+                      cmap='cubeYF'):
     """
     Create a beam size montage for a set of images.
 
@@ -1147,7 +1150,11 @@ def beam_size_montage(images,
         units = 'pixels'
 
     # gather all the options that are fixed for every image in the montage
-    options = {'pixel_size':pixel_size, 'vmax':vmax, 'units':units, 'crop':crop}
+    options = {'pixel_size':pixel_size, 
+               'vmax':vmax, 
+               'units':units, 
+               'crop':crop,
+               'cmap':cmap}
 
     # now set up the grid of subplots
     plt.subplots(rows, cols, figsize=(cols*5, rows*5))
