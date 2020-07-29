@@ -894,6 +894,14 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     ax1.fill_between(zz, lo, hi, color='red', alpha=0.5)
     ax1.fill_between(zz, -lo, -hi, color='red', alpha=0.5)
 
+    # show perfect gaussian caustic when unphysical M2 arises
+    if M2 < 1:
+        Theta00 = 4 * lambda0 / (np.pi * d0)
+        r_00 = np.sqrt(d0**2 + (Theta00*zz*1e-3)**2)/2 * 1e6
+        plt.plot(zz, r_00, ':k', lw=2, label="M²=1")
+        plt.plot(zz, -r_00, ':k', lw=2)
+        plt.legend(loc="lower right")
+
     # data points
     ax1.plot((z[used]-z0)*1e3, d[used]*1e6/2, 'ok', label='used')
     ax1.plot((z[used]-z0)*1e3, -d[used]*1e6/2, 'ok')
