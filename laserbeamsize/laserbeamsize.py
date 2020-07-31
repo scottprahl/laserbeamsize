@@ -3,6 +3,8 @@
 # pylint: disable=too-many-arguments
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-lines
+# pylint: disable=protected-access
+
 """
 A module for finding the beam size in an monochrome image.
 
@@ -41,14 +43,15 @@ A mosaic of images might be created by:
     plt.show()
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib._cm
+import matplotlib.cm
 import scipy.ndimage
 
 # cubeYF palette described at https://mycarta.wordpress.com
 # the default gist_ncar colormap works better for most beams
-import matplotlib._cm, matplotlib.cm
-specs   = matplotlib._cm.cubehelix(gamma=1.4,s=0.4,r=-0.8,h=2.0)
+specs = matplotlib._cm.cubehelix(gamma=1.4, s=0.4, r=-0.8, h=2.0)
 matplotlib.cm.register_cmap(name='cubeYF', data=specs)
 
 __all__ = ('subtract_image',
@@ -471,7 +474,7 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     """
     Return image with background subtracted.
 
-    The background is estimated using the values in the cornes of the
+    The background is estimated using the values in the corners of the
     image.  The new image will have a constant (`mean+nT*stdev`) subtracted.
 
     ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
@@ -849,6 +852,33 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
     return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
 
+def cc(value, cmap_name='gist_ncar', vmin=0, vmax=255):
+    """Return contrast color depending on cmap and value."""
+    # value between 0 and 1
+    v = (value-vmin)/(vmax-vmin)
+    v = min(max(0, v), 1)
+    cmap = matplotlib.cm.get_cmap(cmap_name)
+
+    # 0.3 seems like a reasonable compromise
+    if np.mean(cmap(v)[:3]) > 0.3:
+        return "black"
+    return "white"
+
+def draw_as_dotted_contrast_line(image, xpts, ypts, cmap='gist_ncar', vmax=None):
+    """Draw lines in white or black depending on background image."""
+    if vmax is None:
+        vmax = np.max(image)
+
+    # identify point in image to sample
+    v, h = image.shape
+    i = min(max(0, int(ypts[0])), v)
+    j = min(max(0, int(xpts[0])), h)
+
+    # figure out if we should draw with white or black
+    contrast_color = cc(image[i, j], cmap_name=cmap, vmax=vmax)
+
+    # draw the points
+    plt.plot(xpts, ypts, ':', color=contrast_color)
 
 def beam_size_and_plot(o_image,
                        pixel_size=None,
@@ -935,15 +965,15 @@ def beam_size_and_plot(o_image,
 
     # draw semi-major and semi-minor axes
     xp, yp = axes_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
+    draw_as_dotted_contrast_line(image, (xp-xc)*scale, (yp-yc)*scale, vmax=vmax, cmap=cmap)
 
     # show ellipse around beam
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
+    draw_as_dotted_contrast_line(image, (xp-xc)*scale, (yp-yc)*scale, vmax=vmax, cmap=cmap)
 
     # show integration area around beam
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp-xc)*scale, (yp-yc)*scale, ':w')
+    draw_as_dotted_contrast_line(image, (xp-xc)*scale, (yp-yc)*scale, vmax=vmax, cmap=cmap)
 
     # set limits on axes
     plt.xlim(-xc*scale, (h-xc)*scale)
@@ -1058,11 +1088,11 @@ def beam_size_plot(o_image,
     extent = np.array([-xc_s, h_s-xc_s, v_s-yc_s, -yc_s])
     im = plt.imshow(working_image, extent=extent, cmap=cmap)
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp-xc_s, yp-yc_s, ':w')
+    draw_as_dotted_contrast_line(working_image, xp-xc_s, yp-yc_s)
     xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp-xc_s, yp-yc_s, ':w')
+    draw_as_dotted_contrast_line(working_image, xp-xc_s, yp-yc_s)
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp-xc_s, yp-yc_s, ':w')
+    draw_as_dotted_contrast_line(working_image, xp-xc_s, yp-yc_s)
     plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04)
 #    plt.clim(min_, max_)
     plt.xlim(-xc_s, h_s-xc_s)
@@ -1113,7 +1143,8 @@ def beam_size_montage(images,
                       vmax=None,
                       units='µm',
                       crop=False,
-                      cmap='gist_ncar'):
+                      cmap='gist_ncar',
+                      **kwargs):
     """
     Create a beam size montage for a set of images.
 
@@ -1151,11 +1182,12 @@ def beam_size_montage(images,
         units = 'pixels'
 
     # gather all the options that are fixed for every image in the montage
-    options = {'pixel_size':pixel_size, 
-               'vmax':vmax, 
-               'units':units, 
+    options = {'pixel_size':pixel_size,
+               'vmax':vmax,
+               'units':units,
                'crop':crop,
-               'cmap':cmap}
+               'cmap':cmap,
+               **kwargs}
 
     # now set up the grid of subplots
     plt.subplots(rows, cols, figsize=(cols*5, rows*5))
