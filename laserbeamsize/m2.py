@@ -266,8 +266,8 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
 
         d0: beam waist diameter [m]
         z0: axial location of beam waist [m]
-        M2: beam propagation parameter [-]
         Theta: full beam divergence angle [radians]
+        M2: beam propagation parameter [-]
         zR: Rayleigh distance [m]
 
     Args:
@@ -358,15 +358,30 @@ def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
     """
     Return the hyperbolic fit to the supplied diameters.
 
-    See `base_beam_fit()` for details.
+    Follows ISO 11146-1 section 9 but `a`, `b`, and `c` have been
+    replaced by beam parameters `d0`, `z0`, and Theta.  The equation
+    for the beam diameter `d(z)` is
 
-    This function differs when strict is True.  In this case, an estimate
-    is made for the location of the beam focus and the Rayleigh distance.
-    These values are then used to divide the measurements into three zones:
-    those within one Rayleigh distance of the focus, those between 1 and 2
-    Rayleigh distances, and those beyond two Rayleigh distances.
+    d(z)**2 = d0**2 + Theta**2 * (z-z0)**2
 
-    The ISO 11146-1 states::
+    A non-linear curve fit is done to determine the beam parameters and the
+    standard deviations of those parameters.  The beam parameters are returned
+    in one array and the errors in a separate array::
+
+        d0: beam waist diameter [m]
+        z0: axial location of beam waist [m]
+        Theta: full beam divergence angle [radians]
+        M2: beam propagation parameter [-]
+        zR: Rayleigh distance [m]
+
+    When `strict==True`, an estimate is made for the location of the beam focus
+    and the Rayleigh distance. These values are then used to divide the
+    measurements into three zones:
+    * those within one Rayleigh distance of the focus,
+    * those between 1 and 2 Rayleigh distances, and
+    * those beyond two Rayleigh distances.
+    values are used or unused depending on whether they comply with a strict
+    reading of the ISO 11146-1 standard which requires::
         ... measurements at at least 10 different z positions shall be taken.
         Approximately half of the measurements shall be distributed within
         one Rayleigh length on either side of the beam waist, and approximately
@@ -377,10 +392,14 @@ def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters [m]
         lambda0: wavelength of the laser [m]
-        strict: boolean to indicate strict application of ISO 11146
+        strict: (optional) boolean for strict usage of ISO 11146
+        z0: (optional) location of beam waist [m]
+        d0: (optional) diameter of beam waist [m]
 
     Returns:
-        params, errors, used
+        params: [d0, z0, Theta, M2, zR]
+        errors: [d0_std, z0_std, Theta_std, M2_std, zR_std]
+        used: boolean array indicating if data point is used
     """
     used = np.full_like(z, True, dtype=bool)
     params, errors = basic_beam_fit(z, d, lambda0, z0=z0, d0=d0)
@@ -686,7 +705,7 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
 
 #    plt.axhline(d0*1e6, color='black', lw=1)
 #    plt.axhspan((d0+d0_std)*1e6, (d0-d0_std)*1e6, color='red', alpha=0.1)
-    plt.title(r'$d^2(z) = d_0^2 + M^4 \Theta^2 (z-z_0)^2$')
+    plt.title(r'$d^2(z) = d_0^2 + \Theta^2 (z-z_0)^2$')
     if sum(z[unused]) > 0:
         plt.legend(loc='upper right')
 
