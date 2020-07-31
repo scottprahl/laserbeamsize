@@ -56,6 +56,7 @@ matplotlib.cm.register_cmap(name='cubeYF', data=specs)
 
 __all__ = ('subtract_image',
            'subtract_threshold',
+           'subtract_tilted_background',
            'corner_background',
            'corner_mask',
            'corner_subtract',
@@ -495,6 +496,66 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     return subtract_threshold(image, offset)
 
 
+def subtract_tilted_background(image, corner_fraction=0.035):
+    """
+    Return image with tilted planar background subtracted.
+
+    Sample 80 points around the perimeter of an image and fit these
+    to a tilted plane to determine the background to subtract.  Details of
+    the linear algebra are at https://math.stackexchange.com/questions/99299
+
+    Since the sample contains noise, it is important not to remove
+    this noise at this stage and therefore we offset the plane so
+    that one standard deviation of noise remains.
+
+    Args:
+        image : the image to work with
+        corner_fraction: the fractional size of corner rectangles
+    Returns:
+        new image with tilted planar background subtracted
+    """
+    N = 20
+    v, h = image.shape
+    n = int(v * corner_fraction)
+    m = int(h * corner_fraction)
+
+    # gather 4N pixels randomly selected from around edges
+    tmp_A = []
+    tmp_b = []
+    for _ in range(N):
+        # top and bottom edges
+        i = np.random.randint(n)
+        j = np.random.randint(h)
+        tmp_A.append([i, j, 1])
+        tmp_b.append(image[i, j])
+        tmp_A.append([v-1-i, j, 1])
+        tmp_b.append(image[v-1-i, j])
+
+        # left and right edges
+        i = np.random.randint(v)
+        j = np.random.randint(m)
+        tmp_A.append([i, h-j-1, 1])
+        tmp_b.append(image[i, h-j-1])
+        tmp_A.append([v-i-1, h-j-1, 1])
+        tmp_b.append(image[v-i-1, h-j-1])
+
+    b = np.matrix(tmp_b).T
+    A = np.matrix(tmp_A)
+    fit = (A.T * A).I * A.T * b
+
+    a = fit[0][0, 0]
+    b = fit[1][0, 0]
+    c = fit[2][0, 0]
+
+    xx, yy = np.meshgrid(range(h), range(v))
+    z = a * yy + b*xx + c
+
+    # only care about the noise
+    _, cstd = corner_background(image)
+    z -= cstd
+
+    return subtract_image(image, z)
+
 def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     """
     Create ISO 11146-3 rectangular mask for specified beam.
@@ -852,30 +913,41 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
     return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
 
-def cc(value, cmap_name='gist_ncar', vmin=0, vmax=255):
-    """Return contrast color depending on cmap and value."""
+def luminance(value, cmap_name='gist_ncar', vmin=0, vmax=255):
+    """Return luminance of depending on cmap and value."""
     # value between 0 and 1
     v = (value-vmin)/(vmax-vmin)
     v = min(max(0, v), 1)
     cmap = matplotlib.cm.get_cmap(cmap_name)
 
     # 0.3 seems like a reasonable compromise
-    if np.mean(cmap(v)[:3]) > 0.3:
-        return "black"
-    return "white"
+    rgb = cmap(v)
+    r = 255 * rgb[0]
+    g = 255 * rgb[1]
+    b = 255 * rgb[2]
+    lum = 0.2126 * r + 0.7152 * g + 0.0722 * b # per ITU-R BT.709
+    return lum
 
 def draw_as_dotted_contrast_line(image, xpts, ypts, cmap='gist_ncar', vmax=None):
     """Draw lines in white or black depending on background image."""
     if vmax is None:
         vmax = np.max(image)
 
-    # identify point in image to sample
     v, h = image.shape
-    i = min(max(0, int(ypts[0])), v)
-    j = min(max(0, int(xpts[0])), h)
 
-    # figure out if we should draw with white or black
-    contrast_color = cc(image[i, j], cmap_name=cmap, vmax=vmax)
+    # find the luminance at each point
+    lumas = np.array([], dtype=float)
+    for k in range(len(xpts)):
+        i = int(ypts[k])
+        j = int(xpts[k])
+        if 0 <= i < v and 0 <= j < h:
+            luma = luminance(image[i, j], cmap_name=cmap, vmax=vmax)
+            lumas = np.append(lumas, luma)
+
+    if len(lumas) == 0 or np.min(lumas) > 40:
+        contrast_color = "black"
+    else:
+        contrast_color = "white"
 
     # draw the points
     plt.plot(xpts, ypts, ':', color=contrast_color)
