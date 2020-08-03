@@ -15,11 +15,8 @@ Just use pip::
 
    pip install laserbeamsize
 
-Usage
------
-
-Beam size in an image
-~~~~~~~~~~~~~~~~~~~~~
+Determining the beam size in an image
+-------------------------------------
 
 Finding the center and dimensions of a good beam image::
 
@@ -34,7 +31,7 @@ Finding the center and dimensions of a good beam image::
     print("The center of the beam ellipse is at (%.0f, %.0f)" % (x,y))
     print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
     print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
-    print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi*180/3.1416))
+    print("The ellipse is rotated %.0f° ccw from horizontal" % (phi*180/3.1416))
 
 to produce::
 
@@ -64,7 +61,7 @@ produces
 .. image:: tem02.png
 
 Determining M² 
-~~~~~~~~~~~~~~
+--------------
 
 Determining M² for a laser beam is also straightforward.  Just collect beam diameters from
 five beam locations within one Rayleigh distance of the focus and from five locations more
@@ -76,7 +73,7 @@ than two Rayleigh distances::
     lbs.M2_radius_plot(z1_all, d1_all, lambda1, strict=True)
     plt.show()
 
-Produces
+produces
 
 .. image:: m2fit.png
 
@@ -98,7 +95,7 @@ Here is an analysis of a set of images that were insufficient for ISO 11146::
     dy, dx= lbs.beam_size_montage(tem10, **options)  # dy and dx in microns
     plt.show()
 
-Produces
+produces
 
 .. image:: sbmontage.png
 
@@ -116,6 +113,6 @@ the semi-major axis 2.6±0.7 is consistent with the expected value of 3 for the 
 
 
 License
---------
+-------
 
 `laserbeamsize` is licensed under the terms of the MIT license.
