@@ -1,6 +1,13 @@
 Changelog
 =================================================
 
+v1.6.0
+------
+*    Add `subtract_tilted_background()`
+*    Add M²=1 line to `M2_radius_plot()`
+*    try to autoselect line color on images (still imperfect)
+*    more documentation tweaks
+
 v1.5.0
 ------
 *    Add M² fitting and plotting
