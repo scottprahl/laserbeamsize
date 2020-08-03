@@ -18,13 +18,13 @@ Finding the beam waist size, location, and M² for a beam is straightforward::
            0.40394918, 0.41464084, 0.39929649, 0.3772103 , 0.39076051,
            0.32638856, 0.39693297])*2
 
-    M2_analysis(z, d, lambda0)
+    M2_report(z, d, lambda0)
 """
 
-import numpy as np
+import scipy.optimize
 import matplotlib.gridspec
 import matplotlib.pyplot as plt
-import scipy.optimize
+import numpy as np
 
 __all__ = ('z_rayleigh',
            'beam_radius',
