@@ -22,15 +22,17 @@ clean:
 	rm -rf docs/_build/.buildinfo
 	rm -rf docs/_build/.doctrees/
 	rm -rf docs/api/*
-	rm -rf .tox
+
+realclean:
+	make clean
 
 rcheck:
 	make clean
+	make check
 	touch docs/*ipynb
 	touch docs/*rst
 	make html
 	check-manifest
 	pyroma -d .
-#	tox
 
-.PHONY: clean realclean check
+.PHONY: clean realclean rcheck html
