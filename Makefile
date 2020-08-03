@@ -5,9 +5,9 @@ BUILDDIR      = docs/_build
 
 check:
 	-pylint laserbeamsize/m2.py
-	-pep257 laserbeamsize/m2.py
+	-pydocstyle laserbeamsize/m2.py
 	-pylint laserbeamsize/laserbeamsize.py
-	-pep257 laserbeamsize/laserbeamsize.py
+	-pydocstyle laserbeamsize/laserbeamsize.py
 	-pyroma -d .
 	-check-manifest
 
