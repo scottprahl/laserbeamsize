@@ -12,13 +12,20 @@ Finding the beam waist size, location, and M² for a beam is straightforward::
     import numpy as np
     import laserbeamsize as lbs
 
-    lambda0 = 632.8/1e6 # mm
+    lambda0 = 632.8e-9 # m
     z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
-    d = np.array([0.5976914 , 0.57246158, 0.54747159, 0.55427816, 0.47916078,
-           0.40394918, 0.41464084, 0.39929649, 0.3772103 , 0.39076051,
-           0.32638856, 0.39693297])*2
+    r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
+    lbs.M2_report(z*1e-3, 2*r*1e-6, lambda0)
 
-    M2_report(z, d, lambda0)
+A graphic of the fit to diameters can be created by::
+
+    lbs.M2_diameter_plot(z*1e-3, 2*r*1e-6, lambda0)
+    plt.show()
+
+A graphic of the radial fit can be created by::
+
+    lbs.M2_radius_plot(z*1e-3, 2*r*1e-6, lambda0)
+    plt.show()
 """
 
 import scipy.optimize

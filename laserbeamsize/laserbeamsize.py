@@ -29,11 +29,10 @@ Finding the center and diameters of a beam in a monochrome image is simple::
 
 A full graphic can be created by::
 
-    beam_image = imageio.imread("t-hene.pgm")
     lbs.beam_size_plot(beam_image)
     plt.show()
 
-A mosaic of images might be created by:
+A mosaic of images might be created by::
 
     # read images for each location
     z = np.array([89,94,99,104,109,114,119,124,129,134,139], dtype=float) #[mm]
