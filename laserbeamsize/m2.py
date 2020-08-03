@@ -651,7 +651,7 @@ def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
 
 def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     """
-    Helper function that plots the beam and its fit.
+    Plot beam diameters and ISO 11146 fit.
 
     Args:
         z: array of axial position of beam measurements [m]

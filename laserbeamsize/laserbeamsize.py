@@ -4,6 +4,7 @@
 # pylint: disable=too-many-statements
 # pylint: disable=too-many-lines
 # pylint: disable=protected-access
+# pylint: disable=consider-using-enumerate
 
 """
 A module for finding the beam size in an monochrome image.
