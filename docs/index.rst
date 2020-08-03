@@ -25,8 +25,6 @@ M² Calculation From Beam Sizes
    07b-M2-Theory.ipynb
    07c-M2-Experiment.ipynb
    07d-M2-Examples.ipynb
-   
-.. include:: ../CHANGELOG.rst
 
 API
 ===
@@ -34,4 +32,6 @@ API
 .. automodapi:: laserbeamsize.laserbeamsize
 .. automodapi:: laserbeamsize.m2
 
+Changelog
+=========
 .. include:: ../CHANGELOG.rst
