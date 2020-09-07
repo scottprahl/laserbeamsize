@@ -495,12 +495,11 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     offset = int(back + nT * sigma)
     return subtract_threshold(image, offset)
 
-
-def subtract_tilted_background(image, corner_fraction=0.035):
+def subtract_tilted_background(image,corner_fraction=0.035):
     """
     Return image with tilted planar background subtracted.
 
-    Sample 80 points around the perimeter of an image and fit these
+    Sample a set of points in the corners of an image and fit these
     to a tilted plane to determine the background to subtract.  Details of
     the linear algebra are at https://math.stackexchange.com/questions/99299
 
@@ -514,47 +513,32 @@ def subtract_tilted_background(image, corner_fraction=0.035):
     Returns:
         new image with tilted planar background subtracted
     """
-    N = 20
+    
     v, h = image.shape
-    n = int(v * corner_fraction)
-    m = int(h * corner_fraction)
-
-    # gather 4N pixels randomly selected from around edges
-    tmp_A = []
-    tmp_b = []
-    for _ in range(N):
-        # top and bottom edges
-        i = np.random.randint(n)
-        j = np.random.randint(h)
-        tmp_A.append([i, j, 1])
-        tmp_b.append(image[i, j])
-        tmp_A.append([v-1-i, j, 1])
-        tmp_b.append(image[v-1-i, j])
-
-        # left and right edges
-        i = np.random.randint(v)
-        j = np.random.randint(m)
-        tmp_A.append([i, h-j-1, 1])
-        tmp_b.append(image[i, h-j-1])
-        tmp_A.append([v-i-1, h-j-1, 1])
-        tmp_b.append(image[v-i-1, h-j-1])
-
-    b = np.matrix(tmp_b).T
-    A = np.matrix(tmp_A)
-    fit = (A.T * A).I * A.T * b
-
-    a = fit[0][0, 0]
-    b = fit[1][0, 0]
-    c = fit[2][0, 0]
-
     xx, yy = np.meshgrid(range(h), range(v))
+    
+    mask = lbs.corner_mask(tilted, corner_fraction=corner_fraction)
+    corner_values = image[mask];
+    # coords is (y_value,x_value,1) for each point in corner_values
+    coords = np.stack((yy[mask],xx[mask],np.ones(np.size(corner_values))),1);
+
+    # fit a plane to all corner points
+    b = np.matrix(corner_values).T
+    A = np.matrix(coords)
+    fit = (A.T * A).I * A.T * b
+    # find coefficients of fit
+    a = fit[0][0, 0]
+    b = fit[1][0, 0] # overwriting b
+    c = fit[2][0, 0]
+    # calculate the fit plane
     z = a * yy + b*xx + c
-
-    # only care about the noise
-    _, cstd = corner_background(image)
-    z -= cstd
-
-    return subtract_image(image, z)
+    # find the standard deviation of the noise at the corners
+    # and subtract this value from the plane,
+    # since we don't want to lose the image noise just yet
+    z -= np.std(corner_values)
+    
+    # finally, subtract the plane from the original image
+    return lbs.subtract_image(image, z)
 
 def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     """
