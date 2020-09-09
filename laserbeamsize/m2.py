@@ -383,12 +383,15 @@ def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
 
     When `strict==True`, an estimate is made for the location of the beam focus
     and the Rayleigh distance. These values are then used to divide the
-    measurements into three zones:
-    * those within one Rayleigh distance of the focus,
-    * those between 1 and 2 Rayleigh distances, and
-    * those beyond two Rayleigh distances.
+    measurements into three zones::
+
+        * those within one Rayleigh distance of the focus,
+        * those between 1 and 2 Rayleigh distances, and
+        * those beyond two Rayleigh distances.
+
     values are used or unused depending on whether they comply with a strict
     reading of the ISO 11146-1 standard which requires::
+
         ... measurements at at least 10 different z positions shall be taken.
         Approximately half of the measurements shall be distributed within
         one Rayleigh length on either side of the beam waist, and approximately
