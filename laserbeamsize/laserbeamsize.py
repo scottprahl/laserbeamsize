@@ -47,12 +47,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib._cm
 import matplotlib.cm
+import matplotlib.colors
 import scipy.ndimage
 
 # cubeYF palette described at https://mycarta.wordpress.com
 # the default gist_ncar colormap works better for most beams
 specs = matplotlib._cm.cubehelix(gamma=1.4, s=0.4, r=-0.8, h=2.0)
-matplotlib.cm.register_cmap(name='cubeYF', data=specs)
+cubeYF_cmap = matplotlib.colors.LinearSegmentedColormap('cubeYF', specs)
+matplotlib.cm.register_cmap(cmap=cubeYF_cmap)
 
 __all__ = ('subtract_image',
            'subtract_threshold',
@@ -518,7 +520,7 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     offset = int(back + nT * sigma)
     return subtract_threshold(image, offset)
 
-def subtract_tilted_background(image,corner_fraction=0.035):
+def subtract_tilted_background(image, corner_fraction=0.035):
     """
     Return image with tilted planar background subtracted.
 
@@ -536,14 +538,14 @@ def subtract_tilted_background(image,corner_fraction=0.035):
     Returns:
         new image with tilted planar background subtracted
     """
-    
+
     v, h = image.shape
     xx, yy = np.meshgrid(range(h), range(v))
-    
+
     mask = perimeter_mask(image, corner_fraction=corner_fraction)
-    perimeter_values = image[mask];
+    perimeter_values = image[mask]
     # coords is (y_value,x_value,1) for each point in perimeter_values
-    coords = np.stack((yy[mask],xx[mask],np.ones(np.size(perimeter_values))),1);
+    coords = np.stack((yy[mask], xx[mask], np.ones(np.size(perimeter_values))), 1)
 
     # fit a plane to all corner points
     b = np.matrix(perimeter_values).T
@@ -559,7 +561,7 @@ def subtract_tilted_background(image,corner_fraction=0.035):
     # and subtract this value from the plane,
     # since we don't want to lose the image noise just yet
     z -= np.std(perimeter_values)
-    
+
     # finally, subtract the plane from the original image
     return subtract_image(image, z)
 
