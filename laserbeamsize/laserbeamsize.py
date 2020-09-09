@@ -470,6 +470,7 @@ def perimeter_mask(image, corner_fraction=0.035):
     the_mask[-n:, :] = True
     return the_mask
 
+
 def corner_background(image, corner_fraction=0.035):
     """
     Return mean and stdev of background in corners of image.
@@ -538,7 +539,6 @@ def subtract_tilted_background(image, corner_fraction=0.035):
     Returns:
         new image with tilted planar background subtracted
     """
-
     v, h = image.shape
     xx, yy = np.meshgrid(range(h), range(v))
 
