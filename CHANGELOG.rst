@@ -1,6 +1,12 @@
 Changelog
 =================================================
 
+v1.6.1
+------
+*    fix deprecation warning for register_cmap
+*    use entire perimeter of background rectangle for tilted background fit
+*    fix sphinx and docstyle warnings
+
 v1.6.0
 ------
 *    Add `subtract_tilted_background()`
