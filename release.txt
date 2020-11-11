@@ -10,18 +10,18 @@ Releasing a new version
 # update the version in setup.cfg and in docs/conf.py
   git commit -m 'update version' setup.cfg docs/conf.py
 
-# update CHANGELOG.rst  `git shortlog v1.5.0..HEAD`
+# update CHANGELOG.rst  `git shortlog v1.7.0..HEAD`
   git commit -m 'update recent changes' CHANGELOG.rst
   git push
 
 # create release tag on github
-  git tag v1.5.0
-  git push origin v1.5.0
+  git tag v1.7.0
+  git push origin v1.7.0
 
 # upload source to pypi
   rm -rf dist/*
   python3 setup.py sdist
-  twine upload dist/*
+  python3 -m twine upload dist/*
 
 # verify releases on 
   https://github.com/scottprahl/laserbeamsize
