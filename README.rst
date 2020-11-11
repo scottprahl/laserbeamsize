@@ -56,7 +56,7 @@ or::
 
 produces something like::
 
-    image:: astigmatic-report.png
+..  image:: astigmatic-report.png
 
 Non-gaussian beams work too::
 
