@@ -45,7 +45,7 @@ A visual report can be done with one function call::
     lbs.beam_size_plot(beam)
     plt.show()
     
-produces something like::
+produces something like
 
 .. image:: hene-report.png
 
@@ -54,7 +54,7 @@ or::
     lbs.beam_size_plot(beam, r"Original Image $\lambda$=4µm beam", pixel_size = 12, units='µm')
     plt.show()
 
-produces something like::
+produces something like
 
 ..  image:: astigmatic-report.png
 
