@@ -1,6 +1,10 @@
 Changelog
 =================================================
 
+v1.7.0
+------
+*    fix error in identifying major/minor axes in `beam_size_plot()`
+
 v1.6.1
 ------
 *    fix deprecation warning for register_cmap
