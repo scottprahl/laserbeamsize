@@ -8,6 +8,8 @@ check:
 	-pydocstyle laserbeamsize/m2.py
 	-pylint laserbeamsize/laserbeamsize.py
 	-pydocstyle laserbeamsize/laserbeamsize.py
+	-pylint laserbeamsize/__init__.py
+	-pydocstyle laserbeamsize/__init__.py
 
 html:
 	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
