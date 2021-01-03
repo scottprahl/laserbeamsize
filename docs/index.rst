@@ -1,6 +1,6 @@
 .. include:: ../README.rst
 
-Beam Size in an Image
+Beam Size in a Single Image
 =====================
 
 .. toctree::
@@ -15,7 +15,7 @@ Beam Size in an Image
    05-Razor-Blade.ipynb
    06-Beam-Waist.ipynb
 
-M² Calculation From Beam Sizes
+M² Calculation from Series of Images
 ==============================
 
 .. toctree::

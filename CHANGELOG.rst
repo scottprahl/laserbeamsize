@@ -1,6 +1,11 @@
 Changelog
 =================================================
 
+v1.7.1
+------
+*    explicit warning for non-monochrome images in `beam_size()`
+*    improve help() messages
+
 v1.7.0
 ------
 *    fix error in identifying major/minor axes in `beam_size_plot()`
