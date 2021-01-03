@@ -9,6 +9,8 @@
 """
 A module for finding the beam size in an monochrome image.
 
+Full documentation is available at <https://laserbeamsize.readthedocs.io>
+
 Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make
 the algorithm less sensitive to background offset and noise.
