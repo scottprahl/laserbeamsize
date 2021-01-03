@@ -698,6 +698,9 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
     Returns:
         elliptical beam parameters [xc, yc, dx, dy, phi]
     """
+    if len(image.shape) != 2:
+        raise Exception('Image must be a monochrome 2D array')
+
     # remove any offset
     zero_background_image = corner_subtract(image, corner_fraction, nT)
 
