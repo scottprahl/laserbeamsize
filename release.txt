@@ -23,7 +23,9 @@ Releasing a new version
   python3 setup.py sdist
   python3 -m twine upload dist/*
 
-# verify releases on 
+# manually update release at
   https://github.com/scottprahl/laserbeamsize
+  
+# check releases at pypi and readthedocs
   https://pypi.org/project/laserbeamsize/
   https://laserbeamsize.readthedocs.io

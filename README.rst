@@ -13,7 +13,7 @@ Installation
 
 Just use pip::
 
-   pip install laserbeamsize
+   pip install --user laserbeamsize
 
 Determining the beam size in an image
 -------------------------------------
