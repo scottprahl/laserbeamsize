@@ -26,9 +26,17 @@ clean:
 realclean:
 	make clean
 
+rstcheck:
+	-rstcheck README.rst
+	-rstcheck CHANGELOG.rst
+	-rstcheck docs/index.rst
+	-rstcheck docs/changelog.rst
+	-rstcheck --ignore-directives automodule docs/laserbeamsize.rst
+
 rcheck:
 	make clean
 	make check
+	make rstcheck
 	touch docs/*ipynb
 	touch docs/*rst
 	make html
