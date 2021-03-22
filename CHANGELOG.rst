@@ -1,6 +1,12 @@
 Changelog
 =================================================
 
+v1.7.2
+------
+*    allow non-integer beam centers
+*    add badges to docs
+*    use sphinx-book-theme for docs
+
 v1.7.1
 ------
 *    explicit warning for non-monochrome images in `beam_size()`
