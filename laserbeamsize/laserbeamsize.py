@@ -369,7 +369,7 @@ def basic_beam_size(image):
     xc = np.sum(np.dot(image, hh))/p
     yc = np.sum(np.dot(image.T, vv))/p
 
-    # find the variances**2
+    # find the variances
     hs = hh-xc
     vs = vv-yc
     xx = np.sum(np.dot(image, hs**2))/p
