@@ -1,6 +1,20 @@
 laserbeamsize
 =============
 
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master
+
+.. image:: https://img.shields.io/badge/readthedocs-latest-blue.svg
+   :target: https://laserbeamsize.readthedocs.io
+
+.. image:: https://img.shields.io/badge/github-code-green.svg
+   :target: https://github.com/scottprahl/laserbeamsize
+
+.. image:: https://img.shields.io/badge/MIT-license-yellow.svg
+   :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
+
+__________
+
 Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make the 
 algorithm less sensitive to background offset and noise.
@@ -8,12 +22,15 @@ algorithm less sensitive to background offset and noise.
 Extensive documentation about backgrounds, integrations, and other issues can be found at
 at <https://laserbeamsize.readthedocs.io>
 
-Installation
-------------
+Using laserbeamsize
+---------------
 
-Just use pip::
+1. You can install locally using pip::
+    
+    pip install --user laserbeamsize
 
-   pip install --user laserbeamsize
+2. or `run this code in the cloud using Google Collaboratory <https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master>`_ by selecting the Jupyter notebook that interests you.
+
 
 Determining the beam size in an image
 -------------------------------------

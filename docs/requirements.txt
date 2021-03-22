@@ -3,3 +3,4 @@ matplotlib
 scipy
 nbsphinx
 sphinx-automodapi
+sphinx-book-theme

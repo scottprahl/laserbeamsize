@@ -1,10 +1,11 @@
 .. include:: ../README.rst
 
-Beam Size in a Single Image
-=====================
-
 .. toctree::
    :maxdepth: 2
+
+.. toctree::
+   :caption: Beam Size
+   :hidden:
 
    01-Definitions.ipynb
    01a-Background.ipynb
@@ -15,23 +16,23 @@ Beam Size in a Single Image
    05-Razor-Blade.ipynb
    06-Beam-Waist.ipynb
 
-M² Calculation from Series of Images
-==============================
-
 .. toctree::
-   :maxdepth: 2
+   :caption: M² Calculation
+   :hidden:
 
    07a-M2-Parameters.ipynb
    07b-M2-Theory.ipynb
    07c-M2-Experiment.ipynb
    07d-M2-Examples.ipynb
 
-API
-===
+.. toctree::
+   :caption: API
+   :hidden:
 
-.. automodapi:: laserbeamsize.laserbeamsize
-.. automodapi:: laserbeamsize.m2
+   laserbeamsize
 
-Changelog
-=========
-.. include:: ../CHANGELOG.rst
+.. toctree::
+   :caption: Versions
+   :hidden:
+
+   changelog
