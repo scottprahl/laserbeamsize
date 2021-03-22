@@ -19,11 +19,13 @@ Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make the 
 algorithm less sensitive to background offset and noise.
 
-Extensive documentation about backgrounds, integrations, and other issues can be found at
-at <https://laserbeamsize.readthedocs.io>
+This module also supports M² calculations based on a series of images
+collected at various distances from the focused beam. 
+
+Extensive documentation can be found at <https://laserbeamsize.readthedocs.io>
 
 Using laserbeamsize
----------------
+-------------------
 
 1. You can install locally using pip::
     
