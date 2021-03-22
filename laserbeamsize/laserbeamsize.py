@@ -366,10 +366,10 @@ def basic_beam_size(image):
     # find the centroid
     hh = np.arange(h, dtype=np.float)      # float avoids integer overflow
     vv = np.arange(v, dtype=np.float)      # ditto
-    xc = int(np.sum(np.dot(image, hh))/p)
-    yc = int(np.sum(np.dot(image.T, vv))/p)
+    xc = np.sum(np.dot(image, hh))/p
+    yc = np.sum(np.dot(image.T, vv))/p
 
-    # find the variances
+    # find the variances**2
     hs = hh-xc
     vs = vv-yc
     xx = np.sum(np.dot(image, hs**2))/p
@@ -378,7 +378,7 @@ def basic_beam_size(image):
 
     # Ensure that the case xx==yy is handled correctly
     if xx == yy:
-        disc = 2*xy
+        disc = np.abs(2*xy)
         phi = np.sign(xy) * np.pi/4
     else:
         diff = xx-yy
