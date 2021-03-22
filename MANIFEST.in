@@ -9,6 +9,7 @@ include sbfit.png
 include sbmontage.png
 include tem02.png
 exclude release.txt
+exclude requirements.txt
 exclude Makefile
 exclude .gitignore
 exclude todo
