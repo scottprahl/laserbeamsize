@@ -1,18 +1,12 @@
-API for `laserbeamsize` package
-===========================
-
-Submodules
-----------
-
-laserbeamsize.laserbeamsize module
------------------------
+laserbeamsize module
+--------------------
 
 .. automodule:: laserbeamsize.laserbeamsize
    :members:
    :undoc-members:
 
-laserbeamsize.m2
-------------
+M² module
+----------
 
 .. automodule:: laserbeamsize.m2
    :members:
