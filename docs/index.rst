@@ -24,6 +24,7 @@
    07b-M2-Theory.ipynb
    07c-M2-Experiment.ipynb
    07d-M2-Examples.ipynb
+   07e-M2-Problems.ipynb
 
 .. toctree::
    :caption: API
