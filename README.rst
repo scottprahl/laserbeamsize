@@ -30,13 +30,15 @@ Extensive documentation can be found at <https://laserbeamsize.readthedocs.io>
 Using laserbeamsize
 -------------------
 
-1. You can install locally using pip::
+1. Install with ``pip``::
     
     pip install --user laserbeamsize
 
 2. or `run this code in the cloud using Google Collaboratory <https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master>`_ by selecting the Jupyter notebook that interests you.
 
 3. use `binder <https://mybinder.org/v2/gh/scottprahl/laserbeamsize/master?filepath=docs>`_ which will create a new environment that allows you to run Jupyter notebooks.  This takes a bit longer to start, but it automatically installs ``laserbeamsize``.
+
+4. clone the `laserbeamsize github repository <https://github.com/scottprahl/laserbeamsize>`_ and then add the repository to your ``PYTHONPATH`` environment variable
 
 Determining the beam size in an image
 -------------------------------------
