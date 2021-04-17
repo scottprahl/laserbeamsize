@@ -3,28 +3,16 @@ SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = docs
 BUILDDIR      = docs/_build
 
-check:
+html:
+	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
+
+pycheck:
 	-pylint laserbeamsize/m2.py
 	-pydocstyle laserbeamsize/m2.py
 	-pylint laserbeamsize/laserbeamsize.py
 	-pydocstyle laserbeamsize/laserbeamsize.py
 	-pylint laserbeamsize/__init__.py
 	-pydocstyle laserbeamsize/__init__.py
-
-html:
-	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
-
-clean:
-	rm -rf dist
-	rm -rf laserbeamsize.egg-info
-	rm -rf laserbeamsize/__pycache__
-	rm -rf docs/_build/*
-	rm -rf docs/_build/.buildinfo
-	rm -rf docs/_build/.doctrees/
-	rm -rf docs/api/*
-
-realclean:
-	make clean
 
 rstcheck:
 	-rstcheck README.rst
@@ -33,9 +21,13 @@ rstcheck:
 	-rstcheck docs/changelog.rst
 	-rstcheck --ignore-directives automodule docs/laserbeamsize.rst
 
-rcheck:
+notecheck:
 	make clean
-	make check
+	pytest --verbose -n 4 test_all_notebooks.py
+
+rcheck:
+	make notecheck
+	make pycheck
 	make rstcheck
 	touch docs/*ipynb
 	touch docs/*rst
@@ -43,4 +35,17 @@ rcheck:
 	check-manifest
 	pyroma -d .
 
-.PHONY: clean realclean rcheck html
+clean:
+	rm -rf dist
+	rm -rf laserbeamsize.egg-info
+	rm -rf laserbeamsize/__pycache__
+	rm -rf docs/_build
+	rm -rf docs/api
+	rm -rf __pycache__
+	rm -rf .ipynb_checkpoints
+
+realclean:
+	make clean
+
+
+.PHONY: clean realclean rcheck html notecheck pycheck rstcheck
