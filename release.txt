@@ -2,8 +2,6 @@ Releasing a new version
 
 # consider regenerating images using docs/readme_images.ipynb
 
-# make sure all Jupyter notebooks in the doc folder still work
-
 # check
   make rcheck
 
@@ -19,13 +17,10 @@ Releasing a new version
   git push origin v1.7.0
 
 # upload source to pypi
-  rm -rf dist/*
-  python3 setup.py sdist
+  python3 -m build
   python3 -m twine upload dist/*
 
-# manually update release at
-  https://github.com/scottprahl/laserbeamsize
-  
-# check releases at pypi and readthedocs
-  https://pypi.org/project/laserbeamsize/
-  https://laserbeamsize.readthedocs.io
+# update/check releases
+  open https://github.com/scottprahl/laserbeamsize
+  open https://pypi.org/project/laserbeamsize/
+  open https://laserbeamsize.readthedocs.io

@@ -43,6 +43,7 @@ clean:
 	rm -rf docs/api
 	rm -rf __pycache__
 	rm -rf .ipynb_checkpoints
+	rm -rf build
 
 realclean:
 	make clean

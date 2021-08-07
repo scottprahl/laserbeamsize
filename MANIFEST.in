@@ -13,3 +13,4 @@ exclude requirements.txt
 exclude Makefile
 exclude .gitignore
 exclude todo
+exclude test_all_notebooks.py

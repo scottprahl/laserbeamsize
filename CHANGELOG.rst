@@ -1,6 +1,12 @@
 Changelog
 =================================================
 
+v1.7.3
+------
+*    create pure python packaging
+*    include wheel file
+*    package as python3 only
+
 v1.7.2
 ------
 *    allow non-integer beam centers
