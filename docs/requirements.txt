@@ -2,3 +2,5 @@ numpy
 matplotlib
 scipy
 imageio
+sphinx_automodapi
+sphinx-book-theme
