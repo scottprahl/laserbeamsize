@@ -4,4 +4,4 @@ scipy
 imageio
 nbsphinx
 sphinx_automodapi
-sphinx-book-theme
+sphinx-rtd-theme
