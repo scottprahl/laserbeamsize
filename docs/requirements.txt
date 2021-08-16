@@ -1,7 +1,3 @@
-numpy
-matplotlib
-scipy
-imageio
 nbsphinx
 sphinx_automodapi
 sphinx-rtd-theme
