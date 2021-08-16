@@ -7,24 +7,35 @@
    :caption: Beam Size
    :hidden:
 
-   01-Definitions.ipynb
-   01a-Background.ipynb
-   02-Test-Beam.ipynb
-   02a-Experiment.ipynb
-   03-Easy-Images.ipynb
-   04-Harder-Images.ipynb
-   05-Razor-Blade.ipynb
-   06-Beam-Waist.ipynb
+   01-Definitions
+   
+   01a-Background
+   
+   02-Test-Beam
+   
+   02a-Experiment
+   
+   03-Easy-Images
+   
+   04-Harder-Images
+   
+   05-Razor-Blade
+   
+   06-Beam-Waist
 
 .. toctree::
    :caption: M² Calculation
    :hidden:
 
-   07a-M2-Parameters.ipynb
-   07b-M2-Theory.ipynb
-   07c-M2-Experiment.ipynb
-   07d-M2-Examples.ipynb
-   07e-M2-Problems.ipynb
+   07a-M2-Parameters
+   
+   07b-M2-Theory
+   
+   07c-M2-Experiment
+   
+   07d-M2-Examples
+   
+   07e-M2-Problems
 
 .. toctree::
    :caption: API
