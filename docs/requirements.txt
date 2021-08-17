@@ -1,3 +1,4 @@
-nbsphinx==0.8.4
+sphinx==3.5.3
+nbsphinx==0.8.0
 sphinx_automodapi
 sphinx-rtd-theme
