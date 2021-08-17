@@ -7,9 +7,9 @@
    :caption: Beam Size
    :hidden:
 
-   01-Definitions.ipynb
+   01-Definitions
 
-   01a-Background.ipynb
+   01a-Background
 
    02-Test-Beam
 
