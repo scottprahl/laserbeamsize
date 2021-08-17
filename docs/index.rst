@@ -7,20 +7,20 @@
    :caption: Beam Size
    :hidden:
 
-   01-Definitions
-   
-   01a-Background
-   
+   01-Definitions.ipynb
+
+   01a-Background.ipynb
+
    02-Test-Beam
-   
+
    02a-Experiment
-   
+
    03-Easy-Images
-   
+
    04-Harder-Images
-   
+
    05-Razor-Blade
-   
+
    06-Beam-Waist
 
 .. toctree::
@@ -28,13 +28,13 @@
    :hidden:
 
    07a-M2-Parameters
-   
+
    07b-M2-Theory
-   
+
    07c-M2-Experiment
-   
+
    07d-M2-Examples
-   
+
    07e-M2-Problems
 
 .. toctree::
