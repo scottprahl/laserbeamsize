@@ -1,4 +1,4 @@
-Jinja==2.11
+Jinja2==2.11.2
 sphinx==3.5.3
 nbsphinx==0.8.0
 sphinx_automodapi
