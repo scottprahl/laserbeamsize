@@ -9,6 +9,8 @@
 """
 A module for finding the beam size in an monochrome image.
 
+Full documentation is available at <https://laserbeamsize.readthedocs.io>
+
 Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make
 the algorithm less sensitive to background offset and noise.
@@ -364,8 +366,8 @@ def basic_beam_size(image):
     # find the centroid
     hh = np.arange(h, dtype=np.float)      # float avoids integer overflow
     vv = np.arange(v, dtype=np.float)      # ditto
-    xc = int(np.sum(np.dot(image, hh))/p)
-    yc = int(np.sum(np.dot(image.T, vv))/p)
+    xc = np.sum(np.dot(image, hh))/p
+    yc = np.sum(np.dot(image.T, vv))/p
 
     # find the variances
     hs = hh-xc
@@ -376,7 +378,7 @@ def basic_beam_size(image):
 
     # Ensure that the case xx==yy is handled correctly
     if xx == yy:
-        disc = 2*xy
+        disc = np.abs(2*xy)
         phi = np.sign(xy) * np.pi/4
     else:
         diff = xx-yy
@@ -696,6 +698,9 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
     Returns:
         elliptical beam parameters [xc, yc, dx, dy, phi]
     """
+    if len(image.shape) > 2:
+        raise Exception('Color images are not supported.  Convert to gray/monochrome.')
+
     # remove any offset
     zero_background_image = corner_subtract(image, corner_fraction, nT)
 
@@ -1137,20 +1142,23 @@ def beam_size_plot(o_image,
     cb_args = dict((k, kwargs[k]) for k in ['corner_fraction'] if k in kwargs)
     background, _ = corner_background(image, **cb_args)
 
-    rx = dx/2
-    ry = dy/2
-
     min_ = image.min()
     max_ = image.max()
     vv, hh = image.shape
+
+    # determine the sizes of the semi-major and semi-minor axes
+    r_major = max(dx, dy)/2.0
+    r_minor = min(dx, dy)/2.0
 
     # scale all the dimensions
     v_s = vv * scale
     h_s = hh * scale
     xc_s = xc * scale
     yc_s = yc * scale
-    dx_s = dx * scale
-    dy_s = dy * scale
+    r_mag_s = r_major * scale
+    d_mag_s = r_mag_s * 2
+    r_min_s = r_minor * scale
+    d_min_s = r_min_s * 2
 
     plt.subplots(2, 2, figsize=(12, 12))
     plt.subplots_adjust(right=1.0)
@@ -1184,14 +1192,14 @@ def beam_size_plot(o_image,
 
     # plot of values along semi-major axis
     _, _, z, s = major_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2/np.pi)/rx * np.sum(z-background)*abs(s[1]-s[0])
+    a = np.sqrt(2/np.pi)/r_major * np.sum(z-background)*abs(s[1]-s[0])
     baseline = a*np.exp(-2)+background
 
     plt.subplot(2, 2, 3)
     plt.plot(s*scale, z, 'b')
-    plt.plot(s*scale, a*np.exp(-2*(s/rx)**2)+background, ':k')
-    plt.annotate('', (-rx*scale, baseline), (rx*scale, baseline), arrowprops=dict(arrowstyle="<->"))
-    plt.text(0, 1.1*baseline, 'dx=%.0f %s' % (dx_s, units), va='bottom', ha='center')
+    plt.plot(s*scale, a*np.exp(-2*(s/r_major)**2)+background, ':k')
+    plt.annotate('', (-r_mag_s, baseline), (r_mag_s, baseline), arrowprops=dict(arrowstyle="<->"))
+    plt.text(0, 1.1*baseline, 'dx=%.0f %s' % (d_mag_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Major Axis')
@@ -1200,14 +1208,14 @@ def beam_size_plot(o_image,
 
     # plot of values along semi-minor axis
     _, _, z, s = minor_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2/np.pi)/ry * np.sum(z-background)*abs(s[1]-s[0])
+    a = np.sqrt(2/np.pi)/r_minor * np.sum(z-background)*abs(s[1]-s[0])
     baseline = a*np.exp(-2)+background
 
     plt.subplot(2, 2, 4)
     plt.plot(s*scale, z, 'b')
-    plt.plot(s*scale, a*np.exp(-2*(s/ry)**2)+background, ':k', label='fitted')
-    plt.annotate('', (-ry*scale, baseline), (ry*scale, baseline), arrowprops=dict(arrowstyle="<->"))
-    plt.text(0, 1.1*baseline, 'dy=%.0f %s' % (dy_s, units), va='bottom', ha='center')
+    plt.plot(s*scale, a*np.exp(-2*(s/r_minor)**2)+background, ':k', label='fitted')
+    plt.annotate('', (-r_min_s, baseline), (r_min_s, baseline), arrowprops=dict(arrowstyle="<->"))
+    plt.text(0, 1.1*baseline, 'dy=%.0f %s' % (d_min_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Minor Axis')

@@ -7,6 +7,8 @@
 """
 A module for finding M² values for a laser beam.
 
+Full documentation is available at <https://laserbeamsize.readthedocs.io>
+
 Finding the beam waist size, location, and M² for a beam is straightforward::
 
     import numpy as np

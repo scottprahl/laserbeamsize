@@ -1,6 +1,27 @@
 Changelog
 =================================================
 
+v1.7.3
+------
+*    create pure python packaging
+*    include wheel file
+*    package as python3 only
+
+v1.7.2
+------
+*    allow non-integer beam centers
+*    add badges to docs
+*    use sphinx-book-theme for docs
+
+v1.7.1
+------
+*    explicit warning for non-monochrome images in `beam_size()`
+*    improve help() messages
+
+v1.7.0
+------
+*    fix error in identifying major/minor axes in `beam_size_plot()`
+
 v1.6.1
 ------
 *    fix deprecation warning for register_cmap

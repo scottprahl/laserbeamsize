@@ -1,19 +1,47 @@
 laserbeamsize
 =============
 
+.. image:: https://img.shields.io/pypi/v/laserbeamsize.svg
+   :target: https://pypi.org/project/laserbeamsize/
+
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master
+
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/scottprahl/laserbeamsize/master?filepath=docs
+
+.. image:: https://img.shields.io/badge/readthedocs-latest-blue.svg
+   :target: https://laserbeamsize.readthedocs.io
+
+.. image:: https://img.shields.io/badge/github-code-green.svg
+   :target: https://github.com/scottprahl/laserbeamsize
+
+.. image:: https://img.shields.io/badge/MIT-license-yellow.svg
+   :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
+
+__________
+
 Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make the 
 algorithm less sensitive to background offset and noise.
 
-Extensive documentation about backgrounds, integrations, and other issues can be found at
-at <https://laserbeamsize.readthedocs.io>
+This module also supports M² calculations based on a series of images
+collected at various distances from the focused beam. 
 
-Installation
-------------
+Extensive documentation can be found at <https://laserbeamsize.readthedocs.io>
 
-Just use pip::
+Using laserbeamsize
+-------------------
 
-   pip install laserbeamsize
+1. Install with ``pip``::
+    
+    pip install --user laserbeamsize
+
+2. or `run this code in the cloud using Google Collaboratory <https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master>`_ by selecting the Jupyter notebook that interests you.
+
+3. use `binder <https://mybinder.org/v2/gh/scottprahl/laserbeamsize/master?filepath=docs>`_ which will create a new environment that allows you to run Jupyter notebooks.  This takes a bit longer to start, but it automatically installs ``laserbeamsize``.
+
+4. clone the `laserbeamsize github repository <https://github.com/scottprahl/laserbeamsize>`_ and then add the repository to your ``PYTHONPATH`` environment variable
 
 Determining the beam size in an image
 -------------------------------------
@@ -45,9 +73,18 @@ A visual report can be done with one function call::
     lbs.beam_size_plot(beam)
     plt.show()
     
-produces
+produces something like
 
 .. image:: hene-report.png
+
+or::
+
+    lbs.beam_size_plot(beam, r"Original Image $\lambda$=4µm beam", pixel_size = 12, units='µm')
+    plt.show()
+
+produces something like
+
+..  image:: astigmatic-report.png
 
 Non-gaussian beams work too::
 

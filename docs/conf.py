@@ -12,11 +12,11 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'laserbeamsize'
-copyright = '2017-20, Scott Prahl'
+copyright = '2017-21, Scott Prahl'
 author = 'Scott Prahl'
 
 # The full version, including alpha/beta/rc tags
-release = '1.6.1'
+release = '1.7.3'
 
 master_doc = 'index'
 
