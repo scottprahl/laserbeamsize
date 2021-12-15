@@ -1,6 +1,11 @@
 Changelog
 =================================================
 
+v1.8.0
+------
+*    handle rotated masks properly
+*    fix readthedoc configuration
+
 v1.7.3
 ------
 *    create pure python packaging
