@@ -12,5 +12,6 @@ exclude release.txt
 exclude requirements.txt
 exclude Makefile
 exclude .gitignore
+exclude .readthedocs.yaml
 exclude todo
 exclude test_all_notebooks.py
