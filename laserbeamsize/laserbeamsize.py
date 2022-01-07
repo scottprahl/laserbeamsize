@@ -713,7 +713,10 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
 
         mask = rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters)
         masked_image = np.copy(zero_background_image)
-        masked_image[mask < 1] = 0       # zero all values outside mask
+        
+        # zero values outside mask
+        # when mask is rotated some pixels may not be exactly 1
+        masked_image[mask < 0.5] = 0
 
         xc, yc, dx, dy, phi = basic_beam_size(masked_image)
         if abs(xc-xc2) < 1 and abs(yc-yc2) < 1 and abs(dx-dx2) < 1 and abs(dy-dy2) < 1:
