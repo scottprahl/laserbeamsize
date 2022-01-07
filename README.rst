@@ -1,6 +1,8 @@
 laserbeamsize
 =============
 
+by Scott Prahl
+
 .. only:: html
 
   .. image:: https://img.shields.io/pypi/v/laserbeamsize.svg
