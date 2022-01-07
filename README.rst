@@ -1,23 +1,25 @@
 laserbeamsize
 =============
 
-.. image:: https://img.shields.io/pypi/v/laserbeamsize.svg
-   :target: https://pypi.org/project/laserbeamsize/
+.. only:: html
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-   :target: https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master
+  .. image:: https://img.shields.io/pypi/v/laserbeamsize.svg
+     :target: https://pypi.org/project/laserbeamsize/
 
-.. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/scottprahl/laserbeamsize/master?filepath=docs
+  .. image:: https://colab.research.google.com/assets/colab-badge.svg
+     :target: https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master
 
-.. image:: https://img.shields.io/badge/readthedocs-latest-blue.svg
-   :target: https://laserbeamsize.readthedocs.io
+  .. image:: https://mybinder.org/badge_logo.svg
+     :target: https://mybinder.org/v2/gh/scottprahl/laserbeamsize/master?filepath=docs
 
-.. image:: https://img.shields.io/badge/github-code-green.svg
-   :target: https://github.com/scottprahl/laserbeamsize
+  .. image:: https://img.shields.io/badge/readthedocs-latest-blue.svg
+     :target: https://laserbeamsize.readthedocs.io
 
-.. image:: https://img.shields.io/badge/MIT-license-yellow.svg
-   :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
+  .. image:: https://img.shields.io/badge/github-code-green.svg
+     :target: https://github.com/scottprahl/laserbeamsize
+
+  .. image:: https://img.shields.io/badge/MIT-license-yellow.svg
+     :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
 
 __________
 

@@ -1,11 +1,15 @@
-SPHINXOPTS    ?=
+HTMLOPTS    ?=
+PDFOPTS     ?= 
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = docs
 BUILDDIR      = docs/_build
 
 html:
-	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS)
+	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(HTMLOPTS)
 	open docs/_build/index.html
+
+pdf:
+	$(SPHINXBUILD) -b latex "$(SOURCEDIR)" "$(BUILDDIR)"  $(PDFOPTS)
 
 pycheck:
 	-pylint laserbeamsize/m2.py
