@@ -22,7 +22,7 @@ Finding the center and diameters of a beam in a monochrome image is simple::
     import laserbeamsize as lbs
 
     beam_image = imageio.imread("t-hene.pgm")
-    x, y, dx, dy, phi = lbs.beam_size(beam_image)
+    x, y, dx, dy, phi, ellipticity, dcirc = lbs.beam_size(beam_image)
 
     print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
     print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
@@ -1031,7 +1031,7 @@ def beam_size_and_plot(o_image,
     bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
 
     # find center and diameters
-    xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
+    xc, yc, dx, dy, phi, ellipticity, dcirc = beam_size(o_image, **bs_args)
 
     # establish scale and correct label
     if pixel_size is None:
@@ -1126,7 +1126,7 @@ def beam_size_plot(o_image,
     bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
 
     # find center and diameters
-    xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
+    xc, yc, dx, dy, phi, ellipticity, dcirc = beam_size(o_image, **bs_args)
 
     # determine scaling and labels
     if pixel_size is None:
