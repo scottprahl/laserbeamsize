@@ -688,6 +688,10 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
         `dx`, `dy` are the diameters of the elliptical spot.
 
         `phi` is tilt of the ellipse from the axis [radians]
+        
+        `ellipticity` is the ellipticity of the beam
+        
+        `dcirc` is the circular diameter, is only valid if ellipticity>0.87
 
     Args:
         image: 2D array of image of beam
@@ -696,7 +700,7 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
         nT: the multiple of background noise to remove
         max_iter: maximum number of iterations.
     Returns:
-        elliptical beam parameters [xc, yc, dx, dy, phi]
+        elliptical beam parameters [xc, yc, dx, dy, phi, ellipticity, dcirc]
     """
     if len(image.shape) > 2:
         raise Exception('Color images are not supported.  Convert to gray/monochrome.')
@@ -721,8 +725,18 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
         xc, yc, dx, dy, phi = basic_beam_size(masked_image)
         if abs(xc-xc2) < 1 and abs(yc-yc2) < 1 and abs(dx-dx2) < 1 and abs(dy-dy2) < 1:
             break
-
-    return xc, yc, dx, dy, phi
+    
+    # ellipticity
+    if dy<dx:
+        ellipticity = dy/dx
+    elif dx<dy:
+        ellipticity = dx/dy
+    else:
+        ellipticity = 1
+        
+    dcirc= np.sqrt((dx**2+dy**2)/2)    #only valid if ellipticity>0.87
+    
+    return xc, yc, dx, dy, phi, ellipticity, dcirc
 
 
 def beam_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
