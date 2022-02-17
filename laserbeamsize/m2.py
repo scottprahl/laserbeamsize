@@ -230,7 +230,8 @@ def _abc_fit(z, d, lambda0):
     M2 = np.pi/4/lambda0*disc
     d0 = disc / np.sqrt(c)
     zR = disc/c
-    params = [d0, z0, Theta, M2, zR]
+    BPP = Theta*d0/4
+    params = [d0, z0, Theta, M2, zR, BPP]
 
 # unpack uncertainties in fitting parameters from diagonal of covariance matrix
 #c_std, b_std, a_std = [np.sqrt(_nlpcov[j, j]) for j in range(nlfit.size)]
@@ -278,6 +279,7 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
         Theta: full beam divergence angle [radians]
         M2: beam propagation parameter [-]
         zR: Rayleigh distance [m]
+        BPP: beam parameter product [m rad]
 
     Args:
         z: array of axial position of beam measurements [m]
@@ -336,8 +338,11 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
     M2_std = M2 * np.sqrt((Theta_std/Theta)**2 + (d0_std/d0)**2)
     zR_std = zR * np.sqrt((M2_std/M2)**2 + (2*d0_std/d0)**2)
 
-    params = [d0, z0, Theta, M2, zR]
-    errors = [d0_std, z0_std, Theta_std, M2_std, zR_std]
+    BPP = d0*Theta/4
+    BPP_std = BPP*np.sqrt((Theta_std/Theta)**2 + (d0_std/d0)**2)
+    
+    params = [d0, z0, Theta, M2, zR, BPP]
+    errors = [d0_std, z0_std, Theta_std, M2_std, zR_std, BPP_std]
     return params, errors
 
 def max_index_in_focal_zone(z, zone):
@@ -409,8 +414,8 @@ def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
         d0: (optional) diameter of beam waist [m]
 
     Returns:
-        params: [d0, z0, Theta, M2, zR]
-        errors: [d0_std, z0_std, Theta_std, M2_std, zR_std]
+        params: [d0, z0, Theta, M2, zR, BPP]
+        errors: [d0_std, z0_std, Theta_std, M2_std, zR_std, BPP_std]
         used: boolean array indicating if data point is used
     """
     used = np.full_like(z, True, dtype=bool)
@@ -473,8 +478,8 @@ def M2_string(params, errors):
     Returns:
         Formatted string suitable for printing.
     """
-    d0, z0, Theta, M2, zR = params
-    d0_std, z0_std, Theta_std, M2_std, zR_std = errors
+    d0, z0, Theta, M2, zR, BPP = params
+    d0_std, z0_std, Theta_std, M2_std, zR_std, BPP_std = errors
     s = ''
     s += "       M^2 = %.2f ± %.2f\n" % (M2, M2_std)
     s += "\n"
@@ -485,6 +490,8 @@ def M2_string(params, errors):
     s += "       z_R = %.0f ± %.0f mm\n" % (zR*1e3, zR_std*1e3)
     s += "\n"
     s += "     Theta = %.2f ± %.2f mrad\n" % (Theta*1e3, Theta_std*1e3)
+    s += "\n"
+    s += "       BPP = %.2f ± %.2f mm mrad\n" % (BPP*1e6, BPP_std*1e6)
     return s
 
 
@@ -587,12 +594,12 @@ def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
         return s
 
     params, errors, _ = M2_fit(z, dx, lambda0, strict=strict, z0=z0, d0=d0)
-    d0x, z0x, Thetax, M2x, zRx = params
-    d0x_std, z0x_std, Thetax_std, M2x_std, zRx_std = errors
+    d0x, z0x, Thetax, M2x, zRx, BPPx = params
+    d0x_std, z0x_std, Thetax_std, M2x_std, zRx_std, BPPx_std = errors
 
     params, errors, _ = M2_fit(z, dy, lambda0, strict=strict, z0=z0, d0=d0)
-    d0y, z0y, Thetay, M2y, zRy = params
-    d0y_std, z0y_std, Thetay_std, M2y_std, zRy_std = errors
+    d0y, z0y, Thetay, M2y, zRy, BPPy = params
+    d0y_std, z0y_std, Thetay_std, M2y_std, zRy_std, BPPy_std = errors
 
     z0 = (z0x + z0y) / 2
     z0_std = np.sqrt(z0x_std**2 + z0y_std**2)
@@ -608,7 +615,7 @@ def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
 
     M2 = np.sqrt(M2x * M2y)
     M2_std = np.sqrt(M2x_std**2 + M2y_std**2)
-
+    
     tag = ''
     if f is not None:
         tag = " of the focused beam"
@@ -675,8 +682,8 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     """
     params, errors, used = M2_fit(z, d, lambda0, strict=strict, z0=z0, d0=d0)
     unused = np.logical_not(used)
-    d0, z0, Theta, M2, zR = params
-    d0_std, z0_std, Theta_std, M2_std, zR_std = errors
+    d0, z0, Theta, M2, zR, BPP = params
+    d0_std, z0_std, Theta_std, M2_std, zR_std, BPP_std = errors
 
     # fitted line
     zmin = min(np.min(z), z0-4*zR)
@@ -844,8 +851,8 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     """
     params, errors, used = M2_fit(z, d, lambda0, strict=strict, z0=z0, d0=d0)
     unused = np.logical_not(used)
-    d0, z0, Theta, M2, zR = params
-    d0_std, _, Theta_std, M2_std, _ = errors
+    d0, z0, Theta, M2, zR, BPP = params
+    d0_std, _, Theta_std, M2_std, _, BPP_std = errors
 
     plt.figure(1, figsize=(12, 8))
 
