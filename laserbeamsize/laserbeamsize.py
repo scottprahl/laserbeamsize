@@ -72,6 +72,7 @@ __all__ = ('subtract_image',
            'basic_beam_size',
            'basic_beam_size_naive',
            'beam_size',
+           'beam_ellipticity',
            'beam_test_image',
            'draw_beam_figure',
            'ellipse_arrays',
@@ -713,7 +714,7 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
 
         mask = rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters)
         masked_image = np.copy(zero_background_image)
-        
+
         # zero values outside mask
         # when mask is rotated some pixels may not be exactly 1
         masked_image[mask < 0.5] = 0
@@ -723,6 +724,38 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
             break
 
     return xc, yc, dx, dy, phi
+
+
+def beam_ellipticity(dx, dy):
+    """
+    Calculate the ellipticity of the beam
+
+    The ISO 11146 standard defines ellipticity as the "ratio between the
+    minimum and maximum beam widths".  These widths (diameters) returned
+    by `beam_size()` can be used to make this calculation.
+
+    When `ellipticity > 0.87`, then the beam profile may be considered to have
+    circular symmetry. The equivalent beam diameter is the root mean square
+    of the beam diameters.
+
+    Args:
+        dx: x diameter of the beam spot
+        dy: y diameter of the beam spot
+    Returns:
+        ellipticity: varies from 0 (line) to 1 (round)
+        d_circular: equivalent diameter of a circular beam
+    """
+
+    if dy < dx:
+        ellipticity = dy / dx
+    elif dx < dy:
+        ellipticity = dx / dy
+    else:
+        ellipticity = 1
+
+    dcirc= np.sqrt((dx**2 + dy**2) / 2)
+
+    return ellipticity, d_circular
 
 
 def beam_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
