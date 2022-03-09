@@ -43,6 +43,7 @@ __all__ = ('z_rayleigh',
            'divergence',
            'gouy_phase',
            'focused_diameter',
+           'beam_parameter_product',
            'artificial_to_original',
            'M2_fit',
            'M2_report',
@@ -170,6 +171,23 @@ def focused_diameter(f, lambda0, d, M2=1):
     """
     return 4 * M2**2 * lambda0 * f / (np.pi * d)
 
+
+def beam_parameter_product(Theta, d0, Theta_std=0, d0_std=0):
+    """
+    Find the beam parameter product.
+
+    Args:
+        d0: beam waist diameter [m]
+        Theta: full beam divergence angle [radians]
+        d0_std: std. dev. of beam waist diameter [m]
+        Theta_std: std. dev. of full beam divergence angle [radians]
+    Returns:
+        BPP: Beam parameter product [m*radian]
+        BPP_std: standard deviation of beam parameter product [m*radian]
+    """
+    BPP = Theta*d0/4
+    BPP_std = BPP*np.sqrt((Theta_std/Theta)**2 + (d0_std/d0)**2)
+    return BPP, BPP_std
 
 def image_distance(w0, lambda0, s, f, M2=1):
     """
@@ -475,6 +493,8 @@ def M2_string(params, errors):
     """
     d0, z0, Theta, M2, zR = params
     d0_std, z0_std, Theta_std, M2_std, zR_std = errors
+    BPP, BPP_std = beam_parameter_product(d0,Theta,d0_std,Theta_std)
+    
     s = ''
     s += "       M^2 = %.2f ± %.2f\n" % (M2, M2_std)
     s += "\n"
@@ -485,6 +505,8 @@ def M2_string(params, errors):
     s += "       z_R = %.0f ± %.0f mm\n" % (zR*1e3, zR_std*1e3)
     s += "\n"
     s += "     Theta = %.2f ± %.2f mrad\n" % (Theta*1e3, Theta_std*1e3)
+    s += "\n"
+    s += "       BPP = %.2f ± %.2f mm mrad\n" % (BPP*1e6, BPP_std*1e6)
     return s
 
 
