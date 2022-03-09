@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'laserbeamsize'
-copyright = '2017-21, Scott Prahl'
+copyright = '2017-22, Scott Prahl'
 author = 'Scott Prahl'
 
 # The full version, including alpha/beta/rc tags
@@ -26,7 +26,6 @@ master_doc = 'index'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx_rtd_theme',
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
@@ -35,12 +34,12 @@ extensions = [
     'sphinx_automodapi.smart_resolver',
     'nbsphinx',
 ]
-numpydoc_show_class_members = False
 napoleon_google_docstring = True
-napoleon_numpy_docstring = True
-napoleon_use_param = True
-napoleon_use_ivar = True
-napoleon_use_keyword = True
+numpydoc_show_class_members = False
+napoleon_use_param = False
+napoleon_use_ivar = False
+napoleon_include_private_with_doc = False
+napoleon_use_rtype = False
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']
