@@ -5,6 +5,7 @@
 # pylint: disable=too-many-lines
 # pylint: disable=protected-access
 # pylint: disable=consider-using-enumerate
+# pylint: disable=consider-using-f-string
 
 """
 A module for finding the beam size in an monochrome image.
@@ -27,7 +28,7 @@ Finding the center and diameters of a beam in a monochrome image is simple::
     print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
     print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
     print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
-    print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi*180/3.1416))
+    print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
 
 A full graphic can be created by::
 
@@ -41,7 +42,7 @@ A mosaic of images might be created by::
     filenames = ["%d.pgm" % location for location in z]
     images = [imageio.imread(filename) for filename in filenames]
 
-    lbs.beam_size_montage(images, z*1e-3, pixel_size=3.75, crop=True)
+    lbs.beam_size_montage(images, z * 1e-3, pixel_size=3.75, crop=True)
     plt.show()
 """
 
@@ -99,8 +100,8 @@ def rotate_points(x, y, x0, y0, phi):
     Returns:
         x, y locations of rotated points
     """
-    xp = x-x0
-    yp = y-y0
+    xp = x - x0
+    yp = y - y0
 
     s = np.sin(-phi)
     c = np.cos(-phi)
@@ -135,18 +136,18 @@ def values_along_line(image, x0, y0, x1, y1, N=100):
     Returns:
         x, y, z, and s arrays
     """
-    d = np.sqrt((x1-x0)**2 + (y1-y0)**2)
+    d = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
     s = np.linspace(0, 1, N)
 
-    x = x0 + s * (x1-x0)
-    y = y0 + s * (y1-y0)
+    x = x0 + s * (x1 - x0)
+    y = y0 + s * (y1 - y0)
 
     xx = x.astype(int)
     yy = y.astype(int)
 
     zz = image[yy, xx]
 
-    return xx, yy, zz, (s-0.5)*d
+    return xx, yy, zz, (s - 0.5) * d
 
 
 def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
@@ -174,15 +175,15 @@ def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
 
     if dx > dy:
         rx = diameters * dx / 2
-        left = max(xc-rx, 0)
-        right = min(xc+rx, h-1)
+        left = max(xc - rx, 0)
+        right = min(xc + rx, h - 1)
         x = np.array([left, right])
         y = np.array([yc, yc])
         xr, yr = rotate_points(x, y, xc, yc, phi)
     else:
         ry = diameters * dy / 2
-        top = max(yc-ry, 0)
-        bottom = min(yc+ry, v-1)
+        top = max(yc - ry, 0)
+        bottom = min(yc + ry, v - 1)
         x = np.array([xc, xc])
         y = np.array([top, bottom])
         xr, yr = rotate_points(x, y, xc, yc, phi)
@@ -215,15 +216,15 @@ def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
 
     if dx <= dy:
         rx = diameters * dx / 2
-        left = max(xc-rx, 0)
-        right = min(xc+rx, h-1)
+        left = max(xc - rx, 0)
+        right = min(xc + rx, h - 1)
         x = np.array([left, right])
         y = np.array([yc, yc])
         xr, yr = rotate_points(x, y, xc, yc, phi)
     else:
         ry = diameters * dy / 2
-        top = max(yc-ry, 0)
-        bottom = min(yc+ry, v-1)
+        top = max(yc - ry, 0)
+        bottom = min(yc + ry, v - 1)
         x = np.array([xc, xc])
         y = np.array([top, bottom])
         xr, yr = rotate_points(x, y, xc, yc, phi)
@@ -253,7 +254,7 @@ def subtract_image(original, background):
     b = background.astype(int)
 
     # subtract and zero negative entries
-    r = o-b
+    r = o - b
     np.place(r, r < 0, 0)
 
     # return array that matches original type
@@ -295,21 +296,21 @@ def rotate_image(original, x0, y0, phi):
         rotated image with same dimensions as original
     """
     # center of original image
-    cy, cx = (np.array(original.shape)-1)/2.0
+    cy, cx = (np.array(original.shape) - 1) / 2.0
 
     # rotate image using defaults mode='constant' and cval=0.0
     rotated = scipy.ndimage.rotate(original, np.degrees(phi), order=1)
 
     # center of rotated image, defaults mode='constant' and cval=0.0
-    ry, rx = (np.array(rotated.shape)-1)/2.0
+    ry, rx = (np.array(rotated.shape) - 1) / 2.0
 
     # position of (x0, y0) in rotated image
     new_x0, new_y0 = rotate_points(x0, y0, cx, cy, phi)
     new_x0 += rx - cx
     new_y0 += ry - cy
 
-    voff = int(new_y0-y0)
-    hoff = int(new_x0-x0)
+    voff = int(new_y0 - y0)
+    hoff = int(new_x0 - x0)
 
     # crop so center remains in same location as original
     ov, oh = original.shape
@@ -317,15 +318,19 @@ def rotate_image(original, x0, y0, phi):
 
     rv1 = max(voff, 0)
     sv1 = max(-voff, 0)
-    vlen = min(voff+ov, rv) - rv1
+    vlen = min(voff + ov, rv) - rv1
 
     rh1 = max(hoff, 0)
     sh1 = max(-hoff, 0)
-    hlen = min(hoff+oh, rh) - rh1
+    hlen = min(hoff + oh, rh) - rh1
 
     # move values into zero-padded array
     s = np.full_like(original, 0)
-    s[sv1:sv1+vlen, sh1:sh1+hlen] = rotated[rv1:rv1+vlen, rh1:rh1+hlen]
+    sv1_end = sv1 + vlen
+    sh1_end = sh1 + hlen
+    rv1_end = rv1 + vlen
+    rh1_end = rh1 + hlen
+    s[sv1:sv1_end, sh1:sh1_end] = rotated[rv1:rv1_end, rh1:rh1_end]
     return s
 
 
@@ -362,33 +367,33 @@ def basic_beam_size(image):
 
     # sometimes the image is all zeros, just return
     if p == 0:
-        return int(h/2), int(v/2), 0, 0, 0
+        return int(h / 2), int(v / 2), 0, 0, 0
 
     # find the centroid
     hh = np.arange(h, dtype=np.float)      # float avoids integer overflow
     vv = np.arange(v, dtype=np.float)      # ditto
-    xc = np.sum(np.dot(image, hh))/p
-    yc = np.sum(np.dot(image.T, vv))/p
+    xc = np.sum(np.dot(image, hh)) / p
+    yc = np.sum(np.dot(image.T, vv)) / p
 
     # find the variances
-    hs = hh-xc
-    vs = vv-yc
-    xx = np.sum(np.dot(image, hs**2))/p
-    xy = np.dot(np.dot(image.T, vs), hs)/p
-    yy = np.sum(np.dot(image.T, vs**2))/p
+    hs = hh - xc
+    vs = vv - yc
+    xx = np.sum(np.dot(image, hs**2)) / p
+    xy = np.dot(np.dot(image.T, vs), hs) / p
+    yy = np.sum(np.dot(image.T, vs**2)) / p
 
     # Ensure that the case xx==yy is handled correctly
     if xx == yy:
-        disc = np.abs(2*xy)
-        phi = np.sign(xy) * np.pi/4
+        disc = np.abs(2 * xy)
+        phi = np.sign(xy) * np.pi / 4
     else:
-        diff = xx-yy
-        disc = np.sign(diff)*np.sqrt(diff**2 + 4*xy**2)
-        phi = 0.5 * np.arctan(2*xy/diff)
+        diff = xx - yy
+        disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
+        phi = 0.5 * np.arctan(2 * xy / diff)
 
     # finally, the major and minor diameters
-    dx = np.sqrt(8*(xx+yy+disc))
-    dy = np.sqrt(8*(xx+yy-disc))
+    dx = np.sqrt(8 * (xx + yy + disc))
+    dy = np.sqrt(8 * (xx + yy - disc))
 
     # phi is negative because image is inverted
     phi *= -1
@@ -417,11 +422,11 @@ def elliptical_mask(image, xc, yc, dx, dy, phi):
 
     sinphi = np.sin(phi)
     cosphi = np.cos(phi)
-    rx = dx/2
-    ry = dy/2
-    xx = x-xc
-    yy = y-yc
-    r2 = (xx*cosphi-yy*sinphi)**2/rx**2 + (xx*sinphi+yy*cosphi)**2/ry**2
+    rx = dx / 2
+    ry = dy / 2
+    xx = x - xc
+    yy = y - yc
+    r2 = (xx * cosphi - yy * sinphi)**2 / rx**2 + (xx * sinphi + yy * cosphi)**2 / ry**2
     the_mask = r2 <= 1
 
     return the_mask
@@ -449,6 +454,7 @@ def corner_mask(image, corner_fraction=0.035):
     the_mask[-n:, :m] = True
     the_mask[-n:, -m:] = True
     return the_mask
+
 
 def perimeter_mask(image, corner_fraction=0.035):
     """
@@ -505,7 +511,7 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     Return image with background subtracted.
 
     The background is estimated using the values in the corners of the
-    image.  The new image will have a constant (`mean+nT*stdev`) subtracted.
+    image.  The new image will have a constant (`mean+nT * stdev`) subtracted.
 
     ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
 
@@ -523,6 +529,7 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     back, sigma = corner_background(image, corner_fraction)
     offset = int(back + nT * sigma)
     return subtract_threshold(image, offset)
+
 
 def subtract_tilted_background(image, corner_fraction=0.035):
     """
@@ -556,10 +563,10 @@ def subtract_tilted_background(image, corner_fraction=0.035):
     fit = (A.T * A).I * A.T * b
     # find coefficients of fit
     a = fit[0][0, 0]
-    b = fit[1][0, 0] # overwriting b
+    b = fit[1][0, 0]  # overwriting b
     c = fit[2][0, 0]
     # calculate the fit plane
-    z = a * yy + b*xx + c
+    z = a * yy + b * xx + c
     # find the standard deviation of the noise in the perimeter
     # and subtract this value from the plane,
     # since we don't want to lose the image noise just yet
@@ -567,6 +574,7 @@ def subtract_tilted_background(image, corner_fraction=0.035):
 
     # finally, subtract the plane from the original image
     return subtract_image(image, z)
+
 
 def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     """
@@ -592,10 +600,10 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     v, h = image.shape
     rx = mask_diameters * dx / 2
     ry = mask_diameters * dy / 2
-    vlo = max(0, int(yc-ry))
-    vhi = min(v, int(yc+ry))
-    hlo = max(0, int(xc-rx))
-    hhi = min(h, int(xc+rx))
+    vlo = max(0, int(yc - ry))
+    vhi = min(v, int(yc + ry))
+    hlo = max(0, int(xc - rx))
+    hhi = min(h, int(xc + rx))
 
     raw_mask[vlo:vhi, hlo:hhi] = 1
     rot_mask = rotate_image(raw_mask, xc, yc, phi)
@@ -677,7 +685,7 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
     This default value works fine.
 
     `nT` accounts for noise in the background.  The background is estimated
-    using the values in the cornes of the image as `mean+nT*stdev`. ISO 11146
+    using the values in the cornes of the image as `mean+nT * stdev`. ISO 11146
     states that `2<nT<4`.  The default value works fine.
 
     `max_iter` is the maximum number of iterations done before giving up.
@@ -720,7 +728,7 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
         masked_image[mask < 0.5] = 0
 
         xc, yc, dx, dy, phi = basic_beam_size(masked_image)
-        if abs(xc-xc2) < 1 and abs(yc-yc2) < 1 and abs(dx-dx2) < 1 and abs(dy-dy2) < 1:
+        if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
             break
 
     return xc, yc, dx, dy, phi
@@ -753,7 +761,7 @@ def beam_ellipticity(dx, dy):
     else:
         ellipticity = 1
 
-    dcirc= np.sqrt((dx**2 + dy**2) / 2)
+    d_circular = np.sqrt((dx**2 + dy**2) / 2)
 
     return ellipticity, d_circular
 
@@ -779,15 +787,15 @@ def beam_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
     Returns:
         2D image of astigmatic spot is v x h pixels in size
     """
-    rx = dx/2
-    ry = dy/2
+    rx = dx / 2
+    ry = dy / 2
 
     image0 = np.zeros([v, h])
 
     y, x = np.ogrid[:v, :h]
 
     scale = max_value - 3 * noise
-    image0 = scale * np.exp(-2*(x-xc)**2/rx**2 - 2*(y-yc)**2/ry**2)
+    image0 = scale * np.exp(-2 * (x - xc)**2 / rx**2 - 2 * (y - yc)**2 / ry**2)
 
     image1 = rotate_image(image0, xc, yc, phi)
 
@@ -818,11 +826,11 @@ def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     Returns:
         x, y : two arrays of points on the ellipse
     """
-    t = np.linspace(0, 2*np.pi, npoints)
-    a = dx/2*np.cos(t)
-    b = dy/2*np.sin(t)
-    xp = xc + a*np.cos(phi) - b*np.sin(phi)
-    yp = yc - a*np.sin(phi) - b*np.cos(phi)
+    t = np.linspace(0, 2 * np.pi, npoints)
+    a = dx / 2 * np.cos(t)
+    b = dy / 2 * np.sin(t)
+    xp = xc + a * np.cos(phi) - b * np.sin(phi)
+    yp = yc - a * np.sin(phi) - b * np.cos(phi)
     return np.array([xp, yp])
 
 
@@ -847,10 +855,10 @@ def basic_beam_size_naive(image):
     for i in range(v):
         for j in range(h):
             p += image[i, j]
-            xc += image[i, j]*j
-            yc += image[i, j]*i
-    xc = int(xc/p)
-    yc = int(yc/p)
+            xc += image[i, j] * j
+            yc += image[i, j] * i
+    xc = int(xc / p)
+    yc = int(yc / p)
 
     # calculate variances
     xx = 0.0
@@ -858,17 +866,17 @@ def basic_beam_size_naive(image):
     xy = 0.0
     for i in range(v):
         for j in range(h):
-            xx += image[i, j]*(j-xc)**2
-            xy += image[i, j]*(j-xc)*(i-yc)
-            yy += image[i, j]*(i-yc)**2
+            xx += image[i, j] * (j - xc)**2
+            xy += image[i, j] * (j - xc) * (i - yc)
+            yy += image[i, j] * (i - yc)**2
     xx /= p
     xy /= p
     yy /= p
 
     # compute major and minor axes as well as rotation angle
-    dx = 2*np.sqrt(2)*np.sqrt(xx+yy+np.sign(xx-yy)*np.sqrt((xx-yy)**2+4*xy**2))
-    dy = 2*np.sqrt(2)*np.sqrt(xx+yy-np.sign(xx-yy)*np.sqrt((xx-yy)**2+4*xy**2))
-    phi = 2 * np.arctan2(2*xy, xx-yy)
+    dx = 2 * np.sqrt(2) * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy)**2 + 4 * xy**2))
+    dy = 2 * np.sqrt(2) * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy)**2 + 4 * xy**2))
+    phi = 2 * np.arctan2(2 * xy, xx - yy)
 
     return xc, yc, dx, dy, phi
 
@@ -893,10 +901,10 @@ def draw_beam_figure():
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, theta)
     plt.plot(xp, yp, ':b', lw=2)
 
-    sint = np.sin(theta)/2
-    cost = np.cos(theta)/2
-    plt.plot([xc-dx*cost, xc+dx*cost], [yc+dx*sint, yc-dx*sint], ':b')
-    plt.plot([xc+dy*sint, xc-dy*sint], [yc+dy*cost, yc-dy*cost], ':r')
+    sint = np.sin(theta) / 2
+    cost = np.cos(theta) / 2
+    plt.plot([xc - dx * cost, xc + dx * cost], [yc + dx * sint, yc - dx * sint], ':b')
+    plt.plot([xc + dy * sint, xc - dy * sint], [yc + dy * cost, yc - dy * cost], ':r')
 
     # draw axes
     plt.annotate("x'", xy=(-25, 0), xytext=(25, 0),
@@ -937,8 +945,8 @@ def crop_image_to_rect(image, xc, yc, xmin, xmax, ymin, ymax):
     xmax = min(h, int(xmax))
     ymin = max(0, int(ymin))
     ymax = min(v, int(ymax))
-    new_xc = xc-xmin
-    new_yc = yc-ymin
+    new_xc = xc - xmin
+    new_yc = yc - ymin
     return image[ymin:ymax, xmin:xmax], new_xc, new_yc
 
 
@@ -963,10 +971,11 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
     return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
 
+
 def luminance(value, cmap_name='gist_ncar', vmin=0, vmax=255):
     """Return luminance of depending on cmap and value."""
     # value between 0 and 1
-    v = (value-vmin)/(vmax-vmin)
+    v = (value - vmin) / (vmax - vmin)
     v = min(max(0, v), 1)
     cmap = matplotlib.cm.get_cmap(cmap_name)
 
@@ -975,8 +984,9 @@ def luminance(value, cmap_name='gist_ncar', vmin=0, vmax=255):
     r = 255 * rgb[0]
     g = 255 * rgb[1]
     b = 255 * rgb[2]
-    lum = 0.2126 * r + 0.7152 * g + 0.0722 * b # per ITU-R BT.709
+    lum = 0.2126 * r + 0.7152 * g + 0.0722 * b  # per ITU-R BT.709
     return lum
+
 
 def draw_as_dotted_contrast_line(image, xpts, ypts, cmap='gist_ncar', vmax=None):
     """Draw lines in white or black depending on background image."""
@@ -1001,6 +1011,7 @@ def draw_as_dotted_contrast_line(image, xpts, ypts, cmap='gist_ncar', vmax=None)
 
     # draw the points
     plt.plot(xpts, ypts, ':', color=contrast_color)
+
 
 def beam_size_and_plot(o_image,
                        pixel_size=None,
@@ -1062,10 +1073,10 @@ def beam_size_and_plot(o_image,
 
     # crop image if necessary
     if isinstance(crop, list):
-        ymin = yc-crop[0]/2/scale # in pixels
-        ymax = yc+crop[0]/2/scale
-        xmin = xc-crop[1]/2/scale
-        xmax = xc+crop[1]/2/scale
+        ymin = yc - crop[0] / 2 / scale  # in pixels
+        ymax = yc + crop[0] / 2 / scale
+        xmin = xc - crop[1] / 2 / scale
+        xmax = xc + crop[1] / 2 / scale
         image, xc, yc = crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
     elif crop:
         image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
@@ -1078,7 +1089,7 @@ def beam_size_and_plot(o_image,
 
     # extents may be changed by scale
     v, h = image.shape
-    extent = np.array([-xc, h-xc, v-yc, -yc])*scale
+    extent = np.array([-xc, h - xc, v - yc, -yc]) * scale
 
     # display image and axes labels
     im = plt.imshow(image, extent=extent, cmap=cmap, vmax=vmax)
@@ -1087,26 +1098,26 @@ def beam_size_and_plot(o_image,
 
     # draw semi-major and semi-minor axes
     xp, yp = axes_arrays(xc, yc, dx, dy, phi)
-    draw_as_dotted_contrast_line(image, (xp-xc)*scale, (yp-yc)*scale, vmax=vmax, cmap=cmap)
+    draw_as_dotted_contrast_line(image, (xp - xc) * scale, (yp - yc) * scale, vmax=vmax, cmap=cmap)
 
     # show ellipse around beam
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
-    draw_as_dotted_contrast_line(image, (xp-xc)*scale, (yp-yc)*scale, vmax=vmax, cmap=cmap)
+    draw_as_dotted_contrast_line(image, (xp - xc) * scale, (yp - yc) * scale, vmax=vmax, cmap=cmap)
 
     # show integration area around beam
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
-    draw_as_dotted_contrast_line(image, (xp-xc)*scale, (yp-yc)*scale, vmax=vmax, cmap=cmap)
+    draw_as_dotted_contrast_line(image, (xp - xc) * scale, (yp - yc) * scale, vmax=vmax, cmap=cmap)
 
     # set limits on axes
-    plt.xlim(-xc*scale, (h-xc)*scale)
-    plt.ylim((v-yc)*scale, -yc*scale)
+    plt.xlim(-xc * scale, (h - xc) * scale)
+    plt.ylim((v - yc) * scale, -yc * scale)
 
     # show colorbar
     if colorbar:
         v, h = image.shape
-        plt.colorbar(im, fraction=0.046*v/h, pad=0.04)
+        plt.colorbar(im, fraction=0.046 * v / h, pad=0.04)
 
-    return xc*scale, yc*scale, dx*scale, dy*scale, phi
+    return xc * scale, yc * scale, dx * scale, dy * scale, phi
 
 
 def beam_size_plot(o_image,
@@ -1160,10 +1171,10 @@ def beam_size_plot(o_image,
 
     # crop image as appropriate
     if isinstance(crop, list):
-        ymin = yc-crop[0]/2/scale # in pixels
-        ymax = yc+crop[0]/2/scale
-        xmin = xc-crop[1]/2/scale
-        xmax = xc+crop[1]/2/scale
+        ymin = yc - crop[0] / 2 / scale  # in pixels
+        ymax = yc + crop[0] / 2 / scale
+        xmin = xc - crop[1] / 2 / scale
+        xmax = xc + crop[1] / 2 / scale
         image, xc, yc = crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
     elif crop:
         image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
@@ -1183,8 +1194,8 @@ def beam_size_plot(o_image,
     vv, hh = image.shape
 
     # determine the sizes of the semi-major and semi-minor axes
-    r_major = max(dx, dy)/2.0
-    r_minor = min(dx, dy)/2.0
+    r_major = max(dx, dy) / 2.0
+    r_minor = min(dx, dy) / 2.0
 
     # scale all the dimensions
     v_s = vv * scale
@@ -1202,7 +1213,7 @@ def beam_size_plot(o_image,
     # original image
     plt.subplot(2, 2, 1)
     im = plt.imshow(image, cmap=cmap)
-    plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04)
+    plt.colorbar(im, fraction=0.046 * v_s / h_s, pad=0.04)
     plt.clim(min_, max_)
     plt.xlabel('Position (pixels)')
     plt.ylabel('Position (pixels)')
@@ -1210,32 +1221,32 @@ def beam_size_plot(o_image,
 
     # working image
     plt.subplot(2, 2, 2)
-    extent = np.array([-xc_s, h_s-xc_s, v_s-yc_s, -yc_s])
+    extent = np.array([-xc_s, h_s - xc_s, v_s - yc_s, -yc_s])
     im = plt.imshow(working_image, extent=extent, cmap=cmap)
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
-    draw_as_dotted_contrast_line(working_image, xp-xc_s, yp-yc_s)
+    draw_as_dotted_contrast_line(working_image, xp - xc_s, yp - yc_s)
     xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
-    draw_as_dotted_contrast_line(working_image, xp-xc_s, yp-yc_s)
+    draw_as_dotted_contrast_line(working_image, xp - xc_s, yp - yc_s)
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
-    draw_as_dotted_contrast_line(working_image, xp-xc_s, yp-yc_s)
-    plt.colorbar(im, fraction=0.046*v_s/h_s, pad=0.04)
+    draw_as_dotted_contrast_line(working_image, xp - xc_s, yp - yc_s)
+    plt.colorbar(im, fraction=0.046 * v_s / h_s, pad=0.04)
 #    plt.clim(min_, max_)
-    plt.xlim(-xc_s, h_s-xc_s)
-    plt.ylim(v_s-yc_s, -yc_s)
+    plt.xlim(-xc_s, h_s - xc_s)
+    plt.ylim(v_s - yc_s, -yc_s)
     plt.xlabel(label)
     plt.ylabel(label)
     plt.title('Image w/o background, center at (%.0f, %.0f) %s' % (xc_s, yc_s, units))
 
     # plot of values along semi-major axis
     _, _, z, s = major_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2/np.pi)/r_major * np.sum(z-background)*abs(s[1]-s[0])
-    baseline = a*np.exp(-2)+background
+    a = np.sqrt(2 / np.pi) / r_major * np.sum(z - background) * abs(s[1] - s[0])
+    baseline = a * np.exp(-2) + background
 
     plt.subplot(2, 2, 3)
-    plt.plot(s*scale, z, 'b')
-    plt.plot(s*scale, a*np.exp(-2*(s/r_major)**2)+background, ':k')
+    plt.plot(s * scale, z, 'b')
+    plt.plot(s * scale, a * np.exp(-2 * (s / r_major)**2) + background, ':k')
     plt.annotate('', (-r_mag_s, baseline), (r_mag_s, baseline), arrowprops=dict(arrowstyle="<->"))
-    plt.text(0, 1.1*baseline, 'dx=%.0f %s' % (d_mag_s, units), va='bottom', ha='center')
+    plt.text(0, 1.1 * baseline, 'dx=%.0f %s' % (d_mag_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Major Axis')
@@ -1244,14 +1255,14 @@ def beam_size_plot(o_image,
 
     # plot of values along semi-minor axis
     _, _, z, s = minor_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2/np.pi)/r_minor * np.sum(z-background)*abs(s[1]-s[0])
-    baseline = a*np.exp(-2)+background
+    a = np.sqrt(2 / np.pi) / r_minor * np.sum(z - background) * abs(s[1] - s[0])
+    baseline = a * np.exp(-2) + background
 
     plt.subplot(2, 2, 4)
-    plt.plot(s*scale, z, 'b')
-    plt.plot(s*scale, a*np.exp(-2*(s/r_minor)**2)+background, ':k', label='fitted')
+    plt.plot(s * scale, z, 'b')
+    plt.plot(s * scale, a * np.exp(-2 * (s / r_minor)**2) + background, ':k', label='fitted')
     plt.annotate('', (-r_min_s, baseline), (r_min_s, baseline), arrowprops=dict(arrowstyle="<->"))
-    plt.text(0, 1.1*baseline, 'dy=%.0f %s' % (d_min_s, units), va='bottom', ha='center')
+    plt.text(0, 1.1 * baseline, 'dy=%.0f %s' % (d_min_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Minor Axis')
@@ -1260,6 +1271,7 @@ def beam_size_plot(o_image,
 
     # add more horizontal space between plots
     plt.subplots_adjust(wspace=0.3)
+
 
 def beam_size_montage(images,
                       z=None,
@@ -1300,28 +1312,28 @@ def beam_size_montage(images,
     dy = np.zeros(len(images))
 
     # calculate the number of rows needed in the montage
-    rows = (len(images)-1) // cols + 1
+    rows = (len(images) - 1) // cols + 1
 
     # when pixel_size is not specified, units default to pixels
     if pixel_size is None:
         units = 'pixels'
 
     # gather all the options that are fixed for every image in the montage
-    options = {'pixel_size':pixel_size,
-               'vmax':vmax,
-               'units':units,
-               'crop':crop,
-               'cmap':cmap,
+    options = {'pixel_size': pixel_size,
+               'vmax': vmax,
+               'units': units,
+               'crop': crop,
+               'cmap': cmap,
                **kwargs}
 
     # now set up the grid of subplots
-    plt.subplots(rows, cols, figsize=(cols*5, rows*5))
+    plt.subplots(rows, cols, figsize=(cols * 5, rows * 5))
 
     for i, im in enumerate(images):
-        plt.subplot(rows, cols, i+1)
+        plt.subplot(rows, cols, i + 1)
 
         # should we add color bar?
-        cb = not (vmax is None) and (i+1 == cols)
+        cb = not (vmax is None) and (i + 1 == cols)
 
         # plot the image and gather the beam diameters
         _, _, dx[i], dy[i], _ = beam_size_and_plot(im, **options, colorbar=cb)
@@ -1334,22 +1346,22 @@ def beam_size_montage(images,
         if z is None:
             plt.title(s)
         else:
-            plt.title("z=%.0fmm, %s" % (z[i]*1e3, s))
+            plt.title("z=%.0fmm, %s" % (z[i] * 1e3, s))
 
         # omit y-labels on all but first column
-        if i%cols:
+        if i % cols:
             plt.ylabel("")
             if isinstance(crop, list):
                 plt.yticks([])
 
         # omit x-labels on all but last row
-        if i < (rows-1)*cols:
+        if i < (rows - 1) * cols:
             plt.xlabel("")
             if isinstance(crop, list):
                 plt.xticks([])
 
-    for i in range(len(images), rows*cols):
-        plt.subplot(rows, cols, i+1)
+    for i in range(len(images), rows * cols):
+        plt.subplot(rows, cols, i + 1)
         plt.axis("off")
 
     return dx, dy
