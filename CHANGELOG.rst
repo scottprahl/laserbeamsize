@@ -1,6 +1,16 @@
 Changelog
 =================================================
 
+v1.9.0
+------
+*    add beam_ellipticity()
+*    add beam_parameter_product()
+*    rotate x-tick labels when more than 10 ticks
+*    removed deprecated use of np.matrix()
+*    M2_report now includes BPP values
+*    improve API docs
+*    code linting
+
 v1.8.0
 ------
 *    handle rotated masks properly
