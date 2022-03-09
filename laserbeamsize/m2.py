@@ -258,10 +258,13 @@ def _abc_fit(z, d, lambda0):
 # unpack uncertainties in fitting parameters from diagonal of covariance matrix
 # c_std, b_std, a_std = [np.sqrt(_nlpcov[j, j]) for j in range(nlfit.size)]
 # z0_std = z0 * np.sqrt(b_std**2/b**2 + c_std**2/c**2)
-# d0_std = np.sqrt((4 * c**2 * a_std)**2 + (2 * b * c * b_std)**2 + (b**2 * c_std)**2) / (8 * c**2 * d0)
+# d0_std = np.sqrt((4 * c**2 * a_std)**2 + (2 * b * c * b_std)**2 \
+# + (b**2 * c_std)**2) / (8 * c**2 * d0)
 # Theta_std = c_std/2/np.sqrt(c)
-# zR_std = np.sqrt(4 * c**4 * a_std**2 + b**2 * c**2 * b_std**2 + (b**2-2 * a * c)**2 * c_std**2)/(4 * c**3) / zR
-# M2_std = np.pi**2 * np.sqrt(4 * c**2 * a_std**2 + b**2 * b_std**2 + 4 * a**2 * c_std**2)/(64 * lambda0**2) / M2
+# zR_std = np.sqrt(4 * c**4 * a_std**2 + b**2 * c**2 * b_std**2 + \
+# (b**2-2 * a * c)**2 * c_std**2)/(4 * c**3) / zR
+# M2_std = np.pi**2 * np.sqrt(4 * c**2 * a_std**2 + b**2 * b_std**2 + \
+# 4 * a**2 * c_std**2)/(64 * lambda0**2) / M2
 # errors = [d0_std, z0_std, M2_std, Theta_std, zR_std]
     return params
 
@@ -754,7 +757,9 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     plt.text(0.05, 0.25, '$d_0$ = %.0f±%.0f µm' % (d0 * 1e6, d0_std * 1e6), transform=tax)
     plt.text(0.05, 0.15, '$z_0$  = %.0f±%.0f mm' % (z0 * 1e3, z0_std * 1e3), transform=tax)
     plt.text(0.05, 0.10, '$z_R$  = %.0f±%.0f mm' % (zR * 1e3, zR_std * 1e3), transform=tax)
-    plt.text(0.05, 0.05, r'$\Theta$  = %.2f±%.2f mrad' % (Theta * 1e3, Theta_std * 1e3), transform=tax)
+    Theta *= 1e3
+    Theta_std *= 1e3
+    plt.text(0.05, 0.05, r'$\Theta$  = %.2f±%.2f mrad' % (Theta, Theta_std), transform=tax)
 
     plt.axvline(z0 * 1e3, color='black', lw=1)
     plt.axvspan((z0 - zR) * 1e3, (z0 + zR) * 1e3, color='cyan', alpha=0.3)

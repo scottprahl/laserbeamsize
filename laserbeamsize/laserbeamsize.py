@@ -734,7 +734,7 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25)
 
 def beam_ellipticity(dx, dy):
     """
-    Calculate the ellipticity of the beam
+    Calculate the ellipticity of the beam.
 
     The ISO 11146 standard defines ellipticity as the "ratio between the
     minimum and maximum beam widths".  These widths (diameters) returned
@@ -751,7 +751,6 @@ def beam_ellipticity(dx, dy):
         ellipticity: varies from 0 (line) to 1 (round)
         d_circular: equivalent diameter of a circular beam
     """
-
     if dy < dx:
         ellipticity = dy / dx
     elif dx < dy:
