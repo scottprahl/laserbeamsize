@@ -928,11 +928,19 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
             ticklabels2 = np.append(ticklabels2, r"%d$z_R$" % i)
     ax1 = plt.gca()
     ax2 = ax1.twiny()
+
     ax1.set_xticks(ticks)
-    ax1.set_xticklabels(ticklabels1, fontsize=14)
+    if len(ticks) > 10:
+        ax1.set_xticklabels(ticklabels1, fontsize=14, rotation=90)
+    else:
+        ax1.set_xticklabels(ticklabels1, fontsize=14)
+
     ax2.set_xbound(ax1.get_xbound())
     ax2.set_xticks(ticks)
-    ax2.set_xticklabels(ticklabels2, fontsize=14)
+    if len(ticks) > 10:
+        ax2.set_xticklabels(ticklabels2, fontsize=14, rotation=90)
+    else:
+        ax2.set_xticklabels(ticklabels2, fontsize=14)
 
     # usual labels for graph
     ax1.set_xlabel('Axial Location (mm)', fontsize=14)
