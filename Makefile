@@ -24,7 +24,7 @@ rstcheck:
 	-rstcheck CHANGELOG.rst
 	-rstcheck docs/index.rst
 	-rstcheck docs/changelog.rst
-	-rstcheck --ignore-directives automodule docs/laserbeamsize.rst
+	-rstcheck --ignore-directives automodapi docs/laserbeamsize.rst
 
 notecheck:
 	make clean
@@ -49,6 +49,8 @@ clean:
 	rm -rf __pycache__
 	rm -rf .ipynb_checkpoints
 	rm -rf build
+	rm -rf .eggs
+	rm -rf .pytest_cache
 
 realclean:
 	make clean
