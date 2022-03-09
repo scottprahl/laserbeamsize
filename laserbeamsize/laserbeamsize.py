@@ -558,15 +558,13 @@ def subtract_tilted_background(image, corner_fraction=0.035):
     coords = np.stack((yy[mask], xx[mask], np.ones(np.size(perimeter_values))), 1)
 
     # fit a plane to all corner points
-    b = np.matrix(perimeter_values).T
-    A = np.matrix(coords)
-    fit = (A.T * A).I * A.T * b
-    # find coefficients of fit
-    a = fit[0][0, 0]
-    b = fit[1][0, 0]  # overwriting b
-    c = fit[2][0, 0]
-    # calculate the fit plane
+    b = np.array(perimeter_values).T
+    A = np.array(coords)
+    a, b, c = np.linalg.inv(A.T @ A) @ A.T @ b
+
+    # calculate the fitted background plane
     z = a * yy + b * xx + c
+
     # find the standard deviation of the noise in the perimeter
     # and subtract this value from the plane,
     # since we don't want to lose the image noise just yet
