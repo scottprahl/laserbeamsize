@@ -16,8 +16,7 @@ found using
 
 help(laserbeamsize.m2)
 """
-import importlib.metadata
 from .laserbeamsize import *
 from .m2 import *
 
-__version__ = importlib.metadata.version('laserbeamsize')
+__version__ = 1.9.0
