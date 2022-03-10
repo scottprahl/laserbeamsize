@@ -18,3 +18,5 @@ help(laserbeamsize.m2)
 """
 from .laserbeamsize import *
 from .m2 import *
+
+__version__ = 1.9.0
