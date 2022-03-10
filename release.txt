@@ -5,10 +5,8 @@ Releasing a new version
 # check
   make rcheck
 
-# update the version in three different places!
-#           setup.cfg   docs/conf.py  laserbeamsize/__init__.py
-
-  git commit -m 'update version' setup.cfg docs/conf.py
+# update the version in __init__.py
+  git commit -m 'update version' laserbeamsize/__init__.py
 
 # update CHANGELOG.rst  `git shortlog v1.9.0..HEAD`
   git commit -m 'update recent changes' CHANGELOG.rst

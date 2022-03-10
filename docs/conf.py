@@ -2,9 +2,22 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
 import sys
+import os.path
 import sphinx_rtd_theme
+
+def read(rel_path):
+    here = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(here, rel_path), 'r', encoding='utf-8') as fp:
+        return fp.read()
+
+def get_version(rel_path):
+    for line in read(rel_path).splitlines():
+        if line.startswith('__version__'):
+            delim = '"' if '"' in line else "'"
+            return line.split(delim)[1]
+    else:
+        raise RuntimeError("Unable to find version string.")
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
@@ -15,9 +28,7 @@ project = 'laserbeamsize'
 copyright = '2017-22, Scott Prahl'
 author = 'Scott Prahl'
 
-# The full version, including alpha/beta/rc tags
-release = '1.9.0'
-
+release = get_version("../laserbeamsize/__init__.py")
 master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------

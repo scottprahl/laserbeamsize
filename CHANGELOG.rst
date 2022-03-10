@@ -1,6 +1,10 @@
 Changelog
 =================================================
 
+v1.9.1
+------
+*    centralize version number to a single place
+
 v1.9.0
 ------
 *    add beam_ellipticity()
