@@ -46,8 +46,8 @@ clean:
 	rm -rf laserbeamsize/__pycache__
 	rm -rf docs/_build
 	rm -rf docs/api
+	rm -rf docs/.ipynb_checkpoints
 	rm -rf __pycache__
-	rm -rf .ipynb_checkpoints
 	rm -rf build
 	rm -rf .eggs
 	rm -rf .pytest_cache

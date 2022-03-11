@@ -19,9 +19,6 @@ def get_version(rel_path):
     else:
         raise RuntimeError("Unable to find version string.")
 
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('..'))
-
 # -- Project information -----------------------------------------------------
 
 project = 'laserbeamsize'
@@ -37,19 +34,14 @@ master_doc = 'index'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
     'sphinx.ext.mathjax',
     'sphinx_automodapi.automodapi',
-    'sphinx_automodapi.smart_resolver',
     'nbsphinx',
 ]
-napoleon_google_docstring = True
 numpydoc_show_class_members = False
 napoleon_use_param = False
-napoleon_use_ivar = False
-napoleon_include_private_with_doc = False
 napoleon_use_rtype = False
 
 # Add any paths that contain templates here, relative to this directory.
@@ -59,8 +51,6 @@ napoleon_use_rtype = False
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build',
-                    'Thumbs.db',
-                    '.DS_Store',
                     '.tox',
                     '**.ipynb_checkpoints',
                     'readme_images.ipynb']
@@ -86,5 +76,4 @@ html_theme = 'sphinx_rtd_theme'
 # html_static_path = ['_static']
 
 html_scaled_image_link = False
-
 html_sourcelink_suffix = ''
