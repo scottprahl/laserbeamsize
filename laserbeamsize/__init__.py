@@ -16,7 +16,9 @@ found using
 
 help(laserbeamsize.m2)
 """
+__version__ = '1.9.1'
+__author__ = 'Scott Prahl'
+
 from .laserbeamsize import *
 from .m2 import *
 
-__version__ = '1.9.1'
