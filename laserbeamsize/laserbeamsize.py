@@ -986,28 +986,30 @@ def luminance(value, cmap_name='gist_ncar', vmin=0, vmax=255):
 
 
 def draw_as_dotted_contrast_line(image, xpts, ypts, cmap='gist_ncar', vmax=None):
-    """Draw lines in white or black depending on background image."""
-    if vmax is None:
-        vmax = np.max(image)
+    """Draw lines with alternating white and black."""
+    plt.plot(xpts, ypts, '-', color = 'black')
+    plt.plot(xpts, ypts, '--', color = 'white')
+#     if vmax is None:
+#         vmax = np.max(image)
+# 
+#     v, h = image.shape
+# 
+#     # find the luminance at each point
+#     lumas = np.array([], dtype=float)
+#     for k in range(len(xpts)):
+#         i = int(ypts[k])
+#         j = int(xpts[k])
+#         if 0 <= i < v and 0 <= j < h:
+#             luma = luminance(image[i, j], cmap_name=cmap, vmax=vmax)
+#             lumas = np.append(lumas, luma)
+# 
+#     if len(lumas) == 0 or np.min(lumas) > 40:
+#         contrast_color = "black"
+#     else:
+#         contrast_color = "white"
+#
+#   plt.plot(xpts, ypts, ':', color=contrast_color)
 
-    v, h = image.shape
-
-    # find the luminance at each point
-    lumas = np.array([], dtype=float)
-    for k in range(len(xpts)):
-        i = int(ypts[k])
-        j = int(xpts[k])
-        if 0 <= i < v and 0 <= j < h:
-            luma = luminance(image[i, j], cmap_name=cmap, vmax=vmax)
-            lumas = np.append(lumas, luma)
-
-    if len(lumas) == 0 or np.min(lumas) > 40:
-        contrast_color = "black"
-    else:
-        contrast_color = "white"
-
-    # draw the points
-    plt.plot(xpts, ypts, ':', color=contrast_color)
 
 
 def beam_size_and_plot(o_image,
