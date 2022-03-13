@@ -271,22 +271,22 @@ def _abc_fit(z, d, lambda0):
 
 def _beam_fit_fn_(z, d0, z0, Theta):
     """Fitting function for d0, z0, and Theta."""
-    return d0**2 + (Theta * (z - z0))**2
+    return np.sqrt(d0**2 + (Theta * (z - z0))**2)
 
 
 def _beam_fit_fn_2(z, d0, Theta):
     """Fitting function for d0 and Theta."""
-    return d0**2 + (Theta * z)**2
+    return np.sqrt(d0**2 + (Theta * z)**2)
 
 
 def _beam_fit_fn_3(z, z0, Theta):
     """Fitting function for z0 and Theta."""
-    return (Theta * (z - z0))**2
+    return np.abs(Theta * (z - z0))
 
 
 def _beam_fit_fn_4(z, Theta):
     """Fitting function for just Theta."""
-    return (Theta * z)**2
+    return np.abs(Theta * z)
 
 
 def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
@@ -328,14 +328,14 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
             i = np.argmax(abs(z - z0_guess))
             theta_guess = abs(d[i] / (z[i] - z0_guess))
             p0 = [d0_guess, z0_guess, theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_, z, d**2, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_, z, d, p0=p0)
             d0, z0, Theta = nlfit
             d0_std, z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
         else:
             i = np.argmax(abs(z - z0_guess))
             theta_guess = abs(d[i] / (z[i] - z0_guess))
             p0 = [z0_guess, theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_3, z, d**2 - d0**2, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_3, z, np.sqrt(d**2 - d0**2), p0=p0)
             z0, Theta = nlfit
             z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
             d0_std = 0
@@ -344,13 +344,13 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
         theta_guess = abs(d[i] / (z[i] - z0))
         if d0 is None:
             p0 = [d0_guess, theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_2, z - z0, d**2, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_2, z - z0, d, p0=p0)
             d0, Theta = nlfit
             d0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
             z0_std = 0
         else:
             p0 = [theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_4, z - z0, d**2 - d0**2, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_4, z - z0, np.sqrt(d**2 - d0**2), p0=p0)
             Theta = nlfit[0]
             Theta_std = np.sqrt(nlpcov[0, 0])
             z0_std = 0
@@ -838,9 +838,7 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     # semi-major axis plot
     fig.add_subplot(gs[0, 0])
     residualsx, z0x, zR, used = _fit_plot(z, dx, lambda0, strict=strict, z0=z0, d0=d0)
-    print(dx)
-    print(z0x)
-    print(residualsx)
+
     zmin = min(np.min(z), z0x - 4 * zR)
     zmax = max(np.max(z), z0x + 4 * zR)
     unused = np.logical_not(used)
