@@ -119,22 +119,18 @@ def values_along_line(image, x0, y0, x1, y1, N=100):
     """
     Return x, y, z, and distance values between (x0, y0) and (x1, y1).
 
-    This creates four arrays::
+    Args:
+        image: the image to work with
+        x0: x-value of start of line
+        y0: y-value of start of line
+        x1: x-value of end of line
+        y1: y-value of end of line
+        N:  number of points in returned array
+    Returns:
         x: index of horizontal pixel values along line
         y: index of vertical pixel values along line
         z: image values at each of the x, y positions
         s: distance from start of minor axis to x, y position
-
-    Args:
-        image: the image to work with
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
-        diameters:
-    Returns:
-        x, y, z, and s arrays
     """
     d = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
     s = np.linspace(0, 1, N)
@@ -154,12 +150,6 @@ def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
     """
     Return x, y, z, and distance values along semi-major axis.
 
-    This creates four arrays::
-        x: index of horizontal pixel values along line
-        y: index of vertical pixel values along line
-        z: image values at each of the x, y positions
-        s: distance from start of minor axis to x, y position
-
     Args:
         image: the image to work with
         xc: horizontal center of beam
@@ -167,9 +157,12 @@ def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
         dx: ellipse diameter for axis closest to horizontal
         dy: ellipse diameter for axis closest to vertical
         phi: angle that elliptical beam is rotated [radians]
-        diameters:
+        diameters: number of diameters to use
     Returns:
-        x, y, z, and s arrays
+        x: index of horizontal pixel values along line
+        y: index of vertical pixel values along line
+        z: image values at each of the x, y positions
+        s: distance from start of minor axis to x, y position
     """
     v, h = image.shape
 
@@ -195,12 +188,6 @@ def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
     """
     Return x, y, z, and distance values along semi-minor axis.
 
-    This creates four arrays::
-        x: index of horizontal pixel values along line
-        y: index of vertical pixel values along line
-        z: image values at each of the x, y positions
-        s: distance from start of minor axis to x, y position
-
     Args:
         image: the image to work with
         xc: horizontal center of beam
@@ -208,9 +195,12 @@ def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
         dx: ellipse diameter for axis closest to horizontal
         dy: ellipse diameter for axis closest to vertical
         phi: angle that elliptical beam is rotated [radians]
-        diameters:
+        diameters: number of diameters to use
     Returns:
-        x, y, z, and s arrays
+        x: index of horizontal pixel values along line
+        y: index of vertical pixel values along line
+        z: image values at each of the x, y positions
+        s: distance from start of minor axis to x, y position
     """
     v, h = image.shape
 
@@ -523,6 +513,7 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     Args:
         image : the image to work with
         corner_fraction: the fractional size of corner rectangles
+        nT: how many sigmas to use
     Returns:
         new image with background subtracted
     """
@@ -986,30 +977,27 @@ def luminance(value, cmap_name='gist_ncar', vmin=0, vmax=255):
 
 
 def draw_as_dotted_contrast_line(image, xpts, ypts, cmap='gist_ncar', vmax=None):
-    """Draw lines with alternating white and black."""
-    plt.plot(xpts, ypts, '-', color = 'black')
-    plt.plot(xpts, ypts, '--', color = 'white')
-#     if vmax is None:
-#         vmax = np.max(image)
-# 
-#     v, h = image.shape
-# 
-#     # find the luminance at each point
-#     lumas = np.array([], dtype=float)
-#     for k in range(len(xpts)):
-#         i = int(ypts[k])
-#         j = int(xpts[k])
-#         if 0 <= i < v and 0 <= j < h:
-#             luma = luminance(image[i, j], cmap_name=cmap, vmax=vmax)
-#             lumas = np.append(lumas, luma)
-# 
-#     if len(lumas) == 0 or np.min(lumas) > 40:
-#         contrast_color = "black"
-#     else:
-#         contrast_color = "white"
-#
-#   plt.plot(xpts, ypts, ':', color=contrast_color)
+    """Draw lines that contrast."""
+    if vmax is None:
+        vmax = np.max(image)
 
+    v, h = image.shape
+
+    # find the luminance at each point
+    lumas = np.array([], dtype=float)
+    for k in range(len(xpts)):
+        i = int(ypts[k])
+        j = int(xpts[k])
+        if 0 <= i < v and 0 <= j < h:
+            luma = luminance(image[i, j], cmap_name=cmap, vmax=vmax)
+            lumas = np.append(lumas, luma)
+
+    if len(lumas) == 0 or np.min(lumas) > 40:
+        contrast_color = "black"
+    else:
+        contrast_color = "white"
+
+    plt.plot(xpts, ypts, ':', color=contrast_color)
 
 
 def beam_size_and_plot(o_image,
@@ -1097,15 +1085,18 @@ def beam_size_and_plot(o_image,
 
     # draw semi-major and semi-minor axes
     xp, yp = axes_arrays(xc, yc, dx, dy, phi)
-    draw_as_dotted_contrast_line(image, (xp - xc) * scale, (yp - yc) * scale, vmax=vmax, cmap=cmap)
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, '-', color='black')
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, '--', color='white')
 
     # show ellipse around beam
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
-    draw_as_dotted_contrast_line(image, (xp - xc) * scale, (yp - yc) * scale, vmax=vmax, cmap=cmap)
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, '-', color='black')
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, '--', color='white')
 
     # show integration area around beam
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
-    draw_as_dotted_contrast_line(image, (xp - xc) * scale, (yp - yc) * scale, vmax=vmax, cmap=cmap)
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, '-', color='black')
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, '--', color='white')
 
     # set limits on axes
     plt.xlim(-xc * scale, (h - xc) * scale)
@@ -1142,11 +1133,12 @@ def beam_size_plot(o_image,
     then that must be done before calling this function.
 
     Args:
-        image: 2D image of laser beam
+        o_image: 2D image of laser beam
         title: optional title for upper left plot
         pixel_size: (optional) size of pixels
         units: (optional) string used for units used on axes
         crop: (optional) crop image to integration rectangle
+        cmap: (optional) colormap to use
     Returns:
         nothing
     """
@@ -1223,11 +1215,17 @@ def beam_size_plot(o_image,
     extent = np.array([-xc_s, h_s - xc_s, v_s - yc_s, -yc_s])
     im = plt.imshow(working_image, extent=extent, cmap=cmap)
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
-    draw_as_dotted_contrast_line(working_image, xp - xc_s, yp - yc_s)
+    plt.plot(xp - xc_s, yp - yc_s, '-', color='black')
+    plt.plot(xp - xc_s, yp - yc_s, '--', color='white')
+
     xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
-    draw_as_dotted_contrast_line(working_image, xp - xc_s, yp - yc_s)
+    plt.plot(xp - xc_s, yp - yc_s, '-', color='black')
+    plt.plot(xp - xc_s, yp - yc_s, '--', color='white')
+
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
-    draw_as_dotted_contrast_line(working_image, xp - xc_s, yp - yc_s)
+    plt.plot(xp - xc_s, yp - yc_s, '-', color='black')
+    plt.plot(xp - xc_s, yp - yc_s, '--', color='white')
+
     plt.colorbar(im, fraction=0.046 * v_s / h_s, pad=0.04)
 #    plt.clim(min_, max_)
     plt.xlim(-xc_s, h_s - xc_s)
@@ -1301,8 +1299,10 @@ def beam_size_montage(images,
         z: (optional) array of axial positions of images (always in meters!)
         cols: (optional) number of columns in the montage
         pixel_size: (optional) size of pixels
+        vmax: (optional) maximum gray level to use
         units: (optional) string used for units used on axes
         crop: (optional) crop image to integration rectangle
+        cmap: (optional) colormap to use
     Returns:
         dx,dy: semi-major and semi-minor diameters
     """
