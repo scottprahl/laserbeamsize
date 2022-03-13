@@ -1,6 +1,13 @@
 Changelog
 =================================================
 
+v1.9.2
+------
+*    use both black and white dashed lines
+*    fit to d and not d**2
+*    add more dunders to __init__.py
+*    fix residual calculation broken in v1.9.1
+
 v1.9.1
 ------
 *    centralize version number to a single place
