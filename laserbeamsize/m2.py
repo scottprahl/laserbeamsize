@@ -757,9 +757,9 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     plt.text(0.05, 0.25, '$d_0$ = %.0f±%.0f µm' % (d0 * 1e6, d0_std * 1e6), transform=tax)
     plt.text(0.05, 0.15, '$z_0$  = %.0f±%.0f mm' % (z0 * 1e3, z0_std * 1e3), transform=tax)
     plt.text(0.05, 0.10, '$z_R$  = %.0f±%.0f mm' % (zR * 1e3, zR_std * 1e3), transform=tax)
-    Theta *= 1e3
-    Theta_std *= 1e3
-    plt.text(0.05, 0.05, r'$\Theta$  = %.2f±%.2f mrad' % (Theta, Theta_std), transform=tax)
+    Theta_ = Theta * 1e3
+    Theta_std_ = Theta_std * 1e3
+    plt.text(0.05, 0.05, r'$\Theta$  = %.2f±%.2f mrad' % (Theta_, Theta_std_), transform=tax)
 
     plt.axvline(z0 * 1e3, color='black', lw=1)
     plt.axvspan((z0 - zR) * 1e3, (z0 + zR) * 1e3, color='cyan', alpha=0.3)
@@ -838,6 +838,9 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     # semi-major axis plot
     fig.add_subplot(gs[0, 0])
     residualsx, z0x, zR, used = _fit_plot(z, dx, lambda0, strict=strict, z0=z0, d0=d0)
+    print(dx)
+    print(z0x)
+    print(residualsx)
     zmin = min(np.min(z), z0x - 4 * zR)
     zmax = max(np.max(z), z0x + 4 * zR)
     unused = np.logical_not(used)
