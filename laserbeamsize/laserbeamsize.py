@@ -628,7 +628,7 @@ def rotated_rect_mask(beam, xc, yc, dx, dy, phi, mask_diameters=3):
     This routine creates a mask with `true` values for each pixel in
     the image that should be part of the integration.
 
-    The rectangular mask is `mask_diameters' times the pixel diameters
+    The rectangular mask is `mask_diameters` times the pixel diameters
     of the ellipse.
 
     The rectangular mask is rotated about (xc, yc) and then drawn using PIL
