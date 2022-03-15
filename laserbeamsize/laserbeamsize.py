@@ -427,7 +427,10 @@ def corner_mask(image, corner_fraction=0.035):
     """
     Create boolean mask for image with corners marked as True.
 
-    ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
+    Each of the four corners is a fixed percentage of the entire image.
+
+    ISO 11146-3 recommends values from 2-5% for `corner_fraction`
+    the default is 0.035=3.5% of the iamge.
 
     Args:
         image : the image to work with
@@ -451,7 +454,8 @@ def perimeter_mask(image, corner_fraction=0.035):
     """
     Create boolean mask for image with a perimeter marked as True.
 
-    The perimeter is the same width as the corners created by corner_mask.
+    The perimeter is the same width as the corners created by corner_mask
+    which is a fixed percentage (default 3.5%) of the entire image.
 
     Args:
         image : the image to work with
@@ -473,12 +477,11 @@ def perimeter_mask(image, corner_fraction=0.035):
 
 def corner_background(image, corner_fraction=0.035):
     """
-    Return mean and stdev of background in corners of image.
+    Return the mean and stdev of background in corners of image.
 
-    The background is estimated using the average of the pixels in a
-    n x m rectangle in each of the four corners of the image. Here n
-    is the horizontal size multiplied by `corner_fraction`. Similar
-    for m.
+    The mean and standard deviation are estimated using the pixels from
+    the rectangles in the four corners. The default size of these rectangles
+    is 0.035 or 3.5% of the full image size.
 
     ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
 
@@ -501,8 +504,11 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     """
     Return image with background subtracted.
 
-    The background is estimated using the values in the corners of the
-    image.  The new image will have a constant (`mean+nT * stdev`) subtracted.
+    The mean and standard deviation are estimated using the pixels from
+    the rectangles in the four corners. The default size of these rectangles
+    is 0.035 or 3.5% of the full image size.
+
+    The new image will have a constant (`mean + nT * stdev`) subtracted.
 
     ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
 
@@ -514,7 +520,7 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     Args:
         image : the image to work with
         corner_fraction: the fractional size of corner rectangles
-        nT: how many sigmas to use
+        nT: how many standard deviations to subtract
     Returns:
         new image with background subtracted
     """
@@ -546,7 +552,7 @@ def subtract_tilted_background(image, corner_fraction=0.035):
 
     mask = perimeter_mask(image, corner_fraction=corner_fraction)
     perimeter_values = image[mask]
-    # coords is (y_value,x_value,1) for each point in perimeter_values
+    # coords is (y_value, x_value, 1) for each point in perimeter_values
     coords = np.stack((yy[mask], xx[mask], np.ones(np.size(perimeter_values))), 1)
 
     # fit a plane to all corner points
@@ -558,20 +564,29 @@ def subtract_tilted_background(image, corner_fraction=0.035):
     z = a * yy + b * xx + c
 
     # find the standard deviation of the noise in the perimeter
-    # and subtract this value from the plane,
+    # and subtract this value from the plane
     # since we don't want to lose the image noise just yet
     z -= np.std(perimeter_values)
 
     # finally, subtract the plane from the original image
     return subtract_image(image, z)
 
-from PIL import Image, ImageDraw
+
 def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
     """
-    Create ISO 11146-3 rectangular mask for specified beam.
+    Create ISO 11146 rectangular mask for specified beam.
+
+    ISO 11146-2 §7.2 states that integration should be carried out over
+    "a rectangular integration area which is centred to the beam centroid,
+    defined by the spatial first order moments, orientated parallel to
+    the principal axes of the power density distribution, and sized
+    three times the beam widths".
+
+    This routine creates a mask with `true` values for each pixel in
+    the image that should be part of the integration.
 
     The rectangular mask is `mask_diameters' times the pixel diameters
-    of the ellipse.  ISO 11146 states that `mask_diameterd=3`.
+    of the ellipse.
 
     The rectangular mask is rotated about (xc, yc) so that it is aligned
     with the elliptical spot.
@@ -599,12 +614,22 @@ def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
     rot_mask = rotate_image(raw_mask, xc, yc, phi)
     return rot_mask
 
+
 def rotated_rect_mask(beam, xc, yc, dx, dy, phi, mask_diameters=3):
     """
-    Create ISO 11146-3 rectangular mask for specified beam.
+    Create ISO 11146 rectangular mask for specified beam.
+
+    ISO 11146-2 §7.2 states that integration should be carried out over
+    "a rectangular integration area which is centred to the beam centroid,
+    defined by the spatial first order moments, orientated parallel to
+    the principal axes of the power density distribution, and sized
+    three times the beam widths".
+
+    This routine creates a mask with `true` values for each pixel in
+    the image that should be part of the integration.
 
     The rectangular mask is `mask_diameters' times the pixel diameters
-    of the ellipse.  ISO 11146 states that `mask_diameterd=3`.
+    of the ellipse.
 
     The rectangular mask is rotated about (xc, yc) and then drawn using PIL
 
@@ -615,28 +640,27 @@ def rotated_rect_mask(beam, xc, yc, dx, dy, phi, mask_diameters=3):
         dx: ellipse diameter for axis closest to horizontal
         dy: ellipse diameter for axis closest to vertical
         phi: angle that elliptical beam is rotated [radians]
+        mask_diameters: number of diameters to include
     Returns:
         2D boolean array with appropriate mask
     """
-    
     v, h = beam.shape
     rx = mask_diameters * dx / 2
-    ry = mask_diameters * dy / 2 
+    ry = mask_diameters * dy / 2
 
     s = np.sin(-phi)
     c = np.cos(-phi)
 
-    xx,xy = rx * c, rx * s#
-    yx,yy = - ry * s, ry * c
+    xx, xy = rx * c, rx * s
+    yx, yy = - ry * s, ry * c
 
-    x1,y1 = xc + xx + yx, yc + xy + yy
-    x2,y2 = xc + xx - yx, yc + xy - yy
-    x3,y3 = xc - xx - yx, yc - xy - yy
-    x4,y4 = xc - xx + yx, yc - xy + yy
-    
+    x1, y1 = xc + xx + yx, yc + xy + yy
+    x2, y2 = xc + xx - yx, yc + xy - yy
+    x3, y3 = xc - xx - yx, yc - xy - yy
+    x4, y4 = xc - xx + yx, yc - xy + yy
 
     img = Image.new('L', (h, v), 0)
-    ImageDraw.Draw(img).polygon([(x1,y1), (x2,y2), (x3,y3), (x4,y4), (x1,y1)], outline=1, fill=1)
+    ImageDraw.Draw(img).polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4), (x1, y1)], outline=1, fill=1)
     mask = np.array(img)
     return mask
 
@@ -961,7 +985,8 @@ def crop_image_to_rect(image, xc, yc, xmin, xmax, ymin, ymax):
 
     Args:
         image: image of beam
-        xc,yc: beam center (pixels)
+        xc: horizontal center of beam
+        yc: vertical center of beam
         xmin: left edge (pixels)
         xmax: right edge (pixels)
         ymin: top edge (pixels)
@@ -1059,7 +1084,7 @@ def beam_size_and_plot(o_image,
     This is helpful for creating a mosaics of all the images created for an
     experiment.
 
-    If `crop` is a two parameter list `[v,h]` then `v` and `h` are
+    If `crop` is a two parameter list `[v, h]` then `v` and `h` are
     interpreted as the vertical and horizontal sizes of the rectangle.  The
     size is in pixels unless `pixel_size` is specified.  In that case the
     rectangle sizes are in whatever units `pixel_size` is .
@@ -1162,7 +1187,7 @@ def beam_size_plot(o_image,
     """
     Create a visual report for image fitting.
 
-    If `crop` is a two parameter list `[v,h]` then `v` and `h` are
+    If `crop` is a two parameter list `[v, h]` then `v` and `h` are
     interpreted as the vertical and horizontal sizes of the rectangle.  The
     size is in pixels unless `pixel_size` is specified.  In that case the
     rectangle sizes are in whatever units `pixel_size` is .
@@ -1324,7 +1349,7 @@ def beam_size_montage(images,
     """
     Create a beam size montage for a set of images.
 
-    If `crop` is a two parameter list `[v,h]` then `v` and `h` are
+    If `crop` is a two parameter list `[v, h]` then `v` and `h` are
     interpreted as the vertical and horizontal sizes of the rectangle.  The
     size is in pixels unless `pixel_size` is specified.  In that case the
     rectangle sizes are in whatever units `pixel_size` is .
@@ -1346,7 +1371,7 @@ def beam_size_montage(images,
         crop: (optional) crop image to integration rectangle
         cmap: (optional) colormap to use
     Returns:
-        dx,dy: semi-major and semi-minor diameters
+        dx, dy: semi-major and semi-minor diameters
     """
     # arrays to save diameters
     dx = np.zeros(len(images))
