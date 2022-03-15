@@ -1,17 +1,17 @@
 include CHANGELOG.rst
 include LICENSE.txt
-exclude docs
-exclude docs/*
+include requirements.txt
+
 include astigmatic-report.png
 include hene-report.png
 include m2fit.png
 include sbfit.png
 include sbmontage.png
 include tem02.png
-exclude release.txt
-exclude requirements.txt
-exclude Makefile
+
 exclude .gitignore
 exclude .readthedocs.yaml
-exclude todo
-exclude test_all_notebooks.py
+exclude release.txt
+exclude Makefile
+exclude docs/*
+exclude tests/*
