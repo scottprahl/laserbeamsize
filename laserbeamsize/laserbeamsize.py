@@ -52,6 +52,7 @@ import matplotlib._cm
 import matplotlib.cm
 import matplotlib.colors
 import scipy.ndimage
+from PIL import Image, ImageDraw
 
 # cubeYF palette described at https://mycarta.wordpress.com
 # the default gist_ncar colormap works better for most beams
@@ -353,15 +354,15 @@ def basic_beam_size(image):
     v, h = image.shape
 
     # total of all pixels
-    p = np.sum(image, dtype=np.float)     # float avoids integer overflow
+    p = np.sum(image, dtype=float)     # float avoids integer overflow
 
     # sometimes the image is all zeros, just return
     if p == 0:
         return int(h / 2), int(v / 2), 0, 0, 0
 
     # find the centroid
-    hh = np.arange(h, dtype=np.float)      # float avoids integer overflow
-    vv = np.arange(v, dtype=np.float)      # ditto
+    hh = np.arange(h, dtype=float)      # float avoids integer overflow
+    vv = np.arange(v, dtype=float)      # ditto
     xc = np.sum(np.dot(image, hh)) / p
     yc = np.sum(np.dot(image.T, vv)) / p
 
@@ -438,7 +439,7 @@ def corner_mask(image, corner_fraction=0.035):
     n = int(v * corner_fraction)
     m = int(h * corner_fraction)
 
-    the_mask = np.full_like(image, False, dtype=np.bool)
+    the_mask = np.full_like(image, False, dtype=bool)
     the_mask[:n, :m] = True
     the_mask[:n, -m:] = True
     the_mask[-n:, :m] = True
@@ -564,8 +565,8 @@ def subtract_tilted_background(image, corner_fraction=0.035):
     # finally, subtract the plane from the original image
     return subtract_image(image, z)
 
-
-def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
+from PIL import Image, ImageDraw
+def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
     """
     Create ISO 11146-3 rectangular mask for specified beam.
 
@@ -597,6 +598,47 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     raw_mask[vlo:vhi, hlo:hhi] = 1
     rot_mask = rotate_image(raw_mask, xc, yc, phi)
     return rot_mask
+
+def rotated_rect_mask(beam, xc, yc, dx, dy, phi, mask_diameters=3):
+    """
+    Create ISO 11146-3 rectangular mask for specified beam.
+
+    The rectangular mask is `mask_diameters' times the pixel diameters
+    of the ellipse.  ISO 11146 states that `mask_diameterd=3`.
+
+    The rectangular mask is rotated about (xc, yc) and then drawn using PIL
+
+    Args:
+        image: the image to work with
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: ellipse diameter for axis closest to horizontal
+        dy: ellipse diameter for axis closest to vertical
+        phi: angle that elliptical beam is rotated [radians]
+    Returns:
+        2D boolean array with appropriate mask
+    """
+    
+    v, h = beam.shape
+    rx = mask_diameters * dx / 2
+    ry = mask_diameters * dy / 2 
+
+    s = np.sin(-phi)
+    c = np.cos(-phi)
+
+    xx,xy = rx * c, rx * s#
+    yx,yy = - ry * s, ry * c
+
+    x1,y1 = xc + xx + yx, yc + xy + yy
+    x2,y2 = xc + xx - yx, yc + xy - yy
+    x3,y3 = xc - xx - yx, yc - xy - yy
+    x4,y4 = xc - xx + yx, yc - xy + yy
+    
+
+    img = Image.new('L', (h, v), 0)
+    ImageDraw.Draw(img).polygon([(x1,y1), (x2,y2), (x3,y3), (x4,y4), (x1,y1)], outline=1, fill=1)
+    mask = np.array(img)
+    return mask
 
 
 def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
