@@ -1,6 +1,14 @@
 Changelog
 =================================================
 
+v1.9.3
+------
+*    use faster version of creating rotated rect mask
+*    move tests to their own directory
+*    avoid deprecated np.float
+*    improve drawing of rect and ellipse outlines
+*    improve some docstrings
+
 v1.9.2
 ------
 *    use both black and white dashed lines
