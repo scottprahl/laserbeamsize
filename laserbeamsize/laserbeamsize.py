@@ -1152,18 +1152,18 @@ def beam_size_and_plot(o_image,
 
     # draw semi-major and semi-minor axes
     xp, yp = axes_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp - xc) * scale, (yp - yc) * scale, '-', color='black')
-    plt.plot((xp - xc) * scale, (yp - yc) * scale, '--', color='white')
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, '-', color='white')
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, ':', color='black')
 
     # show ellipse around beam
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp - xc) * scale, (yp - yc) * scale, '-', color='black')
-    plt.plot((xp - xc) * scale, (yp - yc) * scale, '--', color='white')
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, '-', color='white')
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, ':', color='black')
 
     # show integration area around beam
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
-    plt.plot((xp - xc) * scale, (yp - yc) * scale, '-', color='black')
-    plt.plot((xp - xc) * scale, (yp - yc) * scale, '--', color='white')
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, '-', color='white')
+    plt.plot((xp - xc) * scale, (yp - yc) * scale, ':', color='black')
 
     # set limits on axes
     plt.xlim(-xc * scale, (h - xc) * scale)
@@ -1282,16 +1282,16 @@ def beam_size_plot(o_image,
     extent = np.array([-xc_s, h_s - xc_s, v_s - yc_s, -yc_s])
     im = plt.imshow(working_image, extent=extent, cmap=cmap)
     xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp - xc_s, yp - yc_s, '-', color='black')
-    plt.plot(xp - xc_s, yp - yc_s, '--', color='white')
+    plt.plot(xp - xc_s, yp - yc_s, '-', color='white')
+    plt.plot(xp - xc_s, yp - yc_s, ':', color='black')
 
     xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp - xc_s, yp - yc_s, '-', color='black')
-    plt.plot(xp - xc_s, yp - yc_s, '--', color='white')
+    plt.plot(xp - xc_s, yp - yc_s, '-', color='white')
+    plt.plot(xp - xc_s, yp - yc_s, ':', color='black')
 
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
-    plt.plot(xp - xc_s, yp - yc_s, '-', color='black')
-    plt.plot(xp - xc_s, yp - yc_s, '--', color='white')
+    plt.plot(xp - xc_s, yp - yc_s, '-', color='white')
+    plt.plot(xp - xc_s, yp - yc_s, ':', color='black')
 
     plt.colorbar(im, fraction=0.046 * v_s / h_s, pad=0.04)
 #    plt.clim(min_, max_)
