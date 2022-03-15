@@ -4,6 +4,9 @@ SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = docs
 BUILDDIR      = docs/_build
 
+test:
+	pytest tests
+
 html:
 	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(HTMLOPTS)
 	open docs/_build/index.html
@@ -13,10 +16,12 @@ pdf:
 
 pycheck:
 	-pylint laserbeamsize/m2.py
-	-pydocstyle laserbeamsize/m2.py
 	-pylint laserbeamsize/laserbeamsize.py
-	-pydocstyle laserbeamsize/laserbeamsize.py
 	-pylint laserbeamsize/__init__.py
+
+doccheck:
+	-pydocstyle laserbeamsize/m2.py
+	-pydocstyle laserbeamsize/laserbeamsize.py
 	-pydocstyle laserbeamsize/__init__.py
 
 rstcheck:
@@ -26,13 +31,11 @@ rstcheck:
 	-rstcheck docs/changelog.rst
 	-rstcheck --ignore-directives automodapi docs/laserbeamsize.rst
 
-notecheck:
-	make clean
-	pytest --verbose test_all_notebooks.py
-
 rcheck:
-	make notecheck
+	make clean
+	make test
 	make pycheck
+	make doccheck
 	make rstcheck
 	touch docs/*ipynb
 	touch docs/*rst
@@ -52,8 +55,5 @@ clean:
 	rm -rf .eggs
 	rm -rf .pytest_cache
 
-realclean:
-	make clean
 
-
-.PHONY: clean realclean rcheck html notecheck pycheck rstcheck
+.PHONY: clean rcheck html notecheck pycheck doccheck test rstcheck
