@@ -15,6 +15,8 @@
 
    02a-Experiment
 
+   02b-Fixed-Rotation
+
    03-Easy-Images
 
    04-Harder-Images
