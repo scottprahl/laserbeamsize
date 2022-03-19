@@ -10,25 +10,27 @@ A module for finding M² values for a laser beam.
 
 Full documentation is available at <https://laserbeamsize.readthedocs.io>
 
+Start with necessary imports::
+
+    >>>> import numpy as np
+    >>>> import laserbeamsize as lbs
+
 Finding the beam waist size, location, and M² for a beam is straightforward::
 
-    import numpy as np
-    import laserbeamsize as lbs
-
-    lambda0 = 632.8e-9 # m
-    z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
-    r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
-    lbs.M2_report(z * 1e-3, 2 * r * 1e-6, lambda0)
+    >>>> lambda0 = 632.8e-9 # m
+    >>>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
+    >>>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
+    >>>> lbs.M2_report(z * 1e-3, 2 * r * 1e-6, lambda0)
 
 A graphic of the fit to diameters can be created by::
 
-    lbs.M2_diameter_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
-    plt.show()
+    >>>> lbs.M2_diameter_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
+    >>>> plt.show()
 
 A graphic of the radial fit can be created by::
 
-    lbs.M2_radius_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
-    plt.show()
+    >>>> lbs.M2_radius_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
+    >>>> plt.show()
 """
 
 import scipy.optimize
@@ -62,7 +64,7 @@ def z_rayleigh(w0, lambda0, M2=1):
         w0: minimum beam radius [m]
         lambda0: wavelength of light [m]
     Returns:
-        distance where irradiance drops by 1/2 [m]
+        z: axial distance from focus that irradiance has dropped 50% [m]
     """
     return np.pi * w0**2 / lambda0 / M2
 
@@ -78,7 +80,7 @@ def beam_radius(w0, lambda0, z, z0=0, M2=1):
         z0: axial location of beam waist [m]
         M2: beam propagation factor [-]
     Returns:
-        Beam radius [m]
+        r: beam radius at axial position [m]
     """
     zz = (z - z0) / z_rayleigh(w0, lambda0, M2)
     return w0 * np.sqrt(1 + zz**2)
@@ -100,7 +102,7 @@ def magnification(w0, lambda0, s, f, M2=1):
         s: distance of beam waist to lens [m]
 
     Returns:
-        magnification m [-]
+        m: magnification [-]
     """
     zR2 = z_rayleigh(w0, lambda0, M2)**2
     return f / np.sqrt((s + f)**2 + zR2)
@@ -119,8 +121,8 @@ def curvature(w0, lambda0, z, z0=0, M2=1):
         z   axial position along beam  [m]
         z0  axial position of the beam waist  [m]
         M2: beam propagation factor [-]
-    returns
-        radius of curvature of field at z          [m]
+    Returns:
+        R: radius of curvature of field at z [m]
     """
     zR2 = z_rayleigh(w0, lambda0, M2)**2
     return (z - z0) + zR2 / (z - z0)
@@ -134,8 +136,8 @@ def divergence(w0, lambda0, M2=1):
         w0: minimum beam radius [m]
         lambda0: wavelength of light [m]
         M2: beam propagation factor [-]
-    returns
-        divergence of beam [radians]
+    Returns:
+        theta: divergence of beam [radians]
     """
     return 2 * w0 / z_rayleigh(w0, lambda0, M2)
 
@@ -149,8 +151,8 @@ def gouy_phase(w0, lambda0, z, z0=0):
         lambda0: wavelength of light [m]
         z: axial position along beam  [m]
         z0: axial position of beam waist  [m]
-    returns
-        Gouy phase                     [radians]
+    Returns:
+        phase: Gouy phase at axial position [radians]
     """
     zR = z_rayleigh(w0, lambda0)
     return -np.arctan2(z - z0, zR)
@@ -169,7 +171,7 @@ def focused_diameter(f, lambda0, d, M2=1):
         d: diameter of limiting aperture [m]
         M2: beam propagation factor [-]
     Returns:
-        Beam diameter [m]
+        d: diffraction-limited beam diameter [m]
     """
     return 4 * M2**2 * lambda0 * f / (np.pi * d)
 
@@ -208,9 +210,8 @@ def image_distance(w0, lambda0, s, f, M2=1):
         w0: minimum beam radius [m]
         lambda0: wavelength of light [m]
         M2: beam propagation factor [-]
-
     Returns:
-        location of new beam waist [m]
+        z: location of new beam waist [m]
     """
     zR2 = z_rayleigh(w0, lambda0, M2)**2
     return f * (s * f + s * s + zR2) / ((f + s)**2 + zR2)
@@ -313,9 +314,9 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters [m]
         lambda0: wavelength of the laser [m]
-
     Returns:
-        params, errors
+        params: [d0, z0, Theta, M2, zR]
+        errors: array with standard deviations of above values
     """
     # approximate answer
     i = np.argmin(d)
@@ -503,9 +504,8 @@ def M2_string(params, errors):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters [m]
         lambda0: wavelength of the laser [m]
-
     Returns:
-        Formatted string suitable for printing.
+        s: formatted string suitable for printing.
     """
     d0, z0, Theta, M2, zR = params
     d0_std, z0_std, Theta_std, M2_std, zR_std = errors
@@ -540,22 +540,25 @@ def artificial_to_original(params, errors, f, hiatus=0):
     plane of the lens and the original beam waist position would be corrected
     by the hiatus between the principal planes of the lens.
 
-    d0: artificial beam waist diameter [m]
-    z0: artificial beam waist position relative to lens surface [m]
-    Theta: full beam divergence angle for artificial beam [radians]
-    M2: beam propagation parameter [-]
-    zR: Rayleigh distance for artificial beam [m]
+    The beam parameters are in an array `[d0,z0,Theta,M2,zR]` ::
+
+        d0: beam waist diameter [m]
+        z0: axial location of beam waist [m]
+        Theta: full beam divergence angle [radians]
+        M2: beam propagation parameter [-]
+        zR: Rayleigh distance [m]
 
     The errors that are returned are not quite right at the moment.
 
     Args:
-        params: [d0, z0, Theta, M2, zR]
+        params: array of artificial beam parameters
         errors: array with std dev of above parameters
         f: focal length of lens [m]
         hiatus: distance between principal planes of focusing lens [m]
 
     Returns:
-        original beam parameters and errors.
+        params: array of original beam parameters (without lens)
+        errors: array of std deviations of above parameters
     """
     art_d0, art_z0, art_Theta, M2, art_zR = params
     art_d0_std, art_z0_std, art_Theta_std, M2_std, art_zR_std = errors
@@ -588,9 +591,8 @@ def _M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters [m]
         lambda0: wavelength of the laser [m]
-
     Returns:
-        Formatted string suitable for printing.
+        s: formatted string suitable for printing.
     """
     params, errors, _ = M2_fit(z, d, lambda0, strict, z0=z0, d0=d0)
 
@@ -611,6 +613,16 @@ def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
     """
     Return string describing a one or more sets of beam measurements.
 
+    Example::
+
+        >>>> import numpy as np
+        >>>> import laserbeamsize as lbs
+        >>>> lambda0 = 632.8e-9  # meters
+        >>>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
+        >>>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
+        >>>> s = lbs.M2_report(z * 1e-3, 2 * r * 1e-6, lambda0)
+        >>>> print(s)
+
     Args:
         z: array of axial position of beam measurements [m]
         dx: array of beam diameters for semi-major axis [m]
@@ -620,9 +632,8 @@ def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
         strict: (optional) boolean for strict usage of ISO 11146
         z0: (optional) location of beam waist [m]
         d0: (optional) diameter of beam waist [m]
-
     Returns:
-        Formatted string suitable for printing.
+        s: formatted string suitable for printing.
     """
     if dy is None:
         s = _M2_report(z, dx, lambda0, f=f, strict=strict, z0=z0, d0=d0)
@@ -720,9 +731,10 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters  [m]
         lambda0: wavelength of the laser [m]
-
     Returns:
-        residuals, z0, zR
+        residuals: array with differences between fit and data
+        z0: location of focus
+        zR: Rayleigh distance for beam
     """
     params, errors, used = M2_fit(z, d, lambda0, strict=strict, z0=z0, d0=d0)
     unused = np.logical_not(used)
@@ -786,7 +798,6 @@ def _M2_diameter_plot(z, d, lambda0, strict=False, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters  [m]
         lambda0: wavelength of the laser [m]
-
     Returns:
         nothing
     """
@@ -819,11 +830,20 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     """
     Plot the semi-major and semi-minor beam fits and residuals.
 
+    Example::
+
+        >>>> import numpy as np
+        >>>> import laserbeamsize as lbs
+        >>>> lambda0 = 632.8e-9  # meters
+        >>>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
+        >>>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
+        >>>> lbs.M2_diameter_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
+        >>>> plt.show()
+
     Args:
         z: array of axial position of beam measurements [m]
         lambda0: wavelength of the laser [m]
         dx: array of beam diameters  [m]
-
     Returns:
         nothing
     """
@@ -888,11 +908,20 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     """
     Plot radii, beam fits, and asymptotes.
 
+    Example::
+
+        >>>> import numpy as np
+        >>>> import laserbeamsize as lbs
+        >>>> lambda0 = 632.8e-9  # meters
+        >>>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
+        >>>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
+        >>>> lbs.M2_radius_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
+        >>>> plt.show()
+
     Args:
         z: array of axial position of beam measurements [m]
         d: array of beam diameters  [m]
         lambda0: wavelength of the laser [m]
-
     Returns:
         nothing
     """
@@ -1008,6 +1037,8 @@ def M2_focus_plot(w0, lambda0, f, z0, M2=1):
     """
     Plot a beam from its waist through a lens to its focus.
 
+    After calling this, use `plt.show()` to display the plot.
+
     The lens is at `z=0` with respect to the beam waist. All distances to
     the left of the lens are negative and those to the right are positive.
 
@@ -1020,7 +1051,6 @@ def M2_focus_plot(w0, lambda0, f, z0, M2=1):
         f: focal length of lens [m]
         z0: location of beam waist [m]
         M2: beam propagation factor [-]
-
     Returns:
         nothing.
     """
