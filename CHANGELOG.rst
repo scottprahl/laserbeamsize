@@ -1,132 +1,140 @@
 Changelog
 =================================================
 
+v1.9.4
+------
+* allow beam angle to be specified during fitting
+* new notebook to illustrate constrained fits
+* improve docstrings and therefore api documentation
+* still better ellipse and rect outlines
+* start adding examples
+
 v1.9.3
 ------
-*    use faster version of creating rotated rect mask
-*    move tests to their own directory
-*    avoid deprecated np.float
-*    improve drawing of rect and ellipse outlines
-*    improve some docstrings
+* use faster version of creating rotated rect mask
+* move tests to their own directory
+* avoid deprecated np.float
+* improve drawing of rect and ellipse outlines
+* improve some docstrings
 
 v1.9.2
 ------
-*    use both black and white dashed lines
-*    fit to d and not d**2
-*    add more dunders to __init__.py
-*    fix residual calculation broken in v1.9.1
+* use both black and white dashed lines
+* fit to d and not d**2
+* add more dunders to __init__.py
+* fix residual calculation broken in v1.9.1
 
 v1.9.1
 ------
-*    centralize version number to a single place
+* centralize version number to a single place
 
 v1.9.0
 ------
-*    add beam_ellipticity()
-*    add beam_parameter_product()
-*    rotate x-tick labels when more than 10 ticks
-*    removed deprecated use of np.matrix()
-*    M2_report now includes BPP values
-*    improve API docs
-*    code linting
+* add beam_ellipticity()
+* add beam_parameter_product()
+* rotate x-tick labels when more than 10 ticks
+* removed deprecated use of np.matrix()
+* M2_report now includes BPP values
+* improve API docs
+* code linting
 
 v1.8.0
 ------
-*    handle rotated masks properly
-*    fix readthedoc configuration
+* handle rotated masks properly
+* fix readthedoc configuration
 
 v1.7.3
 ------
-*    create pure python packaging
-*    include wheel file
-*    package as python3 only
+* create pure python packaging
+* include wheel file
+* package as python3 only
 
 v1.7.2
 ------
-*    allow non-integer beam centers
-*    add badges to docs
-*    use sphinx-book-theme for docs
+* allow non-integer beam centers
+* add badges to docs
+* use sphinx-book-theme for docs
 
 v1.7.1
 ------
-*    explicit warning for non-monochrome images in `beam_size()`
-*    improve help() messages
+* explicit warning for non-monochrome images in `beam_size()`
+* improve help() messages
 
 v1.7.0
 ------
-*    fix error in identifying major/minor axes in `beam_size_plot()`
+* fix error in identifying major/minor axes in `beam_size_plot()`
 
 v1.6.1
 ------
-*    fix deprecation warning for register_cmap
-*    use entire perimeter of background rectangle for tilted background fit
-*    fix sphinx and docstyle warnings
+* fix deprecation warning for register_cmap
+* use entire perimeter of background rectangle for tilted background fit
+* fix sphinx and docstyle warnings
 
 v1.6.0
 ------
-*    Add `subtract_tilted_background()`
-*    Add M²=1 line to `M2_radius_plot()`
-*    try to autoselect line color on images (still imperfect)
-*    more documentation tweaks
+* Add `subtract_tilted_background()`
+* Add M²=1 line to `M2_radius_plot()`
+* try to autoselect line color on images (still imperfect)
+* more documentation tweaks
 
 v1.5.0
 ------
-*    Add M² fitting and plotting
-*    rename `visual_report()` to `beam_size_plot()`
-*    add `plot_size_montage()`
-*    hopefully stable API now
-*    allow any colormap, but default to `gist_ncar`
-*    extensive documentation of M² fitting process
+* Add M² fitting and plotting
+* rename `visual_report()` to `beam_size_plot()`
+* add `plot_size_montage()`
+* hopefully stable API now
+* allow any colormap, but default to `gist_ncar`
+* extensive documentation of M² fitting process
 
 v1.3.0
 ------
-*    Add another figure to readme
-*    Improve `visual_report()`
-*    Add `plot_beam_fit()`
+* Add another figure to readme
+* Improve `visual_report()`
+* Add `plot_beam_fit()`
 
 v1.2.0
 ------
-*    Add routines to plot values along semi axes
-*    Add `visual_report()` for simple beam analysis
-*    Fix error when calculating circular radius
-*    Add missing scipy requirement
-*    Improve README.rst with figure
+* Add routines to plot values along semi axes
+* Add `visual_report()` for simple beam analysis
+* Fix error when calculating circular radius
+* Add missing scipy requirement
+* Improve README.rst with figure
 
 v1.1.0
 ------
-*    Works dramatically better across a wide range of images
-*    Minor API changes to `beam_size()`
-*    Use ISO 11146 integration areas
-*    Add background routines for corners
-*    Add functions for rotations
-*    Eliminate old threshold technique
-*    Use google docstyle for functions
-*    Explain background and integration areas in notebooks
-*    Tweak notebooks for clarity
+* Works dramatically better across a wide range of images
+* Minor API changes to `beam_size()`
+* Use ISO 11146 integration areas
+* Add background routines for corners
+* Add functions for rotations
+* Eliminate old threshold technique
+* Use google docstyle for functions
+* Explain background and integration areas in notebooks
+* Tweak notebooks for clarity
 
 v1.0.2
 ------
-*    use sphinx for documentation
-*    revise Jupyter notebooks
+* use sphinx for documentation
+* revise Jupyter notebooks
 
 v1.0.1
 ------
-*    trivial fix for release.txt
-*    improve text
-*    remove completed tasks
-*    initial commit of 07-M2-Measurement.ipynb
-*    bump version
+* trivial fix for release.txt
+* improve text
+* remove completed tasks
+* initial commit of 07-M2-Measurement.ipynb
+* bump version
 
 v1.0.0
 ------
-*    first pass at docs
-*    General doc improvements
-*    add routine to draw default figure
-*    handle symmetric case dx=dy better
-*    add new definitions and test dx=dy case
+* first pass at docs
+* General doc improvements
+* add routine to draw default figure
+* handle symmetric case dx=dy better
+* add new definitions and test dx=dy case
 
 v0.2.0
 ------
-*    initial commit
-*    ensure float used for sums
-*    first public release
+* initial commit
+* ensure float used for sums
+* first public release
