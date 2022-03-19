@@ -44,6 +44,7 @@ extensions = [
 numpydoc_show_class_members = False
 napoleon_use_param = False
 napoleon_use_rtype = False
+napoleon_custom_sections = [('Returns', 'params_style')]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
