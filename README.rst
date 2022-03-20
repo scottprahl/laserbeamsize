@@ -116,7 +116,12 @@ produces
 
 .. image:: m2fit.png
 
-Here is an analysis of a set of images that were insufficient for ISO 11146::
+Here is an analysis of a set of images that do not meet the ISO 11146
+requirements for determining M² (because the image locations are not taken
+in right locations relative to the focus).  These beam images are from a HeNe
+laser with slightly misaligned mirrors to primarily lase in a TEM₀₁ transverse mode.
+The laser resonator had a fixed rotation of 38.7° from the plane of
+the optical table.::
 
     lambda0 = 632.8e-9 # meters
     z10 = np.array([247,251,259,266,281,292])*1e-3 # meters
@@ -129,8 +134,9 @@ Here is an analysis of a set of images that were insufficient for ISO 11146::
     for i in range(len(z10)):
         tem10[i] = tem10[i][200:,:]
 
-    # find beam in all the images and create arrays of beam diameters
-    options = {'pixel_size': 3.75, 'units': "µm", 'crop': [1400,1400], 'z':z10}
+    # find beam rotated by 38.7° in all images
+    fixed_rotation = np.radians(38.7)
+    options = {'pixel_size': 3.75, 'units': "µm", 'crop': [1400,1400], 'z':z10, 'phi':fixed_rotation}
     dy, dx= lbs.beam_size_montage(tem10, **options)  # dy and dx in microns
     plt.show()
 
