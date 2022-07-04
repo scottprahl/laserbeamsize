@@ -46,7 +46,7 @@ A mosaic of images might be created by::
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage
-from pillow import Image, ImageDraw
+from PIL import Image, ImageDraw
 
 __all__ = ('subtract_image',
            'subtract_threshold',
