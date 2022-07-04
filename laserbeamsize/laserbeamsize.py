@@ -1016,6 +1016,7 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
 
 
 def draw_visible_dotted_line(xpts, ypts):
+    """Draw a dotted line that is is visible against images."""
     plt.plot(xpts, ypts, '-', color='#FFD700')
     plt.plot(xpts, ypts, ':', color='#0057B8')
 
