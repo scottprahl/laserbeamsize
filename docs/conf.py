@@ -59,9 +59,6 @@ exclude_patterns = ['_build',
 nbsphinx_execute = 'never'
 nbsphinx_allow_errors = True
 
-# Add type of source files
-source_suffix = ['.rst', '.ipynb']
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
