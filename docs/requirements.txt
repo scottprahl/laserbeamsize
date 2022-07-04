@@ -3,6 +3,7 @@ matplotlib
 scipy
 imageio
 requests
+pillow
 
 sphinx-automodapi
 sphinx-rtd-theme
