@@ -4,7 +4,7 @@ scipy
 imageio
 requests
 pillow
-
+nbsphinx
 sphinx-automodapi
 sphinx-rtd-theme
 laserbeamsize
