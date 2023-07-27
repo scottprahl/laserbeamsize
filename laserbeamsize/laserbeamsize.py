@@ -451,7 +451,7 @@ def perimeter_mask(image, corner_fraction=0.035):
     n = int(v * corner_fraction)
     m = int(h * corner_fraction)
 
-    the_mask = np.full_like(image, False, dtype=np.bool)
+    the_mask = np.full_like(image, False, dtype=bool)
     the_mask[:, :m] = True
     the_mask[:, -m:] = True
     the_mask[:n, :] = True
