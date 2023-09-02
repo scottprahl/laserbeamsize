@@ -4,22 +4,34 @@ laserbeamsize
 by Scott Prahl
 
 .. image:: https://img.shields.io/pypi/v/laserbeamsize.svg
-  :target: https://pypi.org/project/laserbeamsize/
+   :target: https://pypi.org/project/laserbeamsize/
+   :alt: pypi
 
-.. image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target: https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master
+.. image:: https://img.shields.io/conda/v/conda-forge/laserbeamsize.svg
+   :target: https://anaconda.org/conda-forge/laserbeamsize
+   :alt: conda
 
-.. image:: https://mybinder.org/badge_logo.svg
-  :target: https://mybinder.org/v2/gh/scottprahl/laserbeamsize/master?filepath=docs
+.. image:: https://zenodo.org/badge/131667397.svg
+   :target: https://zenodo.org/badge/latestdoi/131667397
+   :alt: zenodo
 
-.. image:: https://img.shields.io/badge/readthedocs-latest-blue.svg
-  :target: https://laserbeamsize.readthedocs.io
-
-.. image:: https://img.shields.io/badge/github-code-green.svg
-  :target: https://github.com/scottprahl/laserbeamsize
+|
 
 .. image:: https://img.shields.io/badge/MIT-license-yellow.svg
-  :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
+   :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
+   :alt: License
+
+.. image:: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yml/badge.svg
+   :target: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yml
+   :alt: testing
+
+.. image:: https://readthedocs.org/projects/laserbeamsize/badge
+  :target: https://laserbeamsize.readthedocs.io
+  :alt: docs
+
+.. image:: https://img.shields.io/pypi/dm/laserbeamsize
+   :target: https://pypi.org/project/laserbeamsize/
+   :alt: Downloads
 
 __________
 
@@ -77,7 +89,8 @@ A visual report can be done with one function call::
     
 produces something like
 
-.. image:: hene-report.png
+.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/hene-report.png
+   :alt: HeNe report
 
 or::
 
@@ -86,7 +99,8 @@ or::
 
 produces something like
 
-..  image:: astigmatic-report.png
+.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/astigmatic-report.png
+   :alt: astigmatic report
 
 Non-gaussian beams work too::
 
@@ -97,7 +111,8 @@ Non-gaussian beams work too::
 
 produces
 
-.. image:: tem02.png
+.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/tem02.png
+   :alt: TEM02
 
 Determining M² 
 --------------
@@ -114,7 +129,8 @@ than two Rayleigh distances::
 
 produces
 
-.. image:: m2fit.png
+.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/m2fit.png
+   :alt: fit for M2
 
 Here is an analysis of a set of images that do not meet the ISO 11146
 requirements for determining M² (because the image locations are not taken
@@ -142,7 +158,8 @@ the optical table.::
 
 produces
 
-.. image:: sbmontage.png
+.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/sbmontage.png
+   :alt: montage of laser images
 
 Here is one way to plot the fit using the above diameters::
 
@@ -154,7 +171,8 @@ of a pure gaussian beam.  Since real beams should diverge faster than this (not 
 there is some problem with the measurements (too few!).  On the other hand, the M² value 
 the semi-major axis 2.6±0.7 is consistent with the expected value of 3 for the TEM₁₀ mode.
 
-.. image:: sbfit.png
+.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/sbfit.png
+   :alt: fit
 
 
 License

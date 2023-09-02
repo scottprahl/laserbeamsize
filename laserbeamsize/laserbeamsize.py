@@ -48,13 +48,15 @@ import matplotlib.pyplot as plt
 import scipy.ndimage
 from PIL import Image, ImageDraw
 
-__all__ = ('subtract_image',
-           'subtract_threshold',
+__all__ = ('subtract_background_image',
+           'subtract_constant',
            'subtract_tilted_background',
            'corner_background',
+           'image_background',
            'corner_mask',
            'perimeter_mask',
-           'corner_subtract',
+           'subtract_image_background',
+           'subtract_corner_background',
            'rotate_image',
            'rotated_rect_mask',
            'rotated_rect_arrays',
@@ -211,50 +213,72 @@ def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
     return values_along_line(image, xr[0], yr[0], xr[1], yr[1])
 
 
-def subtract_image(original, background):
+def subtract_background_image(original,
+                   background,
+                   iso_noise=False):
     """
-    Subtract background from original image.
+    Subtract a background image from the original image.
 
-    This is only needed because when subtracting some pixels may become
-    negative.  Unfortunately when the arrays have an unsigned data type
-    these negative values end up having very large pixel values.
+    iso_noise=True allows pixel values to be negative.  The standard ISO1146-3 states 
+    "proper background subtraction there must exist negative noise values in the 
+    corrected power density distribution. These negative values have to be included in
+    the further evaluation in order to allow compensation of positive noise amplitudes."
+
+    Most image files are comprised of unsigned bytes or unsigned ints.  Thus to accomodate
+    negative pixel values the image must become a signed image.
+    
+    If iso_noise=False then background_noise then negative pixels are set to zero.
 
     This could be done as a simple loop with an if statement but the
     implementation below is about 250X faster for 960 x 1280 arrays.
 
     Args:
-        original: the image to work with
-        background: the image to be subtracted
+        original: 2D array of an image with a beam in it
+        background: 2D array of an image without a beam
+        iso_noise: when subtracting, allow pixels to become negative
     Returns:
-        image: 2D array with background subtracted
+        image: 2D array with background subtracted (may be signed)
     """
-    # convert to signed version
-    o = original.astype(int)
-    b = background.astype(int)
+    # convert to signed version and subtract
+    o = original.astype(float)
+    b = background.astype(float)
+    subtracted = o - b
 
-    # subtract and zero negative entries
-    r = o - b
-    np.place(r, r < 0, 0)
+    if not iso_noise:
+        np.place(subtracted, subtracted < 0, 0)        # zero all negative values 
+#        return subtracted.astype(original.dtype.name)  # matching original type
 
-    # return array that matches original type
-    return r.astype(original.dtype.name)
+    return subtracted
 
 
-def subtract_threshold(image, threshold):
+def subtract_constant(original,
+                      background,
+                      iso_noise=False):
     """
-    Return image with constant subtracted.
+    Return image with a constant value subtracted.
 
-    Subtract threshold from entire image.  Negative values are set to zero.
+    Subtract threshold from entire image.  If iso_noise is False
+    then negative values are set to zero.
+
+    The returned image type matches the original image except if
+    iso_noise is True.  In that case the subtracted image becomes an
+    array of int.
+
+    Finally, if background is not an integer then it is truncated to
+    an integer so that the subtracted image remains an integer array.
 
     Args:
-        image : the image to work with
-        threshold: value to subtract every pixel
+        original : the image to work with
+        background: value to subtract every pixel
     Returns:
         image: 2D array with threshold subtracted
     """
-    subtracted = np.array(image)
-    np.place(subtracted, subtracted < threshold, threshold)
-    subtracted -= threshold
+    subtracted = original.astype(float)
+
+    if not iso_noise:
+        np.place(subtracted, subtracted < background, background)
+
+    subtracted -= background
     return subtracted
 
 
@@ -313,7 +337,7 @@ def rotate_image(original, x0, y0, phi):
     return s
 
 
-def basic_beam_size(image):
+def basic_beam_size(original):
     """
     Determine the beam center, diameters, and tilt using ISO 11146 standard.
 
@@ -335,6 +359,7 @@ def basic_beam_size(image):
         dy: vertical diameter of beam
         phi: angle that elliptical beam is rotated [radians]
     """
+    image = original.astype(float)
     v, h = image.shape
 
     # total of all pixels
@@ -483,8 +508,77 @@ def corner_background(image, corner_fraction=0.035):
     stdev = np.std(img)
     return mean, stdev
 
+def image_background(image, 
+                     corner_fraction=0.035,
+                     nT=3):
+    """
+    Return the background for unilluminated pixels in an image.
 
-def corner_subtract(image, corner_fraction=0.035, nT=3):
+    We first estimate the mean and standard deviation using the values in the 
+    corners.  All pixel values that fall below the mean+nT*stdev are considered
+    un-illuminated (background) pixels.  These are averaged to find the background
+    value for the image.
+
+    Args:
+        image : the image to work with
+        nT: how many standard deviations to subtract
+        corner_fraction: the fractional size of corner rectangles
+    Returns:
+        background: average background value across image
+    """
+    # estimate background
+    ave, std = corner_background(image, corner_fraction=corner_fraction)
+
+    # defined ISO/TR 11146-3:2004, equation 59
+    threshold = ave + nT * std
+
+    # collect all pixels that fall below the threshold
+    unilluminated = image[image < threshold]
+
+    mean = np.mean(unilluminated)
+    stdev = np.std(unilluminated)
+    return mean, stdev
+
+def image_background2(image, 
+                      fraction=0.035,
+                      nT=3):
+    """
+    Return the background of an image.
+
+    The trick here is identifying unilluminated pixels.  This is done by using 
+    using convolution to find the local average and standard deviation value for
+    each pixel.  The local values are done over an n by m rectangle.
+
+    ISO 11146-3 recommends using (n,m) values that are 2-5% of the image
+    
+    un-illuminated (background) pixels are all values that fall below the
+
+    Args:
+        image : the image to work with
+        nT: how many standard deviations to subtract
+        corner_fraction: the fractional size of corner rectangles
+    Returns:
+        background: average background value across image
+    """
+    # average over a n x m moving kernel
+    n, m = (fraction * np.array(arr.shape)).astype(int)
+    ave = uscipy.ndimageniform_filter(image, size=(n,m))
+    std = scipy.ndimagegeneric_filter(image, std_filter, size=(n,m))
+
+    # defined ISO/TR 11146-3:2004, equation 61
+    threshold = ave + nT * std/np.sqrt((n+1)*(m+1))
+
+    # we only average the pixels that fall below the illumination threshold
+    unilluminated = image[image < threshold]
+
+    background = int(np.mean(unilluminated))
+    return background
+
+
+def subtract_image_background(image,
+                    corner_fraction=0.035,
+                    nT=3,
+                    iso_noise=False):
     """
     Return image with background subtracted.
 
@@ -492,14 +586,57 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
     the rectangles in the four corners. The default size of these rectangles
     is 0.035 or 3.5% of the full image size.
 
-    The new image will have a constant (`mean + nT * stdev`) subtracted.
+    The new image will have a constant with the corner mean subtracted.
 
     ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
-
+    
     ISO 11146-3 recommends from 2-4 for `nT`.
 
-    Some care has been taken to ensure that any values in the image that are
-    less than the background are set to zero.
+    If iso_noise is False, then after subtracting the mean of the corners,
+    pixels values < nT * stdev will be set to zero.
+    
+    If iso_noise is True, then no zeroing background is done.  
+
+    Args:
+        image : the image to work with
+        corner_fraction: the fractional size of corner rectangles
+        nT: how many standard deviations to subtract
+    Returns:
+        image: 2D array with background subtracted
+    """
+    back, sigma = image_background(image, corner_fraction=corner_fraction, nT=nT)
+
+    subtracted = image.astype(float)
+    subtracted -= back
+
+    if not iso_noise:  # zero pixels that fall within a few stdev
+        threshold = nT * sigma
+        np.place(subtracted, subtracted < threshold, 0)
+
+    return subtracted
+
+
+def subtract_corner_background(image,
+                    corner_fraction=0.035,
+                    nT=3,
+                    iso_noise=False):
+    """
+    Return image with background subtracted.
+
+    The mean and standard deviation are estimated using the pixels from
+    the rectangles in the four corners. The default size of these rectangles
+    is 0.035 or 3.5% of the full image size.
+
+    The new image will have a constant with the corner mean subtracted.
+
+    ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
+    
+    ISO 11146-3 recommends from 2-4 for `nT`.
+
+    If iso_noise is False, then after subtracting the mean of the corners,
+    pixels values < nT * stdev will be set to zero.
+    
+    If iso_noise is True, then no zeroing background is done.  
 
     Args:
         image : the image to work with
@@ -509,11 +646,20 @@ def corner_subtract(image, corner_fraction=0.035, nT=3):
         image: 2D array with background subtracted
     """
     back, sigma = corner_background(image, corner_fraction)
-    offset = int(back + nT * sigma)
-    return subtract_threshold(image, offset)
+
+    subtracted = image.astype(float)
+    subtracted -= back
+
+    if not iso_noise:  # zero pixels that fall within a few stdev
+        threshold = nT * sigma
+        np.place(subtracted, subtracted < threshold, 0)
+
+    return subtracted
 
 
-def subtract_tilted_background(image, corner_fraction=0.035):
+def subtract_tilted_background(image,
+                               corner_fraction=0.035,
+                               iso_noise=False):
     """
     Return image with tilted planar background subtracted.
 
@@ -553,7 +699,7 @@ def subtract_tilted_background(image, corner_fraction=0.035):
     z -= np.std(perimeter_values)
 
     # finally, subtract the plane from the original image
-    return subtract_image(image, z)
+    return subtract_background_image(image, z, iso_noise=iso_noise)
 
 
 def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
@@ -699,8 +845,13 @@ def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
     return np.array([x_rot, y_rot])
 
 
-def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3,
-              max_iter=25, phi=None):
+def beam_size(image, 
+              mask_diameters=3,
+              corner_fraction=0.035,
+              nT=3,
+              max_iter=25,
+              phi=None,
+              iso_noise=False):
     """
     Determine beam parameters in an image with noise.
 
@@ -723,7 +874,7 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3,
     This default value works fine.
 
     `nT` accounts for noise in the background.  The background is estimated
-    using the values in the cornes of the image as `mean+nT * stdev`. ISO 11146
+    using the values in the corners of the image as `mean+nT * stdev`. ISO 11146
     states that `2<nT<4`.  The default value works fine.
 
     `max_iter` is the maximum number of iterations done before giving up.
@@ -745,26 +896,49 @@ def beam_size(image, mask_diameters=3, corner_fraction=0.035, nT=3,
     if len(image.shape) > 2:
         raise Exception('Color images are not supported.  Convert to gray/monochrome.')
 
-    # remove any offset
-    zero_background_image = corner_subtract(image, corner_fraction, nT)
-
-#    zero_background_image = np.copy(image)
-    xc, yc, dx, dy, phi_ = basic_beam_size(zero_background_image)
+    print('corner ', corner_background(image))
+    print('image ', image_background(image))
+    # remove background
+    image_without_background = subtract_image_background(image, corner_fraction, nT, iso_noise=iso_noise)
+    
+    # initial guess at beam properties
+    print("finding beam with iso_noise=",iso_noise)
+    if iso_noise:
+        all_kwargs = {'mask_diameters': mask_diameters, 
+                      'corner_fraction': corner_fraction,
+                      'nT': nT,
+                      'max_iter': max_iter,
+                      'phi': phi,
+                      'iso_noise':False}
+        xc, yc, dx, dy, phi_ = beam_size(image, **all_kwargs)
+    else:
+        xc, yc, dx, dy, phi_ = basic_beam_size(image_without_background)
 
     for _iteration in range(1, max_iter):
 
         phi_ = phi or phi_
 
+        # save current beam properties for later comparison
         xc2, yc2, dx2, dy2 = xc, yc, dx, dy
 
+        # create a mask so only values within the mask are used
         mask = rotated_rect_mask(image, xc, yc, dx, dy, phi_, mask_diameters)
-        masked_image = np.copy(zero_background_image)
+        masked_image = np.copy(image_without_background)
 
-        # zero values outside mask
-        # when mask is rotated some pixels may not be exactly 1
+        # zero values outside mask (rotation allows mask pixels to differ from 0 or 1)
         masked_image[mask < 0.5] = 0
+        plt.imshow(masked_image)
+        plt.show()
 
         xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
+        print('iteration %d' % _iteration)
+        print("    old  new")
+        print("x  %4d %4d" %(xc2, xc))
+        print("y  %4d %4d" %(yc2, yc))
+        print("dx %4d %4d" %(dx2, dx))
+        print("dy %4d %4d" %(dy2, dy))
+        print("min", np.min(masked_image))
+        
         if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
             break
 
@@ -1023,11 +1197,15 @@ def draw_visible_dotted_line(xpts, ypts):
 
 def beam_size_and_plot(o_image,
                        pixel_size=None,
+                       vmin=None,
                        vmax=None,
                        units='µm',
                        crop=False,
                        colorbar=False,
                        cmap='gist_ncar',
+                       corner_fraction=0.035,
+                       nT=3,
+                       iso_noise=False,
                        **kwargs):
     """
     Plot the image, fitted ellipse, integration area, and semi-major/minor axes.
@@ -1053,11 +1231,12 @@ def beam_size_and_plot(o_image,
     Args:
         o_image: 2D array of image with beam spot
         pixel_size: (optional) size of pixels
+        vmin: (optional) minimum value for colorbar
         vmax: (optional) maximum value for colorbar
         units: (optional) string used for units used on axes
+        crop: (optional) crop image to integration rectangle
         colorbar (optional) show the color bar,
         cmap: (optional) colormap to use
-        crop: (optional) crop image to integration rectangle
 
     Returns:
         xc: horizontal center of beam
@@ -1067,9 +1246,11 @@ def beam_size_and_plot(o_image,
         phi: angle that elliptical beam is rotated [radians]
     """
     # only pass along arguments that apply to beam_size()
-    beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT',
-                     'max_iter', 'phi']
+    beamsize_keys = ['mask_diameters', 'max_iter', 'phi']
     bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
+    bs_args['iso_noise'] = iso_noise
+    bs_args['nT'] = nT
+    bs_args['corner_fraction'] = corner_fraction
 
     # find center and diameters
     xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
@@ -1097,13 +1278,15 @@ def beam_size_and_plot(o_image,
     # establish maximum colorbar value
     if vmax is None:
         vmax = image.max()
+    if vmin is None:
+        vmin = image.min()
 
     # extents may be changed by scale
     v, h = image.shape
     extent = np.array([-xc, h - xc, v - yc, -yc]) * scale
 
     # display image and axes labels
-    im = plt.imshow(image, extent=extent, cmap=cmap, vmax=vmax)
+    im = plt.imshow(image, extent=extent, cmap=cmap, vmax=vmax, vmin=vmin)
     plt.xlabel(label)
     plt.ylabel(label)
 
@@ -1137,6 +1320,9 @@ def beam_size_plot(o_image,
                    units='µm',
                    crop=False,
                    cmap='gist_ncar',
+                   corner_fraction=0.035,
+                   nT=3,
+                   iso_noise=False,
                    **kwargs):
     """
     Create a visual report for image fitting.
@@ -1164,9 +1350,11 @@ def beam_size_plot(o_image,
         nothing
     """
     # only pass along arguments that apply to beam_size()
-    beamsize_keys = ['mask_diameters', 'corner_fraction', 'nT',
-                     'max_iter', 'phi']
+    beamsize_keys = ['mask_diameters', 'max_iter', 'phi', 'iso_noise']
     bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
+    bs_args['iso_noise'] = iso_noise
+    bs_args['nT'] = nT
+    bs_args['corner_fraction'] = corner_fraction
 
     # find center and diameters
     xc, yc, dx, dy, phi = beam_size(o_image, **bs_args)
@@ -1194,13 +1382,9 @@ def beam_size_plot(o_image,
     else:
         image = o_image
 
-    # subtract background based on corners
-    c_args = dict((k, kwargs[k]) for k in ['corner_fraction', 'nT'] if k in kwargs)
-    working_image = corner_subtract(image, **c_args)
-
-    # get background value to use when calculating fitted beam
-    cb_args = dict((k, kwargs[k]) for k in ['corner_fraction'] if k in kwargs)
-    background, _ = corner_background(image, **cb_args)
+    # subtract background
+    working_image = subtract_image_background(image, corner_fraction=corner_fraction, nT=nT, iso_noise=iso_noise)
+    back, _ = image_background(image, corner_fraction=corner_fraction, nT=nT)
 
     min_ = image.min()
     max_ = image.max()
@@ -1254,38 +1438,40 @@ def beam_size_plot(o_image,
     plt.title('Image w/o background, center at (%.0f, %.0f) %s' % (xc_s, yc_s, units))
 
     # plot of values along semi-major axis
-    _, _, z, s = major_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2 / np.pi) / r_major * np.sum(z - background) * abs(s[1] - s[0])
-    baseline = a * np.exp(-2) + background
+    _, _, z, s = major_axis_arrays(o_image, xc, yc, dx, dy, phi)
+    a = np.sqrt(2 / np.pi) / r_major * abs(np.sum(z - back) * (s[1] - s[0]))
+    baseline = a * np.exp(-2) + back
 
     plt.subplot(2, 2, 3)
     plt.plot(s * scale, z, 'sb', markersize=2)
     plt.plot(s * scale, z, '-b', lw=0.5)
-    plt.plot(s * scale, a * np.exp(-2 * (s / r_major)**2) + background, 'k')
+    z_values = back + a * np.exp(-2 * (s / r_major)**2)
+    plt.plot(s * scale, z_values, 'k')
     plt.annotate('', (-r_mag_s, baseline), (r_mag_s, baseline), arrowprops=dict(arrowstyle="<->"))
     plt.text(0, 1.1 * baseline, 'dx=%.0f %s' % (d_mag_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian Fit')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Major Axis')
     plt.title('Semi-Major Axis')
-    plt.gca().set_ylim(bottom=0)
+    #plt.gca().set_ylim(bottom=0)
 
     # plot of values along semi-minor axis
-    _, _, z, s = minor_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2 / np.pi) / r_minor * np.sum(z - background) * abs(s[1] - s[0])
-    baseline = a * np.exp(-2) + background
+    _, _, z, s = minor_axis_arrays(o_image, xc, yc, dx, dy, phi)
+    a = np.sqrt(2 / np.pi) / r_minor * abs(np.sum(z - back) * (s[1] - s[0]))
+    baseline = a * np.exp(-2) + back
 
     plt.subplot(2, 2, 4)
     plt.plot(s * scale, z, 'sb', markersize=2)
     plt.plot(s * scale, z, '-b', lw=0.5)
-    plt.plot(s * scale, a * np.exp(-2 * (s / r_minor)**2) + background, 'k', label='fitted')
+    z_values = back + a * np.exp(-2 * (s / r_minor)**2)
+    plt.plot(s * scale, z_values, 'k')
     plt.annotate('', (-r_min_s, baseline), (r_min_s, baseline), arrowprops=dict(arrowstyle="<->"))
     plt.text(0, 1.1 * baseline, 'dy=%.0f %s' % (d_min_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian Fit')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Minor Axis')
     plt.title('Semi-Minor Axis')
-    plt.gca().set_ylim(bottom=0)
+    #plt.gca().set_ylim(bottom=0)
 
     # add more horizontal space between plots
     plt.subplots_adjust(wspace=0.3)
@@ -1296,9 +1482,13 @@ def beam_size_montage(images,
                       cols=3,
                       pixel_size=None,
                       vmax=None,
+                      vmin=None,
                       units='µm',
                       crop=False,
                       cmap='gist_ncar',
+                      corner_fraction=0.035,
+                      nT=3,
+                      iso_noise=False,
                       **kwargs):
     """
     Create a beam size montage for a set of images.
@@ -1342,9 +1532,13 @@ def beam_size_montage(images,
     # gather all the options that are fixed for every image in the montage
     options = {'pixel_size': pixel_size,
                'vmax': vmax,
+               'vmin': vmin,
                'units': units,
                'crop': crop,
                'cmap': cmap,
+               'corner_fraction': corner_fraction,
+               'nT': nT,
+               'iso_noise': iso_noise,
                **kwargs}
 
     # now set up the grid of subplots
