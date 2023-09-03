@@ -1,13 +1,7 @@
 include CHANGELOG.rst
+include CITATION.cff
 include LICENSE.txt
 include requirements.txt
-
-include astigmatic-report.png
-include hene-report.png
-include m2fit.png
-include sbfit.png
-include sbmontage.png
-include tem02.png
 
 exclude .gitignore
 exclude .readthedocs.yaml
