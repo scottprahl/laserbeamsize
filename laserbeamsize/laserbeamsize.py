@@ -237,7 +237,7 @@ def subtract_background_image(original,
         background: 2D array of an image without a beam
         iso_noise: when subtracting, allow pixels to become negative
     Returns:
-        image: 2D array with background subtracted (may be signed)
+        image: 2D float array with background subtracted (may be signed)
     """
     # convert to signed version and subtract
     o = original.astype(float)
@@ -260,18 +260,13 @@ def subtract_constant(original,
     Subtract threshold from entire image.  If iso_noise is False
     then negative values are set to zero.
 
-    The returned image type matches the original image except if
-    iso_noise is True.  In that case the subtracted image becomes an
-    array of int.
-
-    Finally, if background is not an integer then it is truncated to
-    an integer so that the subtracted image remains an integer array.
+    The returned array is an array of float with the shape of original.
 
     Args:
         original : the image to work with
         background: value to subtract every pixel
     Returns:
-        image: 2D array with threshold subtracted
+        image: 2D float array with constant background subtracted
     """
     subtracted = original.astype(float)
 
