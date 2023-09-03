@@ -44,13 +44,14 @@ rcheck:
 	pyroma -d .
 
 clean:
+	rm -rf __pycache__
 	rm -rf dist
 	rm -rf laserbeamsize.egg-info
 	rm -rf laserbeamsize/__pycache__
 	rm -rf docs/_build
 	rm -rf docs/api
 	rm -rf docs/.ipynb_checkpoints
-	rm -rf __pycache__
+	rm -rf tests/__pycache__
 	rm -rf build
 	rm -rf .eggs
 	rm -rf .pytest_cache

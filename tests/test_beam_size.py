@@ -10,7 +10,7 @@ import unittest
 class TestBeamSize(unittest.TestCase):
 
     def test_k_200mm(self):
-        beam = imageio.imread("./docs/k-200mm.png")
+        beam = imageio.v2.imread("./docs/k-200mm.png")
         x, y, dx, dy, phi = lbs.beam_size(beam)
         self.assertLess((x - 580.9918940222431)**2, 0.0001)
         self.assertLess((y - 388.11071998805414)**2, 0.0001)
