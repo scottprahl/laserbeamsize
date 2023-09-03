@@ -89,7 +89,7 @@ A visual report can be done with one function call::
     
 produces something like
 
-.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/hene-report.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/hene-report.png
    :alt: HeNe report
 
 or::
@@ -99,7 +99,7 @@ or::
 
 produces something like
 
-.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/astigmatic-report.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/astigmatic-report.png
    :alt: astigmatic report
 
 Non-gaussian beams work too::
@@ -111,7 +111,7 @@ Non-gaussian beams work too::
 
 produces
 
-.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/tem02.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/tem02.png
    :alt: TEM02
 
 Determining M² 
@@ -129,7 +129,7 @@ than two Rayleigh distances::
 
 produces
 
-.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/m2fit.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/m2fit.png
    :alt: fit for M2
 
 Here is an analysis of a set of images that do not meet the ISO 11146
@@ -158,7 +158,7 @@ the optical table.::
 
 produces
 
-.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/sbmontage.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/sbmontage.png
    :alt: montage of laser images
 
 Here is one way to plot the fit using the above diameters::
@@ -171,7 +171,7 @@ of a pure gaussian beam.  Since real beams should diverge faster than this (not 
 there is some problem with the measurements (too few!).  On the other hand, the M² value 
 the semi-major axis 2.6±0.7 is consistent with the expected value of 3 for the TEM₁₀ mode.
 
-.. image:: https://raw.githubusercontent.com/scottprahl/pyspeckle/master/docs/sbfit.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/sbfit.png
    :alt: fit
 
 
