@@ -36,7 +36,7 @@ by Scott Prahl
 |
 
  
-    **Do not use development github version. It doesn't work. Use the last released version v1.9.4.**
+    **Do not use latest github code. It doesn't work. Use the last released version v1.9.4.**
 
 __________
 
