@@ -1,5 +1,17 @@
 Changelog
-=================================================
+=========
+
+2.0.0
+-----
+* change default background removal
+* add possibility for negative pixel values after background removal
+* add some basic testing
+* add citation stuff
+* add github actions to test and update citation
+* improve readme so images work on pypi.org
+* add conda-forge support
+* update copyright years
+* more badges
 
 v1.9.4
 ------

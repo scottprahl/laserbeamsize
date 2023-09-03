@@ -44,6 +44,8 @@ collected at various distances from the focused beam.
 
 Extensive documentation can be found at <https://laserbeamsize.readthedocs.io>
 
+**Do not use development version. It doesn't work. Use the last released version.**
+
 Using laserbeamsize
 -------------------
 
