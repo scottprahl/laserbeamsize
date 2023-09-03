@@ -1,0 +1,11 @@
+authors:
+- family-names: Prahl
+  given-names: Scott
+  orcid: https://orcid.org/0000-0003-1468-6851
+cff-version: 1.2.0
+date-released: '2023-09-02'
+doi: 10.5281/zenodo.8311678
+message: If you use this software, please cite it as below.
+title: 'laserbeamsize: a python module for ISO 11146 analysis of laser beams'
+url: https://zenodo.org/badge/latestdoi/131667397
+version: 1.9.4

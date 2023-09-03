@@ -19,7 +19,7 @@ help(laserbeamsize.m2)
 __version__ = '1.9.4'
 __author__ = 'Scott Prahl'
 __email__ = 'scott.prahl@oit.edu'
-__copyright__ = 'Copyright 2017-22, Scott Prahl'
+__copyright__ = 'Copyright 2017-23, Scott Prahl'
 __license__ = 'MIT'
 __url__ = 'https://github.com/scottprahl/laserbeamsize.git'
 
