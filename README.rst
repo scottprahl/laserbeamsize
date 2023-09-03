@@ -44,7 +44,8 @@ collected at various distances from the focused beam.
 
 Extensive documentation can be found at <https://laserbeamsize.readthedocs.io>
 
-**Do not use development version. It doesn't work. Use the last released version.**
+ 
+    **Do not use development github version. It doesn't work. Use the last released version.**
 
 Using laserbeamsize
 -------------------
@@ -69,7 +70,7 @@ Finding the center and dimensions of a good beam image::
     import matplotlib.pyplot as plt
     import laserbeamsize as lbs
 
-    beam = imageio.imread("t-hene.pgm")
+    beam = imageio.v2.imread("t-hene.pgm")
     x, y, dx, dy, phi = lbs.beam_size(beam)
 
     print("The center of the beam ellipse is at (%.0f, %.0f)" % (x,y))
