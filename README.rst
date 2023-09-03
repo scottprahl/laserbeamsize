@@ -33,6 +33,8 @@ by Scott Prahl
    :target: https://pypi.org/project/laserbeamsize/
    :alt: Downloads
 
+|
+
  
     **Do not use development github version. It doesn't work. Use the last released version v1.9.4.**
 
