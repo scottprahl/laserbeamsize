@@ -30,6 +30,7 @@ jobs:
           pip install -r requirements.txt
         
       - name: Test with pytest
-        run: python -m pytest tests/test_back.py
-        run: python -m pytest tests/test_tools.py
-        run: python -m pytest tests/test_masks.py
+        run: |
+          python -m pytest tests/test_back.py
+          python -m pytest tests/test_tools.py
+          python -m pytest tests/test_masks.py
