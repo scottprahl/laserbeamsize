@@ -161,14 +161,14 @@ def beam_size(image,
         image, corner_fraction, nT, iso_noise=iso_noise)
 
     # initial guess at beam properties
-    print("finding beam with iso_noise=",iso_noise)
+    print("finding beam with iso_noise=", iso_noise)
     if iso_noise:
         all_kwargs = {'mask_diameters': mask_diameters,
                       'corner_fraction': corner_fraction,
                       'nT': nT,
                       'max_iter': max_iter,
                       'phi': phi,
-                      'iso_noise':False}
+                      'iso_noise': False}
         xc, yc, dx, dy, phi_ = beam_size(image, **all_kwargs)
     else:
         xc, yc, dx, dy, phi_ = basic_beam_size(image_without_background)
@@ -192,10 +192,10 @@ def beam_size(image,
         xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
         print('iteration %d' % _iteration)
         print("    old  new")
-        print("x  %4d %4d" %(xc2, xc))
-        print("y  %4d %4d" %(yc2, yc))
-        print("dx %4d %4d" %(dx2, dx))
-        print("dy %4d %4d" %(dy2, dy))
+        print("x  %4d %4d" % (xc2, xc))
+        print("y  %4d %4d" % (yc2, yc))
+        print("dx %4d %4d" % (dx2, dx))
+        print("dy %4d %4d" % (dy2, dy))
         print("min", np.min(masked_image))
 
         if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:

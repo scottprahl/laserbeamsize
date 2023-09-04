@@ -23,6 +23,7 @@ __all__ = ('corner_mask',
            'elliptical_mask',
            )
 
+
 def elliptical_mask(image, xc, yc, dx, dy, phi):
     """
     Create a boolean mask for a rotated elliptical disk.

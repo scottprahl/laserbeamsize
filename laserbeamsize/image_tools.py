@@ -9,6 +9,8 @@
 
 """
 Image manipulation routines needed for beam analysis.
+
+Full documentation is available at <https://laserbeamsize.readthedocs.io>
 """
 
 import numpy as np

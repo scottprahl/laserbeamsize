@@ -49,6 +49,7 @@ __all__ = ('beam_ellipticity',
            'beam_size_montage'
            )
 
+
 def beam_ellipticity(dx, dy):
     """
     Calculate the ellipticity of the beam.
@@ -319,7 +320,7 @@ def beam_size_plot(o_image,
 
     # subtract background
     working_image = back.subtract_image_background(image, corner_fraction=corner_fraction,
-                                              nT=nT, iso_noise=iso_noise)
+                                                   nT=nT, iso_noise=iso_noise)
     bkgnd, _ = back.image_background(image, corner_fraction=corner_fraction, nT=nT)
 
     min_ = image.min()
@@ -390,7 +391,7 @@ def beam_size_plot(o_image,
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Major Axis')
     plt.title('Semi-Major Axis')
-    #plt.gca().set_ylim(bottom=0)
+    # plt.gca().set_ylim(bottom=0)
 
     # plot of values along semi-minor axis
     _, _, z, s = tools.minor_axis_arrays(o_image, xc, yc, dx, dy, phi)
@@ -409,7 +410,7 @@ def beam_size_plot(o_image,
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Minor Axis')
     plt.title('Semi-Minor Axis')
-    #plt.gca().set_ylim(bottom=0)
+    # plt.gca().set_ylim(bottom=0)
 
     # add more horizontal space between plots
     plt.subplots_adjust(wspace=0.3)

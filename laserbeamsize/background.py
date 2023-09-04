@@ -28,8 +28,8 @@ __all__ = ('subtract_background_image',
 
 
 def subtract_background_image(original,
-                   background,
-                   iso_noise=False):
+                              background,
+                              iso_noise=False):
     """
     Subtract a background image from the original image.
 
@@ -89,9 +89,6 @@ def subtract_constant(original,
 
     subtracted -= background
     return subtracted
-
-
-
 
 
 def corner_background(image, corner_fraction=0.035):
@@ -165,12 +162,12 @@ def image_background2(image,
     """
     Return the background of an image.
 
-    The trick here is identifying unilluminated pixels.  This is done by using 
+    The trick here is identifying unilluminated pixels.  This is done by using
     using convolution to find the local average and standard deviation value for
     each pixel.  The local values are done over an n by m rectangle.
 
     ISO 11146-3 recommends using (n,m) values that are 2-5% of the image
-    
+
     un-illuminated (background) pixels are all values that fall below the
 
     Args:
@@ -182,11 +179,11 @@ def image_background2(image,
     """
     # average over a n x m moving kernel
     n, m = (fraction * np.array(image.shape)).astype(int)
-    ave = scipy.ndimage.generic_filter(image, _mean_filter, size=(n,m))
-    std = scipy.ndimage.generic_filter(image, _std_filter, size=(n,m))
+    ave = scipy.ndimage.generic_filter(image, _mean_filter, size=(n, m))
+    std = scipy.ndimage.generic_filter(image, _std_filter, size=(n, m))
 
     # defined ISO/TR 11146-3:2004, equation 61
-    threshold = ave + nT * std/np.sqrt((n+1)*(m+1))
+    threshold = ave + nT * std / np.sqrt((n + 1) * (m + 1))
 
     # we only average the pixels that fall below the illumination threshold
     unilluminated = image[image < threshold]
@@ -196,9 +193,9 @@ def image_background2(image,
 
 
 def subtract_image_background(image,
-                    corner_fraction=0.035,
-                    nT=3,
-                    iso_noise=False):
+                              corner_fraction=0.035,
+                              nT=3,
+                              iso_noise=False):
     """
     Return image with background subtracted.
 
@@ -237,9 +234,9 @@ def subtract_image_background(image,
 
 
 def subtract_corner_background(image,
-                    corner_fraction=0.035,
-                    nT=3,
-                    iso_noise=False):
+                               corner_fraction=0.035,
+                               nT=3,
+                               iso_noise=False):
     """
     Return image with background subtracted.
 
