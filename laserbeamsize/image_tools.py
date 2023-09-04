@@ -19,7 +19,7 @@ __all__ = ('rotate_image',
            'major_axis_arrays',
            'minor_axis_arrays',
            'rotated_rect_arrays',
-           'beam_test_image',
+           'create_test_image',
            )
 
 
@@ -333,7 +333,7 @@ def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     return np.array([xp, yp])
 
 
-def beam_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
+def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
     """
     Create a test image.
 
@@ -348,12 +348,24 @@ def beam_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
         yc: vertical center of beam
         dx: ellipse diameter for axis closest to horizontal
         dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
+        phi: angle that elliptical beam is rotated ccw [radians]
         noise: normally distributed pixel noise to add to image
         max_value: all values in image fall between 0 and `max_value`
     Returns:
-        image: integer 2D array of a Gaussian elliptical spot
+        image: an unsigned 2D integer array of a Gaussian elliptical spot
     """
+    if max_value < 0 or max_value > 65536:
+        raise ValueError('max_value must be positive and less than 65536')
+
+    if not isinstance(h, int) or h <= 0:
+        raise ValueError('number of columns must be positive')
+
+    if not isinstance(v, int) or v <= 0:
+        raise ValueError('number of rows must be positive')
+
+    if abs(phi) > 2.1 * np.pi:
+        raise ValueError('the angle phi should be in radians!')
+
     rx = dx / 2
     ry = dy / 2
 
