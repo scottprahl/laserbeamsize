@@ -14,7 +14,10 @@ html:
 pdf:
 	$(SPHINXBUILD) -b latex "$(SOURCEDIR)" "$(BUILDDIR)"  $(PDFOPTS)
 
-pycheck:
+lint:
+	-pylint laserbeamsize/background.py
+	-pylint laserbeamsize/masks.py
+	-pylint laserbeamsize/image_tools.py
 	-pylint laserbeamsize/m2.py
 	-pylint laserbeamsize/laserbeamsize.py
 	-pylint laserbeamsize/__init__.py
@@ -34,7 +37,7 @@ rstcheck:
 rcheck:
 	make clean
 	make test
-	make pycheck
+	make lint
 	make doccheck
 	make rstcheck
 	touch docs/*ipynb

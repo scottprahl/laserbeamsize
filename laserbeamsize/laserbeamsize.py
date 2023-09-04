@@ -45,291 +45,19 @@ A mosaic of images might be created by::
 
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.ndimage
-from PIL import Image, ImageDraw
+import laserbeamsize.image_tools as tools
+import laserbeamsize.background as back
+import laserbeamsize.masks as masks
 
-__all__ = ('subtract_background_image',
-           'subtract_constant',
-           'subtract_tilted_background',
-           'corner_background',
-           'image_background',
-           'corner_mask',
-           'perimeter_mask',
-           'subtract_image_background',
-           'subtract_corner_background',
-           'rotate_image',
-           'rotated_rect_mask',
-           'rotated_rect_arrays',
-           'axes_arrays',
-           'basic_beam_size',
+__all__ = ('basic_beam_size',
            'basic_beam_size_naive',
            'beam_size',
            'beam_ellipticity',
-           'beam_test_image',
            'draw_beam_figure',
-           'ellipse_arrays',
-           'elliptical_mask',
-           'major_axis_arrays',
-           'minor_axis_arrays',
            'beam_size_plot',
            'beam_size_and_plot',
            'beam_size_montage'
            )
-
-
-def rotate_points(x, y, x0, y0, phi):
-    """
-    Rotate x and y around designated center (x0, y0).
-
-    Args:
-        x: x-values of point or array of points to be rotated
-        y: y-values of point or array of points to be rotated
-        x0: horizontal center of rotation
-        y0: vertical center of rotation
-        phi: angle to rotate (+ is ccw) in radians
-
-    Returns:
-        x, y: locations of rotated points
-    """
-    xp = x - x0
-    yp = y - y0
-
-    s = np.sin(-phi)
-    c = np.cos(-phi)
-
-    xf = xp * c - yp * s
-    yf = xp * s + yp * c
-
-    xf += x0
-    yf += y0
-
-    return xf, yf
-
-
-def values_along_line(image, x0, y0, x1, y1, N=100):
-    """
-    Return x, y, z, and distance values between (x0, y0) and (x1, y1).
-
-    Args:
-        image: the image to work with
-        x0: x-value of start of line
-        y0: y-value of start of line
-        x1: x-value of end of line
-        y1: y-value of end of line
-        N:  number of points in returned array
-    Returns:
-        x: index of horizontal pixel values along line
-        y: index of vertical pixel values along line
-        z: image values at each of the x, y positions
-        s: distance from start of minor axis to x, y position
-    """
-    d = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
-    s = np.linspace(0, 1, N)
-
-    x = x0 + s * (x1 - x0)
-    y = y0 + s * (y1 - y0)
-
-    xx = x.astype(int)
-    yy = y.astype(int)
-
-    zz = image[yy, xx]
-
-    return xx, yy, zz, (s - 0.5) * d
-
-
-def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
-    """
-    Return x, y, z, and distance values along semi-major axis.
-
-    Args:
-        image: the image to work with
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
-        diameters: number of diameters to use
-    Returns:
-        x: index of horizontal pixel values along line
-        y: index of vertical pixel values along line
-        z: image values at each of the x, y positions
-        s: distance from start of minor axis to x, y position
-    """
-    v, h = image.shape
-
-    if dx > dy:
-        rx = diameters * dx / 2
-        left = max(xc - rx, 0)
-        right = min(xc + rx, h - 1)
-        x = np.array([left, right])
-        y = np.array([yc, yc])
-        xr, yr = rotate_points(x, y, xc, yc, phi)
-    else:
-        ry = diameters * dy / 2
-        top = max(yc - ry, 0)
-        bottom = min(yc + ry, v - 1)
-        x = np.array([xc, xc])
-        y = np.array([top, bottom])
-        xr, yr = rotate_points(x, y, xc, yc, phi)
-
-    return values_along_line(image, xr[0], yr[0], xr[1], yr[1])
-
-
-def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
-    """
-    Return x, y, z, and distance values along semi-minor axis.
-
-    Args:
-        image: the image to work with
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
-        diameters: number of diameters to use
-    Returns:
-        x: index of horizontal pixel values along line
-        y: index of vertical pixel values along line
-        z: image values at each of the x, y positions
-        s: distance from start of minor axis to x, y position
-    """
-    v, h = image.shape
-
-    if dx <= dy:
-        rx = diameters * dx / 2
-        left = max(xc - rx, 0)
-        right = min(xc + rx, h - 1)
-        x = np.array([left, right])
-        y = np.array([yc, yc])
-        xr, yr = rotate_points(x, y, xc, yc, phi)
-    else:
-        ry = diameters * dy / 2
-        top = max(yc - ry, 0)
-        bottom = min(yc + ry, v - 1)
-        x = np.array([xc, xc])
-        y = np.array([top, bottom])
-        xr, yr = rotate_points(x, y, xc, yc, phi)
-
-    return values_along_line(image, xr[0], yr[0], xr[1], yr[1])
-
-
-def subtract_background_image(original,
-                   background,
-                   iso_noise=False):
-    """
-    Subtract a background image from the original image.
-
-    iso_noise=True allows pixel values to be negative.  The standard ISO1146-3 states 
-    "proper background subtraction there must exist negative noise values in the 
-    corrected power density distribution. These negative values have to be included in
-    the further evaluation in order to allow compensation of positive noise amplitudes."
-
-    Most image files are comprised of unsigned bytes or unsigned ints.  Thus to accomodate
-    negative pixel values the image must become a signed image.
-    
-    If iso_noise=False then background_noise then negative pixels are set to zero.
-
-    This could be done as a simple loop with an if statement but the
-    implementation below is about 250X faster for 960 x 1280 arrays.
-
-    Args:
-        original: 2D array of an image with a beam in it
-        background: 2D array of an image without a beam
-        iso_noise: when subtracting, allow pixels to become negative
-    Returns:
-        image: 2D float array with background subtracted (may be signed)
-    """
-    # convert to signed version and subtract
-    o = original.astype(float)
-    b = background.astype(float)
-    subtracted = o - b
-
-    if not iso_noise:
-        np.place(subtracted, subtracted < 0, 0)        # zero all negative values 
-#        return subtracted.astype(original.dtype.name)  # matching original type
-
-    return subtracted
-
-
-def subtract_constant(original,
-                      background,
-                      iso_noise=False):
-    """
-    Return image with a constant value subtracted.
-
-    Subtract threshold from entire image.  If iso_noise is False
-    then negative values are set to zero.
-
-    The returned array is an array of float with the shape of original.
-
-    Args:
-        original : the image to work with
-        background: value to subtract every pixel
-    Returns:
-        image: 2D float array with constant background subtracted
-    """
-    subtracted = original.astype(float)
-
-    if not iso_noise:
-        np.place(subtracted, subtracted < background, background)
-
-    subtracted -= background
-    return subtracted
-
-
-def rotate_image(original, x0, y0, phi):
-    """
-    Create image rotated about specified centerpoint.
-
-    The image is rotated about a centerpoint (x0, y0) and then
-    cropped to the original size such that the centerpoint remains
-    in the same location.
-
-    Args:
-        image: the image to work with
-        x:     column
-        y:     row
-        phi: angle [radians]
-    Returns:
-        image: rotated 2D array with same dimensions as original
-    """
-    # center of original image
-    cy, cx = (np.array(original.shape) - 1) / 2.0
-
-    # rotate image using defaults mode='constant' and cval=0.0
-    rotated = scipy.ndimage.rotate(original, np.degrees(phi), order=1)
-
-    # center of rotated image, defaults mode='constant' and cval=0.0
-    ry, rx = (np.array(rotated.shape) - 1) / 2.0
-
-    # position of (x0, y0) in rotated image
-    new_x0, new_y0 = rotate_points(x0, y0, cx, cy, phi)
-    new_x0 += rx - cx
-    new_y0 += ry - cy
-
-    voff = int(new_y0 - y0)
-    hoff = int(new_x0 - x0)
-
-    # crop so center remains in same location as original
-    ov, oh = original.shape
-    rv, rh = rotated.shape
-
-    rv1 = max(voff, 0)
-    sv1 = max(-voff, 0)
-    vlen = min(voff + ov, rv) - rv1
-
-    rh1 = max(hoff, 0)
-    sh1 = max(-hoff, 0)
-    hlen = min(hoff + oh, rh) - rh1
-
-    # move values into zero-padded array
-    s = np.full_like(original, 0)
-    sv1_end = sv1 + vlen
-    sh1_end = sh1 + hlen
-    rv1_end = rv1 + vlen
-    rh1_end = rh1 + hlen
-    s[sv1:sv1_end, sh1:sh1_end] = rotated[rv1:rv1_end, rh1:rh1_end]
-    return s
 
 
 def basic_beam_size(original):
@@ -396,451 +124,7 @@ def basic_beam_size(original):
     return xc, yc, dx, dy, phi
 
 
-def elliptical_mask(image, xc, yc, dx, dy, phi):
-    """
-    Create a boolean mask for a rotated elliptical disk.
-
-    The returned mask is the same size as `image`.
-
-    Args:
-        image: 2D array
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
-    Returns:
-        masked_image: 2D array with True values inside ellipse
-    """
-    v, h = image.shape
-    y, x = np.ogrid[:v, :h]
-
-    sinphi = np.sin(phi)
-    cosphi = np.cos(phi)
-    rx = dx / 2
-    ry = dy / 2
-    xx = x - xc
-    yy = y - yc
-    r2 = (xx * cosphi - yy * sinphi)**2 / rx**2 + (xx * sinphi + yy * cosphi)**2 / ry**2
-    the_mask = r2 <= 1
-
-    return the_mask
-
-
-def corner_mask(image, corner_fraction=0.035):
-    """
-    Create boolean mask for image with corners marked as True.
-
-    Each of the four corners is a fixed percentage of the entire image.
-
-    ISO 11146-3 recommends values from 2-5% for `corner_fraction`
-    the default is 0.035=3.5% of the iamge.
-
-    Args:
-        image : the image to work with
-        corner_fraction: the fractional size of corner rectangles
-    Returns:
-        masked_image: 2D array with True values in four corners
-    """
-    v, h = image.shape
-    n = int(v * corner_fraction)
-    m = int(h * corner_fraction)
-
-    the_mask = np.full_like(image, False, dtype=bool)
-    the_mask[:n, :m] = True
-    the_mask[:n, -m:] = True
-    the_mask[-n:, :m] = True
-    the_mask[-n:, -m:] = True
-    return the_mask
-
-
-def perimeter_mask(image, corner_fraction=0.035):
-    """
-    Create boolean mask for image with a perimeter marked as True.
-
-    The perimeter is the same width as the corners created by corner_mask
-    which is a fixed percentage (default 3.5%) of the entire image.
-
-    Args:
-        image : the image to work with
-        corner_fraction: determines the width of the perimeter
-    Returns:
-        masked_image: 2D array with True values around rect perimeter
-    """
-    v, h = image.shape
-    n = int(v * corner_fraction)
-    m = int(h * corner_fraction)
-
-    the_mask = np.full_like(image, False, dtype=np.bool)
-    the_mask[:, :m] = True
-    the_mask[:, -m:] = True
-    the_mask[:n, :] = True
-    the_mask[-n:, :] = True
-    return the_mask
-
-
-def corner_background(image, corner_fraction=0.035):
-    """
-    Return the mean and stdev of background in corners of image.
-
-    The mean and standard deviation are estimated using the pixels from
-    the rectangles in the four corners. The default size of these rectangles
-    is 0.035 or 3.5% of the full image size.
-
-    ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
-
-    Args:
-        image : the image to work with
-        corner_fraction: the fractional size of corner rectangles
-    Returns:
-        corner_mean: average pixel value in corners
-    """
-    if corner_fraction == 0:
-        return 0, 0
-    mask = corner_mask(image, corner_fraction)
-    img = np.ma.masked_array(image, ~mask)
-    mean = np.mean(img)
-    stdev = np.std(img)
-    return mean, stdev
-
-def image_background(image, 
-                     corner_fraction=0.035,
-                     nT=3):
-    """
-    Return the background for unilluminated pixels in an image.
-
-    We first estimate the mean and standard deviation using the values in the 
-    corners.  All pixel values that fall below the mean+nT*stdev are considered
-    un-illuminated (background) pixels.  These are averaged to find the background
-    value for the image.
-
-    Args:
-        image : the image to work with
-        nT: how many standard deviations to subtract
-        corner_fraction: the fractional size of corner rectangles
-    Returns:
-        background: average background value across image
-    """
-    # estimate background
-    ave, std = corner_background(image, corner_fraction=corner_fraction)
-
-    # defined ISO/TR 11146-3:2004, equation 59
-    threshold = ave + nT * std
-
-    # collect all pixels that fall below the threshold
-    unilluminated = image[image < threshold]
-
-    mean = np.mean(unilluminated)
-    stdev = np.std(unilluminated)
-    return mean, stdev
-
-def image_background2(image, 
-                      fraction=0.035,
-                      nT=3):
-    """
-    Return the background of an image.
-
-    The trick here is identifying unilluminated pixels.  This is done by using 
-    using convolution to find the local average and standard deviation value for
-    each pixel.  The local values are done over an n by m rectangle.
-
-    ISO 11146-3 recommends using (n,m) values that are 2-5% of the image
-    
-    un-illuminated (background) pixels are all values that fall below the
-
-    Args:
-        image : the image to work with
-        nT: how many standard deviations to subtract
-        corner_fraction: the fractional size of corner rectangles
-    Returns:
-        background: average background value across image
-    """
-    # average over a n x m moving kernel
-    n, m = (fraction * np.array(arr.shape)).astype(int)
-    ave = uscipy.ndimageniform_filter(image, size=(n,m))
-    std = scipy.ndimagegeneric_filter(image, std_filter, size=(n,m))
-
-    # defined ISO/TR 11146-3:2004, equation 61
-    threshold = ave + nT * std/np.sqrt((n+1)*(m+1))
-
-    # we only average the pixels that fall below the illumination threshold
-    unilluminated = image[image < threshold]
-
-    background = int(np.mean(unilluminated))
-    return background
-
-
-def subtract_image_background(image,
-                    corner_fraction=0.035,
-                    nT=3,
-                    iso_noise=False):
-    """
-    Return image with background subtracted.
-
-    The mean and standard deviation are estimated using the pixels from
-    the rectangles in the four corners. The default size of these rectangles
-    is 0.035 or 3.5% of the full image size.
-
-    The new image will have a constant with the corner mean subtracted.
-
-    ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
-    
-    ISO 11146-3 recommends from 2-4 for `nT`.
-
-    If iso_noise is False, then after subtracting the mean of the corners,
-    pixels values < nT * stdev will be set to zero.
-    
-    If iso_noise is True, then no zeroing background is done.  
-
-    Args:
-        image : the image to work with
-        corner_fraction: the fractional size of corner rectangles
-        nT: how many standard deviations to subtract
-    Returns:
-        image: 2D array with background subtracted
-    """
-    back, sigma = image_background(image, corner_fraction=corner_fraction, nT=nT)
-
-    subtracted = image.astype(float)
-    subtracted -= back
-
-    if not iso_noise:  # zero pixels that fall within a few stdev
-        threshold = nT * sigma
-        np.place(subtracted, subtracted < threshold, 0)
-
-    return subtracted
-
-
-def subtract_corner_background(image,
-                    corner_fraction=0.035,
-                    nT=3,
-                    iso_noise=False):
-    """
-    Return image with background subtracted.
-
-    The mean and standard deviation are estimated using the pixels from
-    the rectangles in the four corners. The default size of these rectangles
-    is 0.035 or 3.5% of the full image size.
-
-    The new image will have a constant with the corner mean subtracted.
-
-    ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
-    
-    ISO 11146-3 recommends from 2-4 for `nT`.
-
-    If iso_noise is False, then after subtracting the mean of the corners,
-    pixels values < nT * stdev will be set to zero.
-    
-    If iso_noise is True, then no zeroing background is done.  
-
-    Args:
-        image : the image to work with
-        corner_fraction: the fractional size of corner rectangles
-        nT: how many standard deviations to subtract
-    Returns:
-        image: 2D array with background subtracted
-    """
-    back, sigma = corner_background(image, corner_fraction)
-
-    subtracted = image.astype(float)
-    subtracted -= back
-
-    if not iso_noise:  # zero pixels that fall within a few stdev
-        threshold = nT * sigma
-        np.place(subtracted, subtracted < threshold, 0)
-
-    return subtracted
-
-
-def subtract_tilted_background(image,
-                               corner_fraction=0.035,
-                               iso_noise=False):
-    """
-    Return image with tilted planar background subtracted.
-
-    Take all the points around the perimeter of an image and fit these
-    to a tilted plane to determine the background to subtract.  Details of
-    the linear algebra are at https://math.stackexchange.com/questions/99299
-
-    Since the sample contains noise, it is important not to remove
-    this noise at this stage and therefore we offset the plane so
-    that one standard deviation of noise remains.
-
-    Args:
-        image : the image to work with
-        corner_fraction: the fractional size of corner rectangles
-    Returns:
-        image: 2D array with tilted planar background subtracted
-    """
-    v, h = image.shape
-    xx, yy = np.meshgrid(range(h), range(v))
-
-    mask = perimeter_mask(image, corner_fraction=corner_fraction)
-    perimeter_values = image[mask]
-    # coords is (y_value, x_value, 1) for each point in perimeter_values
-    coords = np.stack((yy[mask], xx[mask], np.ones(np.size(perimeter_values))), 1)
-
-    # fit a plane to all corner points
-    b = np.array(perimeter_values).T
-    A = np.array(coords)
-    a, b, c = np.linalg.inv(A.T @ A) @ A.T @ b
-
-    # calculate the fitted background plane
-    z = a * yy + b * xx + c
-
-    # find the standard deviation of the noise in the perimeter
-    # and subtract this value from the plane
-    # since we don't want to lose the image noise just yet
-    z -= np.std(perimeter_values)
-
-    # finally, subtract the plane from the original image
-    return subtract_background_image(image, z, iso_noise=iso_noise)
-
-
-def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
-    """
-    Create ISO 11146 rectangular mask for specified beam.
-
-    ISO 11146-2 §7.2 states that integration should be carried out over
-    "a rectangular integration area which is centred to the beam centroid,
-    defined by the spatial first order moments, orientated parallel to
-    the principal axes of the power density distribution, and sized
-    three times the beam widths".
-
-    This routine creates a mask with `true` values for each pixel in
-    the image that should be part of the integration.
-
-    The rectangular mask is `mask_diameters' times the pixel diameters
-    of the ellipse.
-
-    The rectangular mask is rotated about (xc, yc) so that it is aligned
-    with the elliptical spot.
-
-    Args:
-        image: the image to work with
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
-    Returns:
-        masked_image: 2D array with True values inside rectangle
-    """
-    raw_mask = np.full_like(image, 0, dtype=float)
-    v, h = image.shape
-    rx = mask_diameters * dx / 2
-    ry = mask_diameters * dy / 2
-    vlo = max(0, int(yc - ry))
-    vhi = min(v, int(yc + ry))
-    hlo = max(0, int(xc - rx))
-    hhi = min(h, int(xc + rx))
-
-    raw_mask[vlo:vhi, hlo:hhi] = 1
-    rot_mask = rotate_image(raw_mask, xc, yc, phi)
-    return rot_mask
-
-
-def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
-    """
-    Create ISO 11146 rectangular mask for specified beam.
-
-    ISO 11146-2 §7.2 states that integration should be carried out over
-    "a rectangular integration area which is centred to the beam centroid,
-    defined by the spatial first order moments, orientated parallel to
-    the principal axes of the power density distribution, and sized
-    three times the beam widths".
-
-    This routine creates a mask with `true` values for each pixel in
-    the image that should be part of the integration.
-
-    The rectangular mask is `mask_diameters` times the pixel diameters
-    of the ellipse.
-
-    The rectangular mask is rotated about (xc, yc) and then drawn using PIL
-
-    Args:
-        image: the image to work with
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
-        mask_diameters: number of diameters to include
-    Returns:
-        masked_image: 2D array with True values inside rectangle
-    """
-    v, h = image.shape
-    rx = mask_diameters * dx / 2
-    ry = mask_diameters * dy / 2
-
-    s = np.sin(-phi)
-    c = np.cos(-phi)
-
-    xx, xy = rx * c, rx * s
-    yx, yy = - ry * s, ry * c
-
-    x1, y1 = xc + xx + yx, yc + xy + yy
-    x2, y2 = xc + xx - yx, yc + xy - yy
-    x3, y3 = xc - xx - yx, yc - xy - yy
-    x4, y4 = xc - xx + yx, yc - xy + yy
-
-    g = Image.new('L', (h, v), 0)
-    ImageDraw.Draw(g).polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4), (x1, y1)], outline=1, fill=1)
-    mask = np.array(g)
-    return mask
-
-
-def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
-    """
-    Return x, y arrays to draw a rotated rectangle.
-
-    Args:
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
-    Returns:
-        x, y : two arrays for points on corners of rotated rectangle
-    """
-    rx = mask_diameters * dx / 2
-    ry = mask_diameters * dy / 2
-
-    # rectangle with center at (xc, yc)
-    x = np.array([-rx, -rx, +rx, +rx, -rx]) + xc
-    y = np.array([-ry, +ry, +ry, -ry, -ry]) + yc
-
-    x_rot, y_rot = rotate_points(x, y, xc, yc, phi)
-
-    return np.array([x_rot, y_rot])
-
-
-def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
-    """
-    Return x, y arrays needed to draw semi-axes of ellipse.
-
-    Args:
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
-    Returns:
-        x, y arrays needed to draw semi-axes of ellipse
-    """
-    rx = mask_diameters * dx / 2
-    ry = mask_diameters * dy / 2
-
-    # major and minor ellipse axes with center at (xc, yc)
-    x = np.array([-rx, rx, 0, 0, 0]) + xc
-    y = np.array([0, 0, 0, -ry, ry]) + yc
-
-    x_rot, y_rot = rotate_points(x, y, xc, yc, phi)
-
-    return np.array([x_rot, y_rot])
-
-
-def beam_size(image, 
+def beam_size(image,
               mask_diameters=3,
               corner_fraction=0.035,
               nT=3,
@@ -891,15 +175,16 @@ def beam_size(image,
     if len(image.shape) > 2:
         raise Exception('Color images are not supported.  Convert to gray/monochrome.')
 
-    print('corner ', corner_background(image))
-    print('image ', image_background(image))
+    print('corner ', back.corner_background(image))
+    print('image ', back.image_background(image))
     # remove background
-    image_without_background = subtract_image_background(image, corner_fraction, nT, iso_noise=iso_noise)
-    
+    image_without_background = back.subtract_image_background(
+        image, corner_fraction, nT, iso_noise=iso_noise)
+
     # initial guess at beam properties
     print("finding beam with iso_noise=",iso_noise)
     if iso_noise:
-        all_kwargs = {'mask_diameters': mask_diameters, 
+        all_kwargs = {'mask_diameters': mask_diameters,
                       'corner_fraction': corner_fraction,
                       'nT': nT,
                       'max_iter': max_iter,
@@ -917,7 +202,7 @@ def beam_size(image,
         xc2, yc2, dx2, dy2 = xc, yc, dx, dy
 
         # create a mask so only values within the mask are used
-        mask = rotated_rect_mask(image, xc, yc, dx, dy, phi_, mask_diameters)
+        mask = masks.rotated_rect_mask(image, xc, yc, dx, dy, phi_, mask_diameters)
         masked_image = np.copy(image_without_background)
 
         # zero values outside mask (rotation allows mask pixels to differ from 0 or 1)
@@ -933,7 +218,7 @@ def beam_size(image,
         print("dx %4d %4d" %(dx2, dx))
         print("dy %4d %4d" %(dy2, dy))
         print("min", np.min(masked_image))
-        
+
         if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
             break
 
@@ -971,74 +256,6 @@ def beam_ellipticity(dx, dy):
     d_circular = np.sqrt((dx**2 + dy**2) / 2)
 
     return ellipticity, d_circular
-
-
-def beam_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
-    """
-    Create a test image.
-
-    Create a v x h image with an elliptical beam with specified center and
-    beam dimensions.  By default the values in the image will range from 0 to
-    255. The default image will have no background and no noise.
-
-    Args:
-        h: number of columns in 2D test image
-        v: number of rows in 2D test image
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
-        noise: normally distributed pixel noise to add to image
-        max_value: all values in image fall between 0 and `max_value`
-    Returns:
-        image: integer 2D array of a Gaussian elliptical spot
-    """
-    rx = dx / 2
-    ry = dy / 2
-
-    image0 = np.zeros([v, h])
-
-    y, x = np.ogrid[:v, :h]
-
-    scale = max_value - 3 * noise
-    image0 = scale * np.exp(-2 * (x - xc)**2 / rx**2 - 2 * (y - yc)**2 / ry**2)
-
-    image1 = rotate_image(image0, xc, yc, phi)
-
-    if noise > 0:
-        image1 += np.random.poisson(noise, size=(v, h))
-
-        # after adding noise, the signal may exceed the range 0 to max_value
-        np.place(image1, image1 > max_value, max_value)
-        np.place(image1, image1 < 0, 0)
-
-    if max_value < 256:
-        return image1.astype(np.uint8)
-    if max_value < 65536:
-        return image1.astype(np.uint16)
-    return image1
-
-
-def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
-    """
-    Return x, y arrays to draw a rotated ellipse.
-
-    Args:
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
-    Returns:
-        x, y : two arrays of points on the ellipse
-    """
-    t = np.linspace(0, 2 * np.pi, npoints)
-    a = dx / 2 * np.cos(t)
-    b = dy / 2 * np.sin(t)
-    xp = xc + a * np.cos(phi) - b * np.sin(phi)
-    yp = yc - a * np.sin(phi) - b * np.cos(phi)
-    return np.array([xp, yp])
 
 
 def basic_beam_size_naive(image):
@@ -1106,10 +323,10 @@ def draw_beam_figure():
     # do not appear to be orthogonal to each other!
     plt.axes().set_aspect('equal')
 
-    xp, yp = ellipse_arrays(xc, yc, dx, dy, theta)
+    xp, yp = tools.ellipse_arrays(xc, yc, dx, dy, theta)
     plt.plot(xp, yp, 'k', lw=2)
 
-    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, theta)
+    xp, yp = tools.rotated_rect_arrays(xc, yc, dx, dy, theta)
     plt.plot(xp, yp, ':b', lw=2)
 
     sint = np.sin(theta) / 2
@@ -1119,14 +336,14 @@ def draw_beam_figure():
 
     # draw axes
     plt.annotate("x'", xy=(-25, 0), xytext=(25, 0),
-                 arrowprops=dict(arrowstyle="<-"), va='center', fontsize=16)
+                 arrowprops={'arrowstyle': '<-'}, va='center', fontsize=16)
 
     plt.annotate("y'", xy=(0, 25), xytext=(0, -25),
-                 arrowprops=dict(arrowstyle="<-"), ha='center', fontsize=16)
+                 arrowprops={'arrowstyle': '<-'}, ha='center', fontsize=16)
 
     plt.annotate(r'$\phi$', xy=(13, -2.5), fontsize=16)
-    plt.annotate('', xy=(15.5, 0), xytext=(
-        14, -8.0), arrowprops=dict(arrowstyle="<-", connectionstyle="arc3, rad=-0.2"))
+    plt.annotate('', xy=(15.5, 0), xytext=(14, -8.0),
+                 arrowprops={'arrowstyle': '<-', 'connectionstyle': 'arc3, rad=-0.2'})
 
     plt.annotate(r'$d_x$', xy=(-17, 7), color='blue', fontsize=16)
     plt.annotate(r'$d_y$', xy=(-4, -8), color='red', fontsize=16)
@@ -1134,54 +351,6 @@ def draw_beam_figure():
     plt.xlim(-30, 30)
     plt.ylim(30, -30)  # inverted to match image coordinates!
     plt.axis('off')
-
-
-def crop_image_to_rect(image, xc, yc, xmin, xmax, ymin, ymax):
-    """
-    Return image cropped to specified rectangle.
-
-    Args:
-        image: image of beam
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        xmin: left edge (pixels)
-        xmax: right edge (pixels)
-        ymin: top edge (pixels)
-        ymax: bottom edge (pixels)
-    Returns:
-        cropped_image: cropped image
-        new_xc, new_yc: new beam center (pixels)
-    """
-    v, h = image.shape
-    xmin = max(0, int(xmin))
-    xmax = min(h, int(xmax))
-    ymin = max(0, int(ymin))
-    ymax = min(v, int(ymax))
-    new_xc = xc - xmin
-    new_yc = yc - ymin
-    return image[ymin:ymax, xmin:xmax], new_xc, new_yc
-
-
-def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
-    """
-    Return image cropped to integration rectangle.
-
-    Since the image is being cropped, the center of the beam will move.
-
-    Args:
-        image: image of beam
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
-    Returns:
-        cropped_image: cropped image
-        new_xc: x-position of beam center in cropped image
-        new_yc: y-position of beam center in cropped image
-    """
-    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
-    return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
 
 
 def draw_visible_dotted_line(xpts, ypts):
@@ -1264,9 +433,9 @@ def beam_size_and_plot(o_image,
         ymax = yc + crop[0] / 2 / scale
         xmin = xc - crop[1] / 2 / scale
         xmax = xc + crop[1] / 2 / scale
-        image, xc, yc = crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
+        image, xc, yc = tools.crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
     elif crop:
-        image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
+        image, xc, yc = tools.crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
     else:
         image = o_image
 
@@ -1286,15 +455,15 @@ def beam_size_and_plot(o_image,
     plt.ylabel(label)
 
     # draw semi-major and semi-minor axes
-    xp, yp = axes_arrays(xc, yc, dx, dy, phi)
+    xp, yp = tools.axes_arrays(xc, yc, dx, dy, phi)
     draw_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
     # show ellipse around beam
-    xp, yp = ellipse_arrays(xc, yc, dx, dy, phi)
+    xp, yp = tools.ellipse_arrays(xc, yc, dx, dy, phi)
     draw_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
     # show integration area around beam
-    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi)
+    xp, yp = tools.rotated_rect_arrays(xc, yc, dx, dy, phi)
     draw_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
     # set limits on axes
@@ -1371,15 +540,16 @@ def beam_size_plot(o_image,
         ymax = yc + crop[0] / 2 / scale
         xmin = xc - crop[1] / 2 / scale
         xmax = xc + crop[1] / 2 / scale
-        image, xc, yc = crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
+        image, xc, yc = tools.crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
     elif crop:
-        image, xc, yc = crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
+        image, xc, yc = tools.crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
     else:
         image = o_image
 
     # subtract background
-    working_image = subtract_image_background(image, corner_fraction=corner_fraction, nT=nT, iso_noise=iso_noise)
-    back, _ = image_background(image, corner_fraction=corner_fraction, nT=nT)
+    working_image = back.subtract_image_background(image, corner_fraction=corner_fraction,
+                                              nT=nT, iso_noise=iso_noise)
+    bkgnd, _ = back.image_background(image, corner_fraction=corner_fraction, nT=nT)
 
     min_ = image.min()
     max_ = image.max()
@@ -1415,13 +585,13 @@ def beam_size_plot(o_image,
     plt.subplot(2, 2, 2)
     extent = np.array([-xc_s, h_s - xc_s, v_s - yc_s, -yc_s])
     im = plt.imshow(working_image, extent=extent, cmap=cmap)
-    xp, yp = ellipse_arrays(xc, yc, dx, dy, phi) * scale
+    xp, yp = tools.ellipse_arrays(xc, yc, dx, dy, phi) * scale
     draw_visible_dotted_line(xp - xc_s, yp - yc_s)
 
-    xp, yp = axes_arrays(xc, yc, dx, dy, phi) * scale
+    xp, yp = tools.axes_arrays(xc, yc, dx, dy, phi) * scale
     draw_visible_dotted_line(xp - xc_s, yp - yc_s)
 
-    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
+    xp, yp = tools.rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
     draw_visible_dotted_line(xp - xc_s, yp - yc_s)
 
     plt.colorbar(im, fraction=0.046 * v_s / h_s, pad=0.04)
@@ -1433,16 +603,17 @@ def beam_size_plot(o_image,
     plt.title('Image w/o background, center at (%.0f, %.0f) %s' % (xc_s, yc_s, units))
 
     # plot of values along semi-major axis
-    _, _, z, s = major_axis_arrays(o_image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2 / np.pi) / r_major * abs(np.sum(z - back) * (s[1] - s[0]))
-    baseline = a * np.exp(-2) + back
+    _, _, z, s = tools.major_axis_arrays(o_image, xc, yc, dx, dy, phi)
+    a = np.sqrt(2 / np.pi) / r_major * abs(np.sum(z - bkgnd) * (s[1] - s[0]))
+    baseline = a * np.exp(-2) + bkgnd
 
     plt.subplot(2, 2, 3)
     plt.plot(s * scale, z, 'sb', markersize=2)
     plt.plot(s * scale, z, '-b', lw=0.5)
-    z_values = back + a * np.exp(-2 * (s / r_major)**2)
+    z_values = bkgnd + a * np.exp(-2 * (s / r_major)**2)
     plt.plot(s * scale, z_values, 'k')
-    plt.annotate('', (-r_mag_s, baseline), (r_mag_s, baseline), arrowprops=dict(arrowstyle="<->"))
+    plt.annotate('', (-r_mag_s, baseline), (r_mag_s, baseline),
+                 arrowprops={'arrowstyle': '<->'})
     plt.text(0, 1.1 * baseline, 'dx=%.0f %s' % (d_mag_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian Fit')
     plt.xlabel('Distance from Center [%s]' % units)
@@ -1451,16 +622,17 @@ def beam_size_plot(o_image,
     #plt.gca().set_ylim(bottom=0)
 
     # plot of values along semi-minor axis
-    _, _, z, s = minor_axis_arrays(o_image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2 / np.pi) / r_minor * abs(np.sum(z - back) * (s[1] - s[0]))
-    baseline = a * np.exp(-2) + back
+    _, _, z, s = tools.minor_axis_arrays(o_image, xc, yc, dx, dy, phi)
+    a = np.sqrt(2 / np.pi) / r_minor * abs(np.sum(z - bkgnd) * (s[1] - s[0]))
+    baseline = a * np.exp(-2) + bkgnd
 
     plt.subplot(2, 2, 4)
     plt.plot(s * scale, z, 'sb', markersize=2)
     plt.plot(s * scale, z, '-b', lw=0.5)
-    z_values = back + a * np.exp(-2 * (s / r_minor)**2)
+    z_values = bkgnd + a * np.exp(-2 * (s / r_minor)**2)
     plt.plot(s * scale, z_values, 'k')
-    plt.annotate('', (-r_min_s, baseline), (r_min_s, baseline), arrowprops=dict(arrowstyle="<->"))
+    plt.annotate('', (-r_min_s, baseline), (r_min_s, baseline),
+                 arrowprops={'arrowstyle': '<->'})
     plt.text(0, 1.1 * baseline, 'dy=%.0f %s' % (d_min_s, units), va='bottom', ha='center')
     plt.text(0, a, '  Gaussian Fit')
     plt.xlabel('Distance from Center [%s]' % units)
