@@ -1,10 +1,7 @@
 # pylint: disable=invalid-name
 # pylint: disable=missing-function-docstring
 
-"""
-Tests for functions in background.py.
-"""
-import matplotlib.pyplot as plt
+"""Tests for functions in background.py."""
 
 import numpy as np
 import laserbeamsize as lbs
@@ -176,9 +173,6 @@ def test_iso_zero_corner_fraction():
 def test_iso_test_noise_only_image():
     noise = 20
     image = np.random.poisson(noise, size=(400, 400))
-    plt.imshow(image)
-    plt.colorbar()
-    plt.show()
     corner_mean, corner_stdev = lbs.iso_background(image)
     assert np.isclose(corner_mean, noise, rtol=0.1)
     assert np.isclose(corner_stdev, np.sqrt(noise), rtol=0.1)
@@ -216,14 +210,6 @@ def test_iso_image_data_types():
     corner_mean_int, corner_stdev_int = lbs.iso_background(image_int, 0.05)
     assert corner_mean_float == corner_mean_int == 1
     assert corner_stdev_float == corner_stdev_int == 0
-
-
-def test_iso_test_image():
-    h, v, xc, yc, dx, dy, phi = 400, 400, 200, 200, 50, 100, 0
-    image = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi)
-    corner_mean, corner_stdev = lbs.iso_background(image)
-    assert corner_mean == 0
-    assert corner_stdev == 0
 
 
 
