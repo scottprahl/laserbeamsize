@@ -8,6 +8,8 @@ test:
 	pytest tests/test_back.py
 	pytest tests/test_masks.py
 	pytest tests/test_tools.py
+	pytest tests/test_basic_beam_size.py
+	pytest tests/test_beam_size_no_noise.py
 
 html:
 	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(HTMLOPTS)
