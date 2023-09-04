@@ -26,6 +26,7 @@ __url__ = 'https://github.com/scottprahl/laserbeamsize.git'
 from .masks import *
 from .image_tools import *
 from .background import *
+from .analysis import *
+from .display import *
 
-from .laserbeamsize import *
 from .m2 import *

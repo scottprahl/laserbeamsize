@@ -5,7 +5,9 @@ SOURCEDIR     = docs
 BUILDDIR      = docs/_build
 
 test:
-	pytest tests
+	pytest tests/test_back.py
+	pytest tests/test_masks.py
+	pytest tests/test_tools.py
 
 html:
 	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(HTMLOPTS)
@@ -18,13 +20,18 @@ lint:
 	-pylint laserbeamsize/background.py
 	-pylint laserbeamsize/masks.py
 	-pylint laserbeamsize/image_tools.py
+	-pylint laserbeamsize/analysis.py
+	-pylint laserbeamsize/display.py
 	-pylint laserbeamsize/m2.py
-	-pylint laserbeamsize/laserbeamsize.py
 	-pylint laserbeamsize/__init__.py
 
 doccheck:
+	-pydocstyle laserbeamsize/background.py
+	-pydocstyle laserbeamsize/masks.py
+	-pydocstyle laserbeamsize/image_tools.py
+	-pydocstyle laserbeamsize/analysis.py
+	-pydocstyle laserbeamsize/display.py
 	-pydocstyle laserbeamsize/m2.py
-	-pydocstyle laserbeamsize/laserbeamsize.py
 	-pydocstyle laserbeamsize/__init__.py
 
 rstcheck:

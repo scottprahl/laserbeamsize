@@ -145,7 +145,7 @@ def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
     hhi = min(h, int(xc + rx))
 
     raw_mask[vlo:vhi, hlo:hhi] = 1
-    rot_mask = rotate_image(raw_mask, xc, yc, phi)
+    rot_mask = rotate_image(raw_mask, xc, yc, phi) >= 0.5
     return rot_mask
 
 
@@ -196,4 +196,4 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     g = Image.new('L', (h, v), 0)
     ImageDraw.Draw(g).polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4), (x1, y1)], outline=1, fill=1)
     mask = np.array(g)
-    return mask
+    return mask.astype(bool)

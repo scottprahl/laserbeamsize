@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import laserbeamsize
 
@@ -124,7 +125,15 @@ def test_rotated_rect_mask():
 #     image = np.zeros((100, 100), dtype=bool)
 #     mask_fast = laserbeamsize.rotated_rect_mask(image, 50, 50, 20, 30, np.pi/6)
 #     mask_slow = laserbeamsize.masks.rotated_rect_mask_slow(image, 50, 50, 20, 30, np.pi/6)
-#     assert np.array_equal(mask_fast, mask_slow)
+#     plt.subplots(1,2,figsize=(10,5))
+#     plt.subplot(1,2,1)
+#     plt.title('rotated_rect_mask')
+#     plt.imshow(mask_fast)
+#     plt.subplot(1,2,2)
+#     plt.title('rotated_rect_mask_slow')
+#     plt.imshow(mask_slow)
+#     plt.show()
+#    assert np.array_equal(mask_fast, mask_slow)
 # 
 # def test_varying_dimensions():
 #     image = np.zeros((150, 150), dtype=bool)
@@ -165,6 +174,7 @@ if __name__ == "__main__":
 
     test_rotated_rect_mask_slow()
     test_rotated_rect_mask()
+    test_basic_comparison()
     print("All tests passed!")
 
 if __name__ == "__main__":
