@@ -1,11 +1,4 @@
 # pylint: disable=invalid-name
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-statements
-# pylint: disable=too-many-lines
-# pylint: disable=protected-access
-# pylint: disable=consider-using-enumerate
-# pylint: disable=consider-using-f-string
 
 """
 Routines for removing background for beam analysis.

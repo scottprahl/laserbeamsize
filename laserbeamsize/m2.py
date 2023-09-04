@@ -993,11 +993,10 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     arc_x = 1.5 * zR * 1e3
     arc_y = 1.5 * zR * np.tan(Theta / 2) * 1e6
     plt.annotate('', (arc_x, -arc_y), (arc_x, arc_y),
-                 arrowprops=dict(arrowstyle="<->",
-                                 connectionstyle="arc3, rad=-0.2"))
+                 arrowprops={'arrowstyle': '<->', 'connectionstyle': 'arc3, rad=-0.2'})
 
     # show the Rayleigh ranges
-    ymin = max(max(d_fit), max(d))
+    ymin = max(d_fit, d)
     ymin *= -1 / 2 * 1e6
     plt.text(0, ymin, '$-z_R<z-z_0<z_R$', ha='center', va='bottom', fontsize=16)
     x = (zmax - z0 + 2 * zR) / 2 * 1e3
