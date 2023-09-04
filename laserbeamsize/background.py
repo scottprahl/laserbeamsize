@@ -13,8 +13,8 @@ from laserbeamsize.masks import corner_mask, perimeter_mask
 __all__ = ('subtract_background_image',
            'subtract_constant',
            'subtract_tilted_background',
-           'corner_background',
-           'image_background',
+           'background_in_corners',
+           'iso_background',
            'subtract_image_background',
            'subtract_corner_background',
            )
@@ -84,7 +84,7 @@ def subtract_constant(original,
     return subtracted
 
 
-def corner_background(image, corner_fraction=0.035):
+def background_in_corners(image, corner_fraction=0.035):
     """
     Return the mean and stdev of background in corners of image.
 
@@ -109,9 +109,9 @@ def corner_background(image, corner_fraction=0.035):
     return mean, stdev
 
 
-def image_background(image,
-                     corner_fraction=0.035,
-                     nT=3):
+def iso_background(image,
+                  corner_fraction=0.035,
+                  nT=3):
     """
     Return the background for unilluminated pixels in an image.
 
@@ -127,15 +127,21 @@ def image_background(image,
     Returns:
         background: average background value across image
     """
+    if corner_fraction <= 0 or corner_fraction > 0.25:
+        raise ValueError('corner_fraction must be positive and less than 0.25.')
+
     # estimate background
-    ave, std = corner_background(image, corner_fraction=corner_fraction)
+    ave, std = background_in_corners(image, corner_fraction=corner_fraction)
 
     # defined ISO/TR 11146-3:2004, equation 59
     threshold = ave + nT * std
 
     # collect all pixels that fall below the threshold
-    unilluminated = image[image < threshold]
+    unilluminated = image[image <= threshold]
 
+    if len(unilluminated) == 0:
+        raise ValueError('est bkgnd=%.2f stdev=%.2f. No values in image are <= %.2f.' % (ave, std, threshold))
+    
     mean = np.mean(unilluminated)
     stdev = np.std(unilluminated)
     return mean, stdev
@@ -214,7 +220,7 @@ def subtract_image_background(image,
     Returns:
         image: 2D array with background subtracted
     """
-    back, sigma = image_background(image, corner_fraction=corner_fraction, nT=nT)
+    back, sigma = iso_background(image, corner_fraction=corner_fraction, nT=nT)
 
     subtracted = image.astype(float)
     subtracted -= back
@@ -255,7 +261,7 @@ def subtract_corner_background(image,
     Returns:
         image: 2D array with background subtracted
     """
-    back, sigma = corner_background(image, corner_fraction)
+    back, sigma = background_in_corners(image, corner_fraction)
 
     subtracted = image.astype(float)
     subtracted -= back
