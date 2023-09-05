@@ -115,6 +115,9 @@ def iso_background(image,
     """
     Return the background for unilluminated pixels in an image.
 
+    This follows one method described in ISO 11146-3 to determine the background
+    in an image.
+
     We first estimate the mean and standard deviation using the values in the
     corners.  All pixel values that fall below the mean+nT*stdev are considered
     un-illuminated (background) pixels.  These are averaged to find the background
@@ -125,7 +128,7 @@ def iso_background(image,
         nT: how many standard deviations to subtract
         corner_fraction: the fractional size of corner rectangles
     Returns:
-        background: average background value across image
+        mean, stdev: mean and stdev of background in the image
     """
     if corner_fraction <= 0 or corner_fraction > 0.25:
         raise ValueError('corner_fraction must be positive and less than 0.25.')
