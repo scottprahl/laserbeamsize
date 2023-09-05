@@ -1,5 +1,5 @@
 import numpy as np
-import laserbeamsize
+import laserbeamsize as lbs
 
 # Sample image
 image = np.zeros((100, 100))
@@ -7,17 +7,17 @@ image = np.zeros((100, 100))
 
 # elliptical_mask()
 def test_elliptical_mask():
-    mask = laserbeamsize.elliptical_mask(image, 50, 50, 40, 20, np.pi / 4)
+    mask = lbs.elliptical_mask(image, 50, 50, 40, 20, np.pi / 4)
     assert mask.shape == image.shape, "Mask shape mismatch"
 
 
 def test_elliptical_mask_same_shape():
-    mask = laserbeamsize.elliptical_mask(image, 50, 50, 40, 60, 0)
+    mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
     assert mask.shape == image.shape, "Output mask shape mismatch with input image shape."
 
 
 def test_elliptical_mask_unrotated():
-    mask = laserbeamsize.elliptical_mask(image, 50, 50, 40, 60, 0)
+    mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
     assert not np.any(mask[:20, :])
     assert not np.any(mask[81:, :])
     assert not np.any(mask[:, :15])
@@ -27,44 +27,45 @@ def test_elliptical_mask_unrotated():
 
 
 def test_elliptical_mask_rotated():
-    mask = laserbeamsize.elliptical_mask(image, 50, 50, 40, 60, np.pi / 4)  # 45-degree rotation
-    unrotated_mask = laserbeamsize.elliptical_mask(image, 50, 50, 40, 60, 0)
+    mask = lbs.elliptical_mask(image, 50, 50, 40, 60, np.pi / 4)  # 45-degree rotation
+    unrotated_mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
     assert not np.array_equal(mask, unrotated_mask), "Rotated mask should not be the same as the unrotated one."
 
 
 def test_elliptical_mask_edge_cases():
-    mask = laserbeamsize.elliptical_mask(image, 150, 150, 200, 200, 0)
+    mask = lbs.elliptical_mask(image, 150, 150, 200, 200, 0)
     assert mask.shape == image.shape, "Output mask shape mismatch with input image shape for edge cases."
 
 
 # corner_mask()
 def test_corner_mask():
-    mask = laserbeamsize.corner_mask(image)
+    mask = lbs.corner_mask(image)
     assert mask.shape == image.shape, "Mask shape mismatch"
     # You can check corners of the mask here.
 
 
 def test_corner_mask_default_fraction():
-    mask = laserbeamsize.corner_mask(image)
+    mask = lbs.corner_mask(image)
     expected_true_pixels = 4 * (int(0.035 * 100))**2  # for a 100x100 image
-    assert np.sum(mask) == expected_true_pixels, f"Expected {expected_true_pixels} True pixels, but got {np.sum(mask)}."
+    msg = f"Expected {expected_true_pixels} True pixels, but got {np.sum(mask)}."
+    assert np.sum(mask) == expected_true_pixels, msg
 
 
 def test_corner_mask_custom_fraction():
     custom_fraction = 0.05  # 5%
-    mask = laserbeamsize.corner_mask(image, corner_fraction=custom_fraction)
+    mask = lbs.corner_mask(image, corner_fraction=custom_fraction)
     expected_true_pixels = 4 * (custom_fraction * 100)**2
     assert np.sum(mask) == expected_true_pixels, f"Expected {expected_true_pixels} True pixels, but got {np.sum(mask)}."
 
 
 def test_corner_mask_large_image():
     large_image = np.zeros((1000, 1000))
-    mask = laserbeamsize.corner_mask(large_image)
+    mask = lbs.corner_mask(large_image)
     assert mask.shape == large_image.shape, "Mask shape mismatch with large image"
 
 
 def test_mask_regions_are_correct():
-    mask = laserbeamsize.corner_mask(image)
+    mask = lbs.corner_mask(image)
     n, m = int(100 * 0.035), int(100 * 0.035)  # for a 100x100 image with default fraction
     # Ensure center of the mask is False
     assert not np.any(mask[n:-n, m:-m]), "Center of the mask should be False"
@@ -77,13 +78,13 @@ def test_mask_regions_are_correct():
 
 # perimeter_mask()
 def test_perimeter_mask():
-    mask = laserbeamsize.perimeter_mask(image)
+    mask = lbs.perimeter_mask(image)
     assert mask.shape == image.shape, "Mask shape mismatch"
     # You can check the perimeter of the mask here.
 
 
 def test_perimeter_mask_basic():
-    result = laserbeamsize.perimeter_mask(image)
+    result = lbs.perimeter_mask(image)
     assert np.all(result[:3, :])
     assert np.all(result[-3:, :])
     assert np.all(result[:, :3])
@@ -92,7 +93,7 @@ def test_perimeter_mask_basic():
 
 
 def test_perimeter_mask_fraction():
-    result = laserbeamsize.perimeter_mask(image, corner_fraction=0.1)
+    result = lbs.perimeter_mask(image, corner_fraction=0.1)
     assert np.all(result[:9, :])
     assert np.all(result[-9:, :])
     assert np.all(result[:, :9])
@@ -102,7 +103,7 @@ def test_perimeter_mask_fraction():
 
 def test_perimeter_mask_odd_dimension():
     image2 = np.zeros((101, 101), dtype=bool)
-    result = laserbeamsize.perimeter_mask(image2)
+    result = lbs.perimeter_mask(image2)
     assert np.all(result[:3, :])
     assert np.all(result[-3:, :])
     assert np.all(result[:, :3])
@@ -112,7 +113,7 @@ def test_perimeter_mask_odd_dimension():
 
 def test_perimeter_mask_non_square():
     image2 = np.zeros((150, 50), dtype=bool)
-    result = laserbeamsize.perimeter_mask(image2)
+    result = lbs.perimeter_mask(image2)
     assert np.all(result[:5, :])  # 0.035*150 ~ 5.25 which rounds to 6
     assert np.all(result[-5:, :])
     assert np.all(result[:, :1])  # 0.035*50 ~ 1.75 which rounds to 2
@@ -122,20 +123,20 @@ def test_perimeter_mask_non_square():
 
 # rotated_rect_mask_slow()
 def test_rotated_rect_mask_slow():
-    mask = laserbeamsize.masks.rotated_rect_mask_slow(image, 50, 50, 40, 20, np.pi / 4)
+    mask = lbs.masks.rotated_rect_mask_slow(image, 50, 50, 40, 20, np.pi / 4)
     assert mask.shape == image.shape, "Mask shape mismatch"
 
 
 def test_rotated_rect_mask():
-    mask = laserbeamsize.rotated_rect_mask(image, 50, 50, 40, 20, np.pi / 4)
+    mask = lbs.rotated_rect_mask(image, 50, 50, 40, 20, np.pi / 4)
     assert mask.shape == image.shape, "Mask shape mismatch"
 
 # import matplotlib.pyplot as plt
 #
 # def test_basic_comparison():
 #     image = np.zeros((100, 100), dtype=bool)
-#     mask_fast = laserbeamsize.rotated_rect_mask(image, 50, 50, 20, 30, np.pi/6)
-#     mask_slow = laserbeamsize.masks.rotated_rect_mask_slow(image, 50, 50, 20, 30, np.pi/6)
+#     mask_fast = lbs.rotated_rect_mask(image, 50, 50, 20, 30, np.pi/6)
+#     mask_slow = lbs.masks.rotated_rect_mask_slow(image, 50, 50, 20, 30, np.pi/6)
 #     plt.subplots(1,2,figsize=(10,5))
 #     plt.subplot(1,2,1)
 #     plt.title('rotated_rect_mask')
@@ -148,20 +149,20 @@ def test_rotated_rect_mask():
 #
 # def test_varying_dimensions():
 #     image = np.zeros((150, 150), dtype=bool)
-#     mask_fast = laserbeamsize.rotated_rect_mask(image, 75, 75, 30, 60, np.pi/4)
-#     mask_slow = laserbeamsize.masks.rotated_rect_mask_slow(image, 75, 75, 30, 60, np.pi/4)
+#     mask_fast = lbs.rotated_rect_mask(image, 75, 75, 30, 60, np.pi/4)
+#     mask_slow = lbs.masks.rotated_rect_mask_slow(image, 75, 75, 30, 60, np.pi/4)
 #     assert np.array_equal(mask_fast, mask_slow)
 #
 # def test_varying_rotation():
 #     image = np.zeros((200, 200), dtype=bool)
-#     mask_fast = laserbeamsize.rotated_rect_mask(image, 100, 100, 40, 60, np.pi/3)
-#     mask_slow = laserbeamsize.masks.rotated_rect_mask_slow(image, 100, 100, 40, 60, np.pi/3)
+#     mask_fast = lbs.rotated_rect_mask(image, 100, 100, 40, 60, np.pi/3)
+#     mask_slow = lbs.masks.rotated_rect_mask_slow(image, 100, 100, 40, 60, np.pi/3)
 #     assert np.array_equal(mask_fast, mask_slow)
 #
 # def test_off_center():
 #     image = np.zeros((250, 250), dtype=bool)
-#     mask_fast = laserbeamsize.rotated_rect_mask(image, 60, 190, 50, 70, np.pi/2)
-#     mask_slow = laserbeamsize.masks.rotated_rect_mask_slow(image, 60, 190, 50, 70, np.pi/2)
+#     mask_fast = lbs.rotated_rect_mask(image, 60, 190, 50, 70, np.pi/2)
+#     mask_slow = lbs.masks.rotated_rect_mask_slow(image, 60, 190, 50, 70, np.pi/2)
 #     assert np.array_equal(mask_fast, mask_slow)
 
 

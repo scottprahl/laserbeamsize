@@ -27,6 +27,7 @@ Finding the center and diameters of a beam in a monochrome image is simple::
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 import laserbeamsize.background as back
 import laserbeamsize.image_tools as tools
 
@@ -186,6 +187,26 @@ def beam_size(image,
     bkgnd, _ = back.iso_background(image, corner_fraction=corner_fraction, nT=nT)
     image_without_background = back.subtract_constant(image, bkgnd, iso_noise=iso_noise)
 
+
+    # Define the custom colormap
+    # The numbers in the left column represent the normalized values (from 0 to 1) 
+    # at which the color transitions will occur.
+    segments = {
+        'red':   [(0.0, 1.0, 1.0),   # at 0.0, it's white (1.0)
+                 (0.5, 0.0, 0.0),   # at 0.5, it's blue
+                 (1.0, 0.0, 0.0)],  # at 1.0, it's black
+
+        'green': [(0.0, 1.0, 1.0),   # at 0.0, it's white
+                  (0.5, 0.0, 0.0),   # at 0.5, it's blue
+                  (1.0, 0.0, 0.0)],  # at 1.0, it's black
+
+        'blue':  [(0.0, 1.0, 1.0),   # at 0.0, it's white
+                  (0.5, 1.0, 1.0),   # at 0.5, it's blue
+                  (1.0, 0.0, 0.0)]   # at 1.0, it's black
+    }
+
+    cm = LinearSegmentedColormap('testCmap', segmentdata=segments, N=256)
+
     # initial guess at beam properties
     print("finding beam with iso_noise=", iso_noise)
     if iso_noise:
@@ -201,11 +222,11 @@ def beam_size(image,
 
     xmin = np.min(image_without_background)
     xmax = np.max(image_without_background)
-    plt.imshow(image_without_background)
+    plt.imshow(image_without_background, cmap=cm)
     x, y = tools.ellipse_arrays(xc, yc, dx, dy, phi_)
     plt.plot(x, y)
     plt.colorbar()
-    plt.title('bkgnd=%.1f min=%.1f max=%.1f', bkgnd, xmin, xmax)
+    plt.title('bkgnd=%.1f min=%.1f max=%.1f' % (bkgnd, xmin, xmax))
     plt.show()
 
     for _iteration in range(1, max_iter):
