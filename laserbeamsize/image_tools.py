@@ -354,8 +354,8 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
     Returns:
         image: an unsigned 2D integer array of a Gaussian elliptical spot
     """
-    if max_value < 0 or max_value > 65536:
-        raise ValueError('max_value must be positive and less than 65536')
+    if max_value < 0 or max_value > 2**16-1:
+        raise ValueError('max_value must be positive and less than 65535')
 
     if not isinstance(h, int) or h <= 0:
         raise ValueError('number of columns must be positive')

@@ -28,6 +28,8 @@ Finding the center and diameters of a beam in a monochrome image is simple::
 import numpy as np
 import matplotlib.pyplot as plt
 import laserbeamsize.background as back
+import laserbeamsize.image_tools as tools
+
 from laserbeamsize.masks import rotated_rect_mask
 
 __all__ = ('basic_beam_size',
@@ -194,6 +196,12 @@ def beam_size(image,
         xc, yc, dx, dy, phi_ = beam_size(image, **all_kwargs)
     else:
         xc, yc, dx, dy, phi_ = basic_beam_size(image_without_background)
+
+    plt.imshow(image_without_background)
+    x, y = tools.ellipse_arrays(xc, yc, dx, dy, phi_)
+    plt.plot(x, y)
+    plt.colorbar()
+    plt.show()
 
     for _iteration in range(1, max_iter):
 

@@ -81,9 +81,9 @@ def test_phi_values():
         pass
 
 
-def run_test(h, v, xc, yc, dx, dy, phi):
+def run_test(h, v, xc, yc, dx, dy, phi, max_value=255):
     
-    test_img = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi)
+    test_img = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, max_value=max_value)
     result_xc, result_yc, result_dx, result_dy, result_phi = lbs.beam_size(test_img)
     erp = np.degrees(phi)
     rp = np.degrees(result_phi)
@@ -93,12 +93,13 @@ def run_test(h, v, xc, yc, dx, dy, phi):
         plt.imshow(test_img)
         x, y = lbs.image_tools.ellipse_arrays(result_xc, result_yc, result_dx, result_dy, result_phi)
         plt.plot(x, y)
+        plt.colorbar()
         plt.show()
     
     assert np.isclose(result_xc, xc, rtol=0.03), f"Expected xc around {xc}, but got {result_xc}"
     assert np.isclose(result_yc, yc, rtol=0.03), f"Expected yc around {yc}, but got {result_yc}"
-    assert np.isclose(result_dx, dx, rtol=0.03), f"Expected dx around {expected_dx}, but got {result_dx}"
-    assert np.isclose(result_dy, dy, rtol=0.03), f"Expected dy around {expected_dy}, but got {result_dy}"
+    assert np.isclose(result_dx, dx, rtol=0.03), f"Expected dx around {dx}, but got {result_dx}"
+    assert np.isclose(result_dy, dy, rtol=0.03), f"Expected dy around {dy}, but got {result_dy}"
     assert np.isclose(rp, erp, rtol=0.03), f"Expected phi around {phi}°, but got {result_phi}°"
 
 
@@ -120,6 +121,14 @@ def test_vertical_ellipse_no_rotation():
 
 def test_horizontal_ellipse_off_center():
     run_test(400, 400, 150, 300, 50, 100, np.pi / 6)
+
+
+def test_horizontal_ellipse_4048():
+    run_test(400, 400, 200, 200, 100, 50, 0, max_value=4047)
+
+
+def test_vertical_ellipse_rotated_4048():
+    run_test(400, 400, 200, 200, 100, 50, np.pi / 6, max_value=4047)
 
 
 # Running the tests
