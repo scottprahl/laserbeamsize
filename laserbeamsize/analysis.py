@@ -98,6 +98,35 @@ def basic_beam_size(original):
 
     return xc, yc, dx, dy, phi
 
+def _validate_inputs(image,
+                     mask_diameters=3,
+                     corner_fraction=0.035,
+                     nT=3,
+                     max_iter=25,
+                     phi=None,
+                     iso_noise=False):
+    """
+    Ensure arguments to validate inputs are sane.
+    
+    This is separate to keep the beam_size() a reasonable size.
+    """
+    if len(image.shape) > 2:
+        raise ValueError('Color images not supported. Image must be 2D.')
+
+    if mask_diameters <= 0 or mask_diameters > 5:
+        raise ValueError('mask_diameters must be a positive number less than 5.')
+
+    if corner_fraction < 0 or corner_fraction> 0.25:
+        raise ValueError('corner_fraction must be a positive number less than 0.25.')
+
+    if nT < 2 or nT > 4:
+        raise ValueError('nT must be between 2 and 4.')
+
+    if max_iter < 0 or not isinstance(max_iter, int):
+        raise ValueError('max_iter must be a non-negative integer.')
+
+    if phi is not None and abs(phi) > 2.1 * np.pi:
+        raise ValueError('the angle phi should be in radians!')
 
 def beam_size(image,
               mask_diameters=3,
@@ -135,26 +164,23 @@ def beam_size(image,
 
     Args:
         image: 2D array of image of beam
-        mask_diameters: the size of the integration rectangle in diameters
-        corner_fraction: the fractional size of the corners
-        nT: the multiple of background noise to remove
-        max_iter: maximum number of iterations.
+        mask_diameters: (optional) the size of the integratifon rectangle in diameters
+        corner_fraction: (optional) the fractional size of the corners
+        nT: (optional) the multiple of background noise to remove
+        max_iter: (optional) maximum number of iterations.
         phi: (optional) fixed tilt of ellipse in radians
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
         dx: horizontal diameter of beam
         dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
+        phi: angle that elliptical beam is rotated ccw [radians]
     """
-    if len(image.shape) > 2:
-        raise ValueError('Color images not supported. Image must be 2D.')
+    _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi, iso_noise)
 
-    print('corner ', back.corner_background(image))
-    print('image ', back.image_background(image))
     # remove background
-    image_without_background = back.subtract_image_background(
-        image, corner_fraction, nT, iso_noise=iso_noise)
+    bkgnd, _ = back.iso_background(image, corner_fraction=corner_fraction, nT=nT)
+    image_without_background = back.subtract_constant(image, bkgnd, iso_noise=iso_noise)
 
     # initial guess at beam properties
     print("finding beam with iso_noise=", iso_noise)
@@ -182,8 +208,8 @@ def beam_size(image,
 
         # zero values outside mask (rotation allows mask pixels to differ from 0 or 1)
         masked_image[mask < 0.5] = 0
-        plt.imshow(masked_image)
-        plt.show()
+#        plt.imshow(masked_image)
+#        plt.show()
 
         xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
         print('iteration %d' % _iteration)
