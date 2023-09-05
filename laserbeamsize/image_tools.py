@@ -333,9 +333,9 @@ def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     return np.array([xp, yp])
 
 
-def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
+def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_value=255):
     """
-    Create a test image.
+    Create a 2D test image with an elliptical beam and possible noise.
 
     Create a v x h image with an elliptical beam with specified center and
     beam dimensions.  By default the values in the image will range from 0 to
@@ -354,7 +354,7 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
     Returns:
         image: an unsigned 2D integer array of a Gaussian elliptical spot
     """
-    if max_value < 0 or max_value > 2**16-1:
+    if max_value < 0 or max_value >= 2**16:
         raise ValueError('max_value must be positive and less than 65535')
 
     if not isinstance(h, int) or h <= 0:
@@ -379,14 +379,24 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, max_value=255):
     image1 = rotate_image(image0, xc, yc, phi)
 
     if noise > 0:
-        image1 += np.random.poisson(noise, size=(v, h))
+        if ntype == 'poisson':
+            # noise is the mean value of the distribution
+            image1 += np.random.poisson(noise, size=(v, h))
+
+        if ntype == 'constant':
+            # noise is the mean value of the distribution
+            image1 += noise
+
+        if ntype in ('gaussian', 'normal'):
+            # noise is the mean value of the distribution
+            image1 += np.random.normal(noise, np.sqrt(noise), size=(v, h))
 
         # after adding noise, the signal may exceed the range 0 to max_value
         np.place(image1, image1 > max_value, max_value)
         np.place(image1, image1 < 0, 0)
 
-    if max_value < 256:
+    if max_value < 2**8:
         return image1.astype(np.uint8)
-    if max_value < 65536:
+    if max_value < 2**16:
         return image1.astype(np.uint16)
     return image1

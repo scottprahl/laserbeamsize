@@ -100,16 +100,17 @@ def basic_beam_size(original):
 
     return xc, yc, dx, dy, phi
 
+
 def _validate_inputs(image,
                      mask_diameters=3,
                      corner_fraction=0.035,
                      nT=3,
                      max_iter=25,
-                     phi=None,
-                     iso_noise=False):
+                     phi=None
+                     ):
     """
     Ensure arguments to validate inputs are sane.
-    
+
     This is separate to keep the beam_size() a reasonable size.
     """
     if len(image.shape) > 2:
@@ -118,7 +119,7 @@ def _validate_inputs(image,
     if mask_diameters <= 0 or mask_diameters > 5:
         raise ValueError('mask_diameters must be a positive number less than 5.')
 
-    if corner_fraction < 0 or corner_fraction> 0.25:
+    if corner_fraction < 0 or corner_fraction > 0.25:
         raise ValueError('corner_fraction must be a positive number less than 0.25.')
 
     if nT < 2 or nT > 4:
@@ -129,6 +130,7 @@ def _validate_inputs(image,
 
     if phi is not None and abs(phi) > 2.1 * np.pi:
         raise ValueError('the angle phi should be in radians!')
+
 
 def beam_size(image,
               mask_diameters=3,
@@ -178,7 +180,7 @@ def beam_size(image,
         dy: vertical diameter of beam
         phi: angle that elliptical beam is rotated ccw [radians]
     """
-    _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi, iso_noise)
+    _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi)
 
     # remove background
     bkgnd, _ = back.iso_background(image, corner_fraction=corner_fraction, nT=nT)
@@ -197,10 +199,13 @@ def beam_size(image,
     else:
         xc, yc, dx, dy, phi_ = basic_beam_size(image_without_background)
 
+    xmin = np.min(image_without_background)
+    xmax = np.max(image_without_background)
     plt.imshow(image_without_background)
     x, y = tools.ellipse_arrays(xc, yc, dx, dy, phi_)
     plt.plot(x, y)
     plt.colorbar()
+    plt.title('bkgnd=%.1f min=%.1f max=%.1f', bkgnd, xmin, xmax)
     plt.show()
 
     for _iteration in range(1, max_iter):

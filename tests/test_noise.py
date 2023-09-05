@@ -14,17 +14,18 @@ image = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, max_value=4
 
 
 
-def run_test(h, v, xc, yc, dx, dy, phi, noise, constant=False, max_value=255):
-    if constant:
-        test_img = image + noise
-    else:
-        test_img = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, noise=noise, max_value=max_value)
+def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_value=255):
+
+    test_img = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, 
+                                                 noise=noise, ntype=ntype,
+                                                 max_value=max_value)
+
     result_xc, result_yc, result_dx, result_dy, result_phi = lbs.beam_size(test_img)
     erp = np.degrees(phi)
     rp = np.degrees(result_phi)
     
     if interactive:
-        plt.title('result=%.1f° expected=%.1f°' % (rp, erp))
+        plt.title('noise=%.1f pixels, type=%s' % (noise, ntype))
         plt.imshow(test_img)
         x, y = lbs.image_tools.ellipse_arrays(result_xc, result_yc, result_dx, result_dy, result_phi)
         plt.colorbar()
@@ -40,48 +41,42 @@ def run_test(h, v, xc, yc, dx, dy, phi, noise, constant=False, max_value=255):
 
 def test_constant_noise_0():
     noise=0
-    run_test(400, 400, 200, 200, 100, 50, 0, noise, constant=True)
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='constant')
+
 
 def test_constant_noise_20():
     noise=20
-    run_test(400, 400, 200, 200, 100, 50, 0, noise, constant=True)
-
-
-def test_constant_noise_20a():
-    noise=20
-    run_test(400, 400, 200, 200, 100, 50, 0, noise, constant=True, max_value=4047)
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='constant')
 
 
 def test_constant_noise_50():
     noise=50
-    run_test(400, 400, 200, 200, 100, 50, 0, noise, constant=True)
-
-def test_1_noise():
-    noise=0
-    run_test(400, 400, 200, 200, 100, 50, 0, noise)
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='constant')
 
 
-def test_1_noise():
-    noise=1
-    run_test(400, 400, 200, 200, 100, 50, 0, noise)
-
-
-def test_20_noise():
-    noise=20
-    run_test(400, 400, 200, 200, 100, 50, 0, noise)
-
-
-def test_50_noise():
+def test_constant_noise_50a():
     noise=50
-    run_test(400, 400, 200, 200, 100, 50, 0, noise)
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='constant', max_value=4047)
 
 
-def test_vertical_ellipse_no_rotation():
-    run_test(400, 400, 200, 200, 50, 100, 0)
+def test_poisson_noise_0():
+    noise=0
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='poisson')
 
 
-def test_horizontal_ellipse_off_center():
-    run_test(400, 400, 150, 300, 50, 100, np.pi / 6)
+def test_poisson_noise_20():
+    noise=20
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='poisson')
+
+
+def test_poisson_noise_50():
+    noise=50
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='poisson')
+
+
+def test_poisson_noise_50a():
+    noise=50
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='poisson', max_value=4047)
 
 
 # Running the tests

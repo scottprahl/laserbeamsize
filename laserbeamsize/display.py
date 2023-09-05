@@ -318,7 +318,7 @@ def beam_size_plot(o_image,
     # subtract background
     working_image = back.subtract_image_background(image, corner_fraction=corner_fraction,
                                                    nT=nT, iso_noise=iso_noise)
-    bkgnd, _ = back.image_background(image, corner_fraction=corner_fraction, nT=nT)
+    bkgnd, _ = back.iso_background(image, corner_fraction=corner_fraction, nT=nT)
 
     min_ = image.min()
     max_ = image.max()

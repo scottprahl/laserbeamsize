@@ -12,6 +12,7 @@ h, v = 400, 400  # Image dimensions
 xc, yc, dx, dy, phi = 200, 200, 100, 50, 0
 image = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi)
 
+
 def test_mask_diameters():
     try:
         lbs.beam_size(image, mask_diameters=0)
@@ -82,12 +83,12 @@ def test_phi_values():
 
 
 def run_test(h, v, xc, yc, dx, dy, phi, max_value=255):
-    
+
     test_img = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, max_value=max_value)
     result_xc, result_yc, result_dx, result_dy, result_phi = lbs.beam_size(test_img)
     erp = np.degrees(phi)
     rp = np.degrees(result_phi)
-    
+
     if interactive:
         plt.title('result=%.1f° expected=%.1f°' % (rp, erp))
         plt.imshow(test_img)
@@ -95,7 +96,7 @@ def run_test(h, v, xc, yc, dx, dy, phi, max_value=255):
         plt.plot(x, y)
         plt.colorbar()
         plt.show()
-    
+
     assert np.isclose(result_xc, xc, rtol=0.03), f"Expected xc around {xc}, but got {result_xc}"
     assert np.isclose(result_yc, yc, rtol=0.03), f"Expected yc around {yc}, but got {result_yc}"
     assert np.isclose(result_dx, dx, rtol=0.03), f"Expected dx around {dx}, but got {result_dx}"
@@ -133,10 +134,16 @@ def test_vertical_ellipse_rotated_4048():
 
 # Running the tests
 if __name__ == "__main__":
+    test_mask_diameters()
+    test_corner_fraction()
+    test_nT_values()
+    test_max_iter()
+    test_phi_values()
     test_horizontal_ellipse()
     test_vertical_ellipse_rotated()
     test_vertical_ellipse_negative_rotation()
-    test_ellipse_120_degree_rotation()
     test_vertical_ellipse_no_rotation()
     test_horizontal_ellipse_off_center()
+    test_horizontal_ellipse_4048()
+    test_vertical_ellipse_rotated_4048()
     print("All tests passed!")

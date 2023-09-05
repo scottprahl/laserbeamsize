@@ -9,7 +9,8 @@ test:
 	pytest tests/test_masks.py
 	pytest tests/test_tools.py
 	pytest tests/test_basic_beam_size.py
-	pytest tests/test_beam_size_no_noise.py
+	pytest tests/test_no_noise.py
+	pytest tests/test_noise.py
 
 html:
 	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(HTMLOPTS)
@@ -26,6 +27,12 @@ lint:
 	-pylint laserbeamsize/display.py
 	-pylint laserbeamsize/m2.py
 	-pylint laserbeamsize/__init__.py
+#	-pylint tests/test_back.py
+#	-pylint tests/test_masks.py
+#	-pylint tests/test_tools.py
+#	-pylint tests/test_basic_beam_size.py
+#	-pylint tests/test_no_noise.py
+#	-pylint tests/test_noise.py
 
 doccheck:
 	-pydocstyle laserbeamsize/background.py

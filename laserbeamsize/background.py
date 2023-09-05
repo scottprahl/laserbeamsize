@@ -1,4 +1,5 @@
 # pylint: disable=invalid-name
+# pylint: disable=consider-using-f-string
 
 """
 Routines for removing background for beam analysis.
@@ -110,8 +111,8 @@ def background_in_corners(image, corner_fraction=0.035):
 
 
 def iso_background(image,
-                  corner_fraction=0.035,
-                  nT=3):
+                   corner_fraction=0.035,
+                   nT=3):
     """
     Return the background for unilluminated pixels in an image.
 
@@ -143,8 +144,9 @@ def iso_background(image,
     unilluminated = image[image <= threshold]
 
     if len(unilluminated) == 0:
-        raise ValueError('est bkgnd=%.2f stdev=%.2f. No values in image are <= %.2f.' % (ave, std, threshold))
-    
+        raise ValueError('est bkgnd=%.2f stdev=%.2f. No values in image are <= %.2f.'
+                         % (ave, std, threshold))
+
     mean = np.mean(unilluminated)
     stdev = np.std(unilluminated)
     return mean, stdev

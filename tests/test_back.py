@@ -6,6 +6,7 @@
 import numpy as np
 import laserbeamsize as lbs
 
+
 # subtract_background_image
 def test_basic_subtraction():
     original = np.array([[10, 15, 20], [30, 35, 40]], dtype=float)
@@ -84,7 +85,7 @@ def test_corner_known_mean_stdev():
                       [5, 6, 7, 8],
                       [9, 10, 11, 12],
                       [13, 14, 15, 16]])
-    corner_mean, corner_stdev = lbs.background_in_corners(image, 0.25)  
+    corner_mean, corner_stdev = lbs.background_in_corners(image, 0.25)
     # considering the corners: 1, 4, 13, 16
     expected_mean = np.mean([1, 4, 13, 16])
     expected_stdev = np.std([1, 4, 13, 16])
@@ -140,13 +141,14 @@ def test_corner_test_image_with_noise():
     assert np.isclose(corner_mean, noise, rtol=0.1)
     assert np.isclose(corner_stdev, np.sqrt(noise), rtol=0.1)
 
+
 # iso_background
 def test_iso_known_mean_stdev():
     image = np.array([[1, 2, 3, 4],
                       [5, 6, 7, 8],
                       [9, 10, 11, 12],
                       [13, 14, 15, 16]])
-    corner_mean, corner_stdev = lbs.iso_background(image, 0.25)  
+    corner_mean, corner_stdev = lbs.iso_background(image, 0.25)
     # considering the corners: 1, 4, 13, 16
     expected_mean = np.mean(image)
     expected_stdev = np.std(image)
@@ -168,7 +170,7 @@ def test_iso_zero_corner_fraction():
         assert False, "Expected ValueError for corner_fraction > 0.25"
     except ValueError:
         pass
- 
+
 
 def test_iso_test_noise_only_image():
     noise = 20
@@ -210,6 +212,3 @@ def test_iso_image_data_types():
     corner_mean_int, corner_stdev_int = lbs.iso_background(image_int, 0.05)
     assert corner_mean_float == corner_mean_int == 1
     assert corner_stdev_float == corner_stdev_int == 0
-
-
-
