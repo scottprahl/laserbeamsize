@@ -26,10 +26,10 @@ Finding the center and diameters of a beam in a monochrome image is simple::
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
+# import matplotlib.pyplot as plt
+# from matplotlib.colors import LinearSegmentedColormap
 import laserbeamsize.background as back
-import laserbeamsize.image_tools as tools
+# import laserbeamsize.image_tools as tools
 
 from laserbeamsize.masks import rotated_rect_mask
 
@@ -184,50 +184,13 @@ def beam_size(image,
     _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi)
 
     # remove background
-    bkgnd, _ = back.iso_background(image, corner_fraction=corner_fraction, nT=nT)
-    image_without_background = back.subtract_constant(image, bkgnd, iso_noise=iso_noise)
-
-
-    # Define the custom colormap
-    # The numbers in the left column represent the normalized values (from 0 to 1) 
-    # at which the color transitions will occur.
-    segments = {
-        'red':   [(0.0, 1.0, 1.0),   # at 0.0, it's white (1.0)
-                 (0.5, 0.0, 0.0),   # at 0.5, it's blue
-                 (1.0, 0.0, 0.0)],  # at 1.0, it's black
-
-        'green': [(0.0, 1.0, 1.0),   # at 0.0, it's white
-                  (0.5, 0.0, 0.0),   # at 0.5, it's blue
-                  (1.0, 0.0, 0.0)],  # at 1.0, it's black
-
-        'blue':  [(0.0, 1.0, 1.0),   # at 0.0, it's white
-                  (0.5, 1.0, 1.0),   # at 0.5, it's blue
-                  (1.0, 0.0, 0.0)]   # at 1.0, it's black
-    }
-
-    cm = LinearSegmentedColormap('testCmap', segmentdata=segments, N=256)
+    image_no_bkgnd = back.subtract_image_background(image,
+                                                    corner_fraction=corner_fraction,
+                                                    nT=nT,
+                                                    iso_noise=iso_noise)
 
     # initial guess at beam properties
-    print("finding beam with iso_noise=", iso_noise)
-    if iso_noise:
-        all_kwargs = {'mask_diameters': mask_diameters,
-                      'corner_fraction': corner_fraction,
-                      'nT': nT,
-                      'max_iter': max_iter,
-                      'phi': phi,
-                      'iso_noise': False}
-        xc, yc, dx, dy, phi_ = beam_size(image, **all_kwargs)
-    else:
-        xc, yc, dx, dy, phi_ = basic_beam_size(image_without_background)
-
-    xmin = np.min(image_without_background)
-    xmax = np.max(image_without_background)
-    plt.imshow(image_without_background, cmap=cm)
-    x, y = tools.ellipse_arrays(xc, yc, dx, dy, phi_)
-    plt.plot(x, y)
-    plt.colorbar()
-    plt.title('bkgnd=%.1f min=%.1f max=%.1f' % (bkgnd, xmin, xmax))
-    plt.show()
+    xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd)
 
     for _iteration in range(1, max_iter):
 
@@ -238,21 +201,29 @@ def beam_size(image,
 
         # create a mask so only values within the mask are used
         mask = rotated_rect_mask(image, xc, yc, dx, dy, phi_, mask_diameters)
-        masked_image = np.copy(image_without_background)
+        masked_image = np.copy(image_no_bkgnd)
 
         # zero values outside mask (rotation allows mask pixels to differ from 0 or 1)
         masked_image[mask < 0.5] = 0
-#        plt.imshow(masked_image)
-#        plt.show()
 
+        # find the new parameters
         xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
-        print('iteration %d' % _iteration)
-        print("    old  new")
-        print("x  %4d %4d" % (xc2, xc))
-        print("y  %4d %4d" % (yc2, yc))
-        print("dx %4d %4d" % (dx2, dx))
-        print("dy %4d %4d" % (dy2, dy))
-        print("min", np.min(masked_image))
+
+#         xx,yy = tools.rotated_rect_arrays(xc, yc, dx, dy, phi_, mask_diameters)
+#         xe,ye = tools.ellipse_arrays(xc, yc, dx, dy, phi_)
+#         plt.imshow(masked_image)
+#         plt.plot(xx,yy)
+#         plt.plot(xe,ye)
+#         plt.title('iteration %d' % _iteration)
+#         plt.show()
+#
+#         print('iteration %d' % _iteration)
+#         print("    old  new")
+#         print("x  %4d %4d" % (xc2, xc))
+#         print("y  %4d %4d" % (yc2, yc))
+#         print("dx %4d %4d" % (dx2, dx))
+#         print("dy %4d %4d" % (dy2, dy))
+#         print("min", np.min(masked_image))
 
         if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
             break

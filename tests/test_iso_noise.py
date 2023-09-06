@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import laserbeamsize as lbs
 
-interactive = False
+interactive = True
 
 
 def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_value=255, tol=0.05):
@@ -16,7 +16,7 @@ def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_value=255,
                                                  ntype=ntype,
                                                  max_value=max_value)
 
-    result_xc, result_yc, result_dx, result_dy, result_phi = lbs.beam_size(test_img)
+    result_xc, result_yc, result_dx, result_dy, result_phi = lbs.beam_size(test_img, iso_noise=True)
     erp = np.degrees(phi)
     rp = np.degrees(result_phi)
 

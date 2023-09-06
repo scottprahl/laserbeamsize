@@ -391,6 +391,10 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_v
             # noise is the mean value of the distribution
             image1 += np.random.normal(noise, np.sqrt(noise), size=(v, h))
 
+        if ntype in ('flat', 'uniform'):
+            # noise is the mean value of the distribution
+            image1 += np.random.uniform(0, noise, size=(v, h))
+
         # after adding noise, the signal may exceed the range 0 to max_value
         np.place(image1, image1 > max_value, max_value)
         np.place(image1, image1 < 0, 0)
