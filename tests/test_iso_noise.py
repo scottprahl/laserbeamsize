@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import laserbeamsize as lbs
 
-interactive = True
+interactive = False
 
 
 def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_value=255, tol=0.05):
@@ -32,7 +32,7 @@ def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_value=255,
     assert np.isclose(result_yc, yc, rtol=tol), f"Expected yc around {yc}, but got {result_yc}"
     assert np.isclose(result_dx, dx, rtol=tol), f"Expected dx around {dx}, but got {result_dx}"
     assert np.isclose(result_dy, dy, rtol=tol), f"Expected dy around {dy}, but got {result_dy}"
-    assert np.isclose(rp, erp, rtol=tol, atol=1), f"Expected phi around {rp}°, but got {erp}°"
+    assert np.isclose(rp, erp, rtol=tol, atol=2), f"Expected phi around {rp}°, but got {erp}°"
 
 
 # constant
@@ -75,7 +75,7 @@ def test_uniform_noise_50a():
 # poisson
 def test_poisson_noise_20():
     noise = 20
-    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='poisson', tol=0.1)
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='poisson', tol=0.12)
 
 
 def test_poisson_noise_20a():

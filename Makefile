@@ -11,6 +11,7 @@ test:
 	pytest tests/test_basic_beam_size.py
 	pytest tests/test_no_noise.py
 	pytest tests/test_noise.py
+	pytest tests/test_iso_noise.py
 
 html:
 	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(HTMLOPTS)

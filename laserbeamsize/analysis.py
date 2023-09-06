@@ -183,14 +183,19 @@ def beam_size(image,
     """
     _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi)
 
-    # remove background
+    # remove background to make initial guess at beam sizes
     image_no_bkgnd = back.subtract_image_background(image,
                                                     corner_fraction=corner_fraction,
                                                     nT=nT,
-                                                    iso_noise=iso_noise)
-
-    # initial guess at beam properties
+                                                    iso_noise=False)
     xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd)
+
+    # remove background using iso if requested
+    if iso_noise:
+        image_no_bkgnd = back.subtract_image_background(image,
+                                                        corner_fraction=corner_fraction,
+                                                        nT=nT,
+                                                        iso_noise=True)
 
     for _iteration in range(1, max_iter):
 
@@ -223,7 +228,6 @@ def beam_size(image,
 #         print("y  %4d %4d" % (yc2, yc))
 #         print("dx %4d %4d" % (dx2, dx))
 #         print("dy %4d %4d" % (dy2, dy))
-#         print("min", np.min(masked_image))
 
         if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
             break
