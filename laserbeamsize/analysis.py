@@ -94,7 +94,8 @@ def basic_beam_size(original):
 
     # finally, the major and minor diameters
     dx = np.sqrt(8 * (xx + yy + disc))
-    dy = np.sqrt(8 * (xx + yy - disc))
+    # include abs for when xx+yy just slightly smaller than disc
+    dy = np.sqrt(8 * abs(xx + yy - disc))
 
     # phi is negative because image is inverted
     phi *= -1
