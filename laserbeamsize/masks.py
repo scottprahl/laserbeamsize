@@ -10,12 +10,13 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 
 import numpy as np
 from PIL import Image, ImageDraw
-from laserbeamsize.image_tools import rotate_image
+import laserbeamsize as lbs
 
 __all__ = ('corner_mask',
            'perimeter_mask',
            'rotated_rect_mask',
            'elliptical_mask',
+           'iso_background_mask',
            )
 
 
@@ -141,7 +142,7 @@ def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
     hhi = min(h, int(xc + rx))
 
     raw_mask[vlo:vhi, hlo:hhi] = 1
-    rot_mask = rotate_image(raw_mask, xc, yc, phi) >= 0.5
+    rot_mask = lbs.rotate_image(raw_mask, xc, yc, phi) >= 0.5
     return rot_mask
 
 
@@ -193,3 +194,31 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     ImageDraw.Draw(g).polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4), (x1, y1)], outline=1, fill=1)
     mask = np.array(g)
     return mask.astype(bool)
+
+
+def iso_background_mask(image,
+                        corner_fraction=0.035,
+                        nT=3):
+    """
+    Return a mask indicating the background pixels in an image.
+
+    We estimate the mean and standard deviation using the values in the
+    corners.  All pixel values that fall below the mean+nT*stdev are considered
+    unilluminated (background) pixels.  
+
+    Args:
+        image : the image to work with
+        nT: how many standard deviations to subtract
+        corner_fraction: the fractional size of corner rectangles
+    Returns:
+        background_mask: 2D array of True/False values
+    """
+    # estimate background
+    ave, std = lbs.background_in_corners(image, corner_fraction=corner_fraction)
+
+    # defined ISO/TR 11146-3:2004, equation 59
+    threshold = ave + nT * std
+
+    background_mask = image < threshold
+
+    return background_mask
