@@ -380,7 +380,7 @@ def plot_image_analysis(o_image,
     plt.annotate('', (-r_mag_s, baseline), (r_mag_s, baseline),
                  arrowprops={'arrowstyle': '<->'})
     plt.text(0, 1.1 * baseline, 'dx=%.0f %s' % (d_mag_s, units), va='bottom', ha='center')
-    plt.text(0, a, '  Gaussian Fit')
+    plt.text(0, bkgnd + a, '  Gaussian Fit')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Major Axis')
     plt.title('Semi-Major Axis')
@@ -399,7 +399,7 @@ def plot_image_analysis(o_image,
     plt.annotate('', (-r_min_s, baseline), (r_min_s, baseline),
                  arrowprops={'arrowstyle': '<->'})
     plt.text(0, 1.1 * baseline, 'dy=%.0f %s' % (d_min_s, units), va='bottom', ha='center')
-    plt.text(0, a, '  Gaussian Fit')
+    plt.text(0, bkgnd + a, '  Gaussian Fit')
     plt.xlabel('Distance from Center [%s]' % units)
     plt.ylabel('Pixel Intensity Along Semi-Minor Axis')
     plt.title('Semi-Minor Axis')
