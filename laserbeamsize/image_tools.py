@@ -10,16 +10,19 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 
 import numpy as np
 import scipy.ndimage
+import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 __all__ = ('rotate_image',
-           'crop_image_to_rect',
-           'crop_image_to_integration_rect',
            'axes_arrays',
            'ellipse_arrays',
            'major_axis_arrays',
            'minor_axis_arrays',
            'rotated_rect_arrays',
            'create_test_image',
+           'crop_image_to_rect',
+           'crop_image_to_integration_rect',
+           'create_plus_minus_cmap',
            )
 
 
@@ -264,54 +267,6 @@ def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
     return np.array([x_rot, y_rot])
 
 
-def crop_image_to_rect(image, xc, yc, xmin, xmax, ymin, ymax):
-    """
-    Return image cropped to specified rectangle.
-
-    Args:
-        image: image of beam
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        xmin: left edge (pixels)
-        xmax: right edge (pixels)
-        ymin: top edge (pixels)
-        ymax: bottom edge (pixels)
-    Returns:
-        cropped_image: cropped image
-        new_xc, new_yc: new beam center (pixels)
-    """
-    v, h = image.shape
-    xmin = max(0, int(xmin))
-    xmax = min(h, int(xmax))
-    ymin = max(0, int(ymin))
-    ymax = min(v, int(ymax))
-    new_xc = xc - xmin
-    new_yc = yc - ymin
-    return image[ymin:ymax, xmin:xmax], new_xc, new_yc
-
-
-def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
-    """
-    Return image cropped to integration rectangle.
-
-    Since the image is being cropped, the center of the beam will move.
-
-    Args:
-        image: image of beam
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
-    Returns:
-        cropped_image: cropped image
-        new_xc: x-position of beam center in cropped image
-        new_yc: y-position of beam center in cropped image
-    """
-    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
-    return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
-
-
 def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     """
     Return x, y arrays to draw a rotated ellipse.
@@ -404,3 +359,84 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_v
     if max_value < 2**16:
         return image1.astype(np.uint16)
     return image1
+
+
+def crop_image_to_rect(image, xc, yc, xmin, xmax, ymin, ymax):
+    """
+    Return image cropped to specified rectangle.
+
+    Args:
+        image: image of beam
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        xmin: left edge (pixels)
+        xmax: right edge (pixels)
+        ymin: top edge (pixels)
+        ymax: bottom edge (pixels)
+    Returns:
+        cropped_image: cropped image
+        new_xc, new_yc: new beam center (pixels)
+    """
+    v, h = image.shape
+    xmin = max(0, int(xmin))
+    xmax = min(h, int(xmax))
+    ymin = max(0, int(ymin))
+    ymax = min(v, int(ymax))
+    new_xc = xc - xmin
+    new_yc = yc - ymin
+    return image[ymin:ymax, xmin:xmax], new_xc, new_yc
+
+
+def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
+    """
+    Return image cropped to integration rectangle.
+
+    Since the image is being cropped, the center of the beam will move.
+
+    Args:
+        image: image of beam
+        xc: horizontal center of beam
+        yc: vertical center of beam
+        dx: horizontal diameter of beam
+        dy: vertical diameter of beam
+        phi: angle that elliptical beam is rotated [radians]
+    Returns:
+        cropped_image: cropped image
+        new_xc: x-position of beam center in cropped image
+        new_yc: y-position of beam center in cropped image
+    """
+    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
+    return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
+
+def make_cmap(vmin, vmax, band_percentage=4):
+    """
+    Generates a colormap with a specific range, mapping vmin to 0 and vmax to 1. 
+    The colormap is interesting because negative values are blue and positive values
+    are red.  Zero is shown as a white band: blue, dark blue, white, dark red, and red. 
+    The transition points between the colors are determined by the normalized range.
+
+    Args:
+        vmin (float): The minimum value of the range to be normalized.
+        vmax (float): The maximum value of the range to be normalized.
+        band_percentage (option): fraction of the entire band that is white
+
+    Returns:
+        matplotlib.colors.LinearSegmentedColormap: The generated colormap with 255 colors.
+    """
+    r = vmin / (vmin - vmax)
+    delta = band_percentage/100
+    colors = [(0, 0, 0.6), (0, 0, 1), (1, 1, 1), (1, 0, 0), (0.6, 0, 0)]  
+    positions = [0, (1-delta)*r, r, (1+delta)*r, 1]  
+    return LinearSegmentedColormap.from_list("plus_minus", list(zip(positions, colors)), N=255)
+
+def create_plus_minus_cmap(data):
+    """Create a color map with reds for positive and blues for negative values."""
+    vmax = np.max(data)
+    vmin = np.min(data)
+    if 0<=vmin<=vmax :
+        return plt.get_cmap('Reds')
+    if vmin<=vmax <= 0 :
+        return plt.get_cmap('Blues')
+
+    return make_cmap(vmin, vmax)
+
