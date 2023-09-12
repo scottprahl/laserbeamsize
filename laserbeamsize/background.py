@@ -9,52 +9,58 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 
 import numpy as np
 import scipy.ndimage
-from laserbeamsize.masks import corner_mask, perimeter_mask
+import laserbeamsize as lbs
 
 __all__ = ('subtract_background_image',
            'subtract_constant',
            'subtract_tilted_background',
            'background_in_corners',
            'iso_background',
-           'subtract_image_background',
+           'subtract_iso_background',
            'subtract_corner_background',
            )
 
 
-def subtract_background_image(original,
-                              background,
-                              iso_noise=False):
+def subtract_background_image(original, background):
     """
-    Subtract a background image from the original image.
+    Subtract a background image from the image with beam.
 
-    iso_noise=True allows pixel values to be negative.  The standard ISO1146-3 states
-    "proper background subtraction there must exist negative noise values in the
-    corrected power density distribution. These negative values have to be included in
-    the further evaluation in order to allow compensation of positive noise amplitudes."
-
-    Most image files are comprised of unsigned bytes or unsigned ints.  Thus to accomodate
-    negative pixel values the image must become a signed image.
-
-    If iso_noise=False then background_noise then negative pixels are set to zero.
-
-    This could be done as a simple loop with an if statement but the
-    implementation below is about 250X faster for 960 x 1280 arrays.
+    The function operates on 2D arrays representing grayscale images. Since the
+    subtraction can result in negative pixel values, it is important that the 
+    return array be an array of float (instead of unsigned arrays that will wrap
+    around.
 
     Args:
-        original: 2D array of an image with a beam in it
-        background: 2D array of an image without a beam
-        iso_noise: when subtracting, allow pixels to become negative
+        original (numpy.ndarray): 2D array image with beam present. 
+        background (numpy.ndarray): 2D array image without beam.
+
     Returns:
-        image: 2D float array with background subtracted (may be signed)
+        numpy.ndarray: 2D array with background subtracted
+
+    Examples:
+        >>> import numpy as np
+        >>> original = np.array([[1, 2], [3, 4]])
+        >>> background = np.array([[2, 1], [1, 1]])
+        >>> subtract_background_image(original, background)
+        array([[-1, 1],
+               [2, 3]])
     """
+    # Checking if the inputs are numpy arrays
+    if not isinstance(original, np.ndarray) or not isinstance(background, np.ndarray):
+        raise TypeError('Inputs "original" and "background" must be numpy arrays.')
+
+    # Checking if the inputs are two-dimensional arrays
+    if original.ndim != 2 or background.ndim != 2:
+        raise ValueError('Inputs "original" and "background" must be two-dimensional arrays.')
+
+    # Checking if the shapes of the inputs are equal
+    if original.shape != background.shape:
+        raise ValueError('Inputs "original" and "background" must have equal shapes.')
+
     # convert to signed version and subtract
     o = original.astype(float)
     b = background.astype(float)
     subtracted = o - b
-
-    if not iso_noise:
-        np.place(subtracted, subtracted < 0, 0)        # zero all negative values
-#        return subtracted.astype(original.dtype.name)  # matching original type
 
     return subtracted
 
@@ -103,7 +109,7 @@ def background_in_corners(image, corner_fraction=0.035):
     """
     if corner_fraction == 0:
         return 0, 0
-    mask = corner_mask(image, corner_fraction)
+    mask = lbs.corner_mask(image, corner_fraction)
     img = np.ma.masked_array(image, ~mask)
     mean = np.mean(img)
     stdev = np.std(img)
@@ -196,12 +202,12 @@ def image_background2(image,
     return background
 
 
-def subtract_image_background(image,
+def subtract_iso_background(image,
                               corner_fraction=0.035,
                               nT=3,
                               iso_noise=False):
     """
-    Return image with background subtracted.
+    Return image with ISO 11146 background subtracted.
 
     The mean and standard deviation are estimated using the pixels from
     the rectangles in the four corners. The default size of these rectangles
@@ -279,8 +285,7 @@ def subtract_corner_background(image,
 
 
 def subtract_tilted_background(image,
-                               corner_fraction=0.035,
-                               iso_noise=False):
+                               corner_fraction=0.035):
     """
     Return image with tilted planar background subtracted.
 
@@ -301,7 +306,7 @@ def subtract_tilted_background(image,
     v, h = image.shape
     xx, yy = np.meshgrid(range(h), range(v))
 
-    mask = perimeter_mask(image, corner_fraction=corner_fraction)
+    mask = lbs.perimeter_mask(image, corner_fraction=corner_fraction)
     perimeter_values = image[mask]
     # coords is (y_value, x_value, 1) for each point in perimeter_values
     coords = np.stack((yy[mask], xx[mask], np.ones(np.size(perimeter_values))), 1)
@@ -320,4 +325,4 @@ def subtract_tilted_background(image,
     z -= np.std(perimeter_values)
 
     # finally, subtract the plane from the original image
-    return subtract_background_image(image, z, iso_noise=iso_noise)
+    return subtract_background_image(image, z)
