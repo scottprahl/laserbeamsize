@@ -17,21 +17,12 @@ def test_basic_subtraction():
     assert np.all(np.isclose(result, expected, atol=1e-5))
 
 
-def test_negative_subtraction_iso_false():
-    original = np.array([[5, 10, 15], [10, 15, 20]], dtype=float)
-    background = np.array([[10, 15, 20], [15, 20, 25]], dtype=float)
-    expected = np.array([[0, 0, 0], [0, 0, 0]], dtype=float)
-
-    result = lbs.subtract_background_image(original, background, iso_noise=False)
-    assert np.all(np.isclose(result, expected, atol=1e-5))
-
-
-def test_negative_subtraction_iso_true():
+def test_negative_subtraction():
     original = np.array([[5, 10, 15], [10, 15, 20]], dtype=float)
     background = np.array([[10, 15, 20], [15, 20, 25]], dtype=float)
     expected = np.array([[-5, -5, -5], [-5, -5, -5]], dtype=float)
 
-    result = lbs.subtract_background_image(original, background, iso_noise=True)
+    result = lbs.subtract_background_image(original, background)
     assert np.all(np.isclose(result, expected, atol=1e-5))
 
 
@@ -39,7 +30,7 @@ def test_subtraction_type_float():
     original = np.array([[10, 15, 20], [30, 35, 40]], dtype=np.uint8)
     background = np.array([[5, 5, 5], [5, 5, 5]], dtype=np.uint8)
 
-    result = lbs.subtract_background_image(original, background, iso_noise=False)
+    result = lbs.subtract_background_image(original, background)
     assert result.dtype == float
 
 
