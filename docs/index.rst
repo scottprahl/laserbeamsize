@@ -9,35 +9,38 @@
 
    01-Definitions
 
-   01a-Background
+   02-Background
 
-   02-Test-Beam
+   03-Background
 
-   02a-Experiment
+   04-Test-Beam
 
-   02b-Fixed-Rotation
+   05-Experiment
 
-   03-Easy-Images
+   06-Fixed-Rotation
 
-   04-Harder-Images
+   07-Easy-Images
 
-   05-Razor-Blade
+   08-Harder-Images
 
-   06-Beam-Waist
+   09-Razor-Blade
+
+   10-Beam-Waist
 
 .. toctree::
    :caption: M² Calculation
    :hidden:
 
-   07a-M2-Parameters
+   11-M2-Parameters
 
-   07b-M2-Theory
+   12-M2-Theory
 
-   07c-M2-Experiment
+   13-M2-Experiment
 
-   07d-M2-Examples
+   14-M2-Examples
 
-   07e-M2-Problems
+   15-M2-Problems
+
 
 .. toctree::
    :caption: API
