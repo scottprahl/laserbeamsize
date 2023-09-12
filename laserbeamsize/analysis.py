@@ -93,9 +93,13 @@ def basic_beam_size(original):
         phi = 0.5 * np.arctan(2 * xy / diff)
 
     # finally, the major and minor diameters
-    dx = np.sqrt(8 * (xx + yy + disc))
-    # include abs for when xx+yy just slightly smaller than disc
-    dy = np.sqrt(8 * abs(xx + yy - disc))
+    dx = h
+    dy = v
+    if xx + yy + disc > 0:  # fails when negative noise dominates
+        dx = np.sqrt(8 * (xx + yy + disc))
+
+    if xx + yy - disc > 0:
+        dy = np.sqrt(8 * (xx + yy - disc))
 
     # phi is negative because image is inverted
     phi *= -1
@@ -184,19 +188,18 @@ def beam_size(image,
     """
     _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi)
 
-    # remove background to make initial guess at beam sizes
-    image_no_bkgnd = back.subtract_image_background(image,
-                                                    corner_fraction=corner_fraction,
-                                                    nT=nT,
-                                                    iso_noise=False)
+    # zero background for initial guess at beam size
+    image_no_bkgnd = back.subtract_iso_background(image,
+                                                  corner_fraction=corner_fraction,
+                                                  nT=nT,
+                                                  iso_noise=False)
     xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd)
 
-    # remove background using iso if requested
-    if iso_noise:
-        image_no_bkgnd = back.subtract_image_background(image,
-                                                        corner_fraction=corner_fraction,
-                                                        nT=nT,
-                                                        iso_noise=True)
+    if iso_noise: #  follow iso background guidelines (positive & negative bkgnd values)
+        image_no_bkgnd = back.subtract_iso_background(image,
+                                                      corner_fraction=corner_fraction,
+                                                      nT=nT,
+                                                      iso_noise=True)
 
     for _iteration in range(1, max_iter):
 
