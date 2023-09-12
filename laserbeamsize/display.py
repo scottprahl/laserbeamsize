@@ -18,7 +18,7 @@ A full graphic can be created by::
     >>>> print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
     >>>> print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
     >>>> print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
-    >>>> lbs.beam_size_plot(beam_image)
+    >>>> lbs.plot_image_analysis(beam_image)
     >>>> plt.show()
 
 A mosaic of images might be created by::
@@ -27,7 +27,7 @@ A mosaic of images might be created by::
     >>>> z = np.array([89,94,99,104,109,114,119,124,129,134,139], dtype=float) #[mm]
     >>>> filenames = ["%d.pgm" % location for location in z]
     >>>> images = [imageio.v2.imread(filename) for filename in filenames]
-    >>>> lbs.beam_size_montage(images, z * 1e-3, pixel_size=3.75, crop=True)
+    >>>> lbs.plot_image_montage(images, z * 1e-3, pixel_size=3.75, crop=True)
     >>>> plt.show()
 
 Full documentation is available at <https://laserbeamsize.readthedocs.io>
@@ -40,10 +40,10 @@ import laserbeamsize.background as back
 from laserbeamsize.analysis import beam_size
 
 __all__ = ('beam_ellipticity',
-           'draw_beam_figure',
-           'beam_size_plot',
-           'beam_size_and_plot',
-           'beam_size_montage'
+           'plot_beam_diagram',
+           'plot_image_analysis',
+           'plot_image_and_fit',
+           'plot_image_montage'
            )
 
 
@@ -78,13 +78,10 @@ def beam_ellipticity(dx, dy):
     return ellipticity, d_circular
 
 
-def draw_beam_figure():
+def plot_beam_diagram():
     """Draw a simple astigmatic beam ellipse with labels."""
     theta = np.radians(30)
-    xc = 0
-    yc = 0
-    dx = 50
-    dy = 25
+    xc, yc, dx, dy = 0, 0, 50, 25
 
     plt.subplots(1, 1, figsize=(6, 6))
 
@@ -122,13 +119,13 @@ def draw_beam_figure():
     plt.axis('off')
 
 
-def draw_visible_dotted_line(xpts, ypts):
+def plot_visible_dotted_line(xpts, ypts):
     """Draw a dotted line that is is visible against images."""
     plt.plot(xpts, ypts, '-', color='#FFD700')
     plt.plot(xpts, ypts, ':', color='#0057B8')
 
 
-def beam_size_and_plot(o_image,
+def plot_image_and_fit(o_image,
                        pixel_size=None,
                        vmin=None,
                        vmax=None,
@@ -146,16 +143,16 @@ def beam_size_and_plot(o_image,
     If pixel_size is defined, then the returned measurements are in units of
     pixel_size.
 
-    This is helpful for creating a mosaics of all the images created for an
+    This function helpful when creating a mosaics of all images captured for an
     experiment.
+
+    If `crop==True` then the displayed image is cropped to the ISO 11146 integration
+    rectangle.
 
     If `crop` is a two parameter list `[v, h]` then `v` and `h` are
     interpreted as the vertical and horizontal sizes of the rectangle.  The
     size is in pixels unless `pixel_size` is specified.  In that case the
     rectangle sizes are in whatever units `pixel_size` is .
-
-    If `crop==True` then the displayed image is cropped to the ISO 11146 integration
-    rectangle.
 
     All cropping is done after analysis and therefosre only affects
     what is displayed.  If the image needs to be cropped before analysis
@@ -225,15 +222,15 @@ def beam_size_and_plot(o_image,
 
     # draw semi-major and semi-minor axes
     xp, yp = tools.axes_arrays(xc, yc, dx, dy, phi)
-    draw_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
+    plot_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
     # show ellipse around beam
     xp, yp = tools.ellipse_arrays(xc, yc, dx, dy, phi)
-    draw_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
+    plot_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
     # show integration area around beam
     xp, yp = tools.rotated_rect_arrays(xc, yc, dx, dy, phi)
-    draw_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
+    plot_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
     # set limits on axes
     plt.xlim(-xc * scale, (h - xc) * scale)
@@ -247,16 +244,16 @@ def beam_size_and_plot(o_image,
     return xc * scale, yc * scale, dx * scale, dy * scale, phi
 
 
-def beam_size_plot(o_image,
-                   title='Original',
-                   pixel_size=None,
-                   units='µm',
-                   crop=False,
-                   cmap='gist_ncar',
-                   corner_fraction=0.035,
-                   nT=3,
-                   iso_noise=False,
-                   **kwargs):
+def plot_image_analysis(o_image,
+                        title='Original',
+                        pixel_size=None,
+                        units='µm',
+                        crop=False,
+                        cmap='gist_ncar',
+                        corner_fraction=0.035,
+                        nT=3,
+                        iso_noise=False,
+                        **kwargs):
     """
     Create a visual report for image fitting.
 
@@ -274,7 +271,7 @@ def beam_size_plot(o_image,
 
     Args:
         o_image: 2D image of laser beam
-        title: optional title for upper left plot
+        title: (optional) title for upper left plot
         pixel_size: (optional) size of pixels
         units: (optional) string used for units used on axes
         crop: (optional) crop image to integration rectangle
@@ -283,8 +280,7 @@ def beam_size_plot(o_image,
         nothing
     """
     # only pass along arguments that apply to beam_size()
-    beamsize_keys = ['mask_diameters', 'max_iter', 'phi', 'iso_noise']
-    bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
+    bs_args = dict((k, kwargs[k]) for k in ['mask_diameters', 'max_iter', 'phi'] if k in kwargs)
     bs_args['iso_noise'] = iso_noise
     bs_args['nT'] = nT
     bs_args['corner_fraction'] = corner_fraction
@@ -316,8 +312,8 @@ def beam_size_plot(o_image,
         image = o_image
 
     # subtract background
-    working_image = back.subtract_image_background(image, corner_fraction=corner_fraction,
-                                                   nT=nT, iso_noise=iso_noise)
+    working_image = back.subtract_iso_background(image, corner_fraction=corner_fraction,
+                                                 nT=nT, iso_noise=iso_noise)
     bkgnd, _ = back.iso_background(image, corner_fraction=corner_fraction, nT=nT)
 
     min_ = image.min()
@@ -355,13 +351,13 @@ def beam_size_plot(o_image,
     extent = np.array([-xc_s, h_s - xc_s, v_s - yc_s, -yc_s])
     im = plt.imshow(working_image, extent=extent, cmap=cmap)
     xp, yp = tools.ellipse_arrays(xc, yc, dx, dy, phi) * scale
-    draw_visible_dotted_line(xp - xc_s, yp - yc_s)
+    plot_visible_dotted_line(xp - xc_s, yp - yc_s)
 
     xp, yp = tools.axes_arrays(xc, yc, dx, dy, phi) * scale
-    draw_visible_dotted_line(xp - xc_s, yp - yc_s)
+    plot_visible_dotted_line(xp - xc_s, yp - yc_s)
 
     xp, yp = tools.rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
-    draw_visible_dotted_line(xp - xc_s, yp - yc_s)
+    plot_visible_dotted_line(xp - xc_s, yp - yc_s)
 
     plt.colorbar(im, fraction=0.046 * v_s / h_s, pad=0.04)
 #    plt.clim(min_, max_)
@@ -372,7 +368,7 @@ def beam_size_plot(o_image,
     plt.title('Image w/o background, center at (%.0f, %.0f) %s' % (xc_s, yc_s, units))
 
     # plot of values along semi-major axis
-    _, _, z, s = tools.major_axis_arrays(o_image, xc, yc, dx, dy, phi)
+    _, _, z, s = tools.major_axis_arrays(image, xc, yc, dx, dy, phi)
     a = np.sqrt(2 / np.pi) / r_major * abs(np.sum(z - bkgnd) * (s[1] - s[0]))
     baseline = a * np.exp(-2) + bkgnd
 
@@ -391,7 +387,7 @@ def beam_size_plot(o_image,
     # plt.gca().set_ylim(bottom=0)
 
     # plot of values along semi-minor axis
-    _, _, z, s = tools.minor_axis_arrays(o_image, xc, yc, dx, dy, phi)
+    _, _, z, s = tools.minor_axis_arrays(image, xc, yc, dx, dy, phi)
     a = np.sqrt(2 / np.pi) / r_minor * abs(np.sum(z - bkgnd) * (s[1] - s[0]))
     baseline = a * np.exp(-2) + bkgnd
 
@@ -413,7 +409,7 @@ def beam_size_plot(o_image,
     plt.subplots_adjust(wspace=0.3)
 
 
-def beam_size_montage(images,
+def plot_image_montage(images,
                       z=None,
                       cols=3,
                       pixel_size=None,
@@ -487,7 +483,7 @@ def beam_size_montage(images,
         cb = not (vmax is None) and (i + 1 == cols)
 
         # plot the image and gather the beam diameters
-        _, _, dx[i], dy[i], _ = beam_size_and_plot(im, **options, colorbar=cb)
+        _, _, dx[i], dy[i], _ = plot_image_and_fit(im, **options, colorbar=cb)
 
         # add a title
         if units == 'mm':
