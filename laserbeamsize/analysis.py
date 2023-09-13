@@ -51,6 +51,8 @@ def basic_beam_size(original):
     FWIW, this implementation is roughly 800X faster than one that finds
     the moments using for loops.
 
+    When background noise dominates then a diameter of 1 is returned.
+
     Args:
         image: 2D array of image with beam spot
     Returns:
@@ -93,8 +95,8 @@ def basic_beam_size(original):
         phi = 0.5 * np.arctan(2 * xy / diff)
 
     # finally, the major and minor diameters
-    dx = h
-    dy = v
+    dx = 1
+    dy = 1
     if xx + yy + disc > 0:  # fails when negative noise dominates
         dx = np.sqrt(8 * (xx + yy + disc))
 
@@ -144,7 +146,7 @@ def beam_size(image,
               nT=3,
               max_iter=25,
               phi=None,
-              iso_noise=False):
+              iso_noise=True):
     """
     Determine beam parameters in an image with noise.
 
