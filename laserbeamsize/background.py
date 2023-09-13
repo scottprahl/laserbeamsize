@@ -67,7 +67,7 @@ def subtract_background_image(original, background):
 
 def subtract_constant(original,
                       background,
-                      iso_noise=False):
+                      iso_noise=True):
     """
     Return image with a constant value subtracted.
 
@@ -205,7 +205,7 @@ def image_background2(image,
 def subtract_iso_background(image,
                               corner_fraction=0.035,
                               nT=3,
-                              iso_noise=False):
+                              iso_noise=True):
     """
     Return image with ISO 11146 background subtracted.
 
@@ -246,7 +246,7 @@ def subtract_iso_background(image,
 def subtract_corner_background(image,
                                corner_fraction=0.035,
                                nT=3,
-                               iso_noise=False):
+                               iso_noise=True):
     """
     Return image with background subtracted.
 
