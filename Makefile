@@ -64,6 +64,9 @@ rcheck:
 	pyroma -d .
 
 clean:
+	rm -rf .eggs
+	rm -rf .pytest_cache
+	rm -rf .virtual_documents
 	rm -rf __pycache__
 	rm -rf dist
 	rm -rf laserbeamsize.egg-info
@@ -73,8 +76,6 @@ clean:
 	rm -rf docs/.ipynb_checkpoints
 	rm -rf tests/__pycache__
 	rm -rf build
-	rm -rf .eggs
-	rm -rf .pytest_cache
 
 
 .PHONY: clean rcheck html notecheck pycheck doccheck test rstcheck
