@@ -22,6 +22,7 @@ __all__ = ('rotate_image',
            'create_test_image',
            'crop_image_to_rect',
            'crop_image_to_integration_rect',
+           'create_cmap',
            'create_plus_minus_cmap',
            )
 
@@ -408,9 +409,9 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
     return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
 
-def make_cmap(vmin, vmax, band_percentage=4):
+def create_cmap(vmin, vmax, band_percentage=4):
     """
-    Generates a colormap with a specific range, mapping vmin to 0 and vmax to 1. 
+    Creates a colormap with a specific range, mapping vmin to 0 and vmax to 1. 
     The colormap is interesting because negative values are blue and positive values
     are red.  Zero is shown as a white band: blue, dark blue, white, dark red, and red. 
     The transition points between the colors are determined by the normalized range.
