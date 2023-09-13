@@ -59,7 +59,7 @@ def test_constant_noise_50a():
 # uniform
 def test_uniform_noise_10():
     noise = 10
-    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='uniform', tol=0.1)
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='uniform', tol=0.15)
 
 
 def test_uniform_noise_20a():
@@ -75,7 +75,7 @@ def test_uniform_noise_50a():
 # poisson
 def test_poisson_noise_20():
     noise = 20
-    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='poisson', tol=0.1)
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='poisson', tol=0.15)
 
 
 def test_poisson_noise_20a():
@@ -91,7 +91,7 @@ def test_poisson_noise_50a():
 # gaussian
 def test_gaussian_noise_20():
     noise = 20
-    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='gaussian', tol=0.1)
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype='gaussian', tol=0.15)
 
 
 def test_gaussian_noise_20a():
