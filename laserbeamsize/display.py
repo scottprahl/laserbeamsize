@@ -135,7 +135,7 @@ def plot_image_and_fit(o_image,
                        cmap='gist_ncar',
                        corner_fraction=0.035,
                        nT=3,
-                       iso_noise=False,
+                       iso_noise=True,
                        **kwargs):
     """
     Plot the image, fitted ellipse, integration area, and semi-major/minor axes.
@@ -252,7 +252,7 @@ def plot_image_analysis(o_image,
                         cmap='gist_ncar',
                         corner_fraction=0.035,
                         nT=3,
-                        iso_noise=False,
+                        iso_noise=True,
                         **kwargs):
     """
     Create a visual report for image fitting.
@@ -420,7 +420,7 @@ def plot_image_montage(images,
                       cmap='gist_ncar',
                       corner_fraction=0.035,
                       nT=3,
-                      iso_noise=False,
+                      iso_noise=True,
                       **kwargs):
     """
     Create a beam size montage for a set of images.
