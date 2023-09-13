@@ -439,5 +439,5 @@ def create_plus_minus_cmap(data):
     if vmin<=vmax <= 0 :
         return plt.get_cmap('Blues')
 
-    return make_cmap(vmin, vmax)
+    return create_cmap(vmin, vmax)
 
