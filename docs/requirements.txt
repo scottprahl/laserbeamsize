@@ -7,4 +7,4 @@ pillow
 nbsphinx
 sphinx-automodapi
 sphinx-rtd-theme
-laserbeamsize
+laserbeamsize/

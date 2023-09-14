@@ -1,5 +1,5 @@
-API
-===============================
+Modules
+========
 
 .. automodapi:: laserbeamsize.analysis
 
