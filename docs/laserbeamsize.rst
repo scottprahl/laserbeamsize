@@ -1,7 +1,7 @@
 API for `laserbeamsize` package
 ===============================
 
-.. automodapi:: ../laserbeamsize/analysis.py
+.. automodapi:: laserbeamsize.analysis.py
 
 .. automodapi:: laserbeamsize.background
 
