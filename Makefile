@@ -1,9 +1,3 @@
-HTMLOPTS    ?=
-PDFOPTS     ?= 
-SPHINXBUILD   ?= sphinx-build
-SOURCEDIR     = docs
-BUILDDIR      = docs/_build
-
 test:
 	pytest tests/test_back.py
 	pytest tests/test_masks.py
@@ -14,11 +8,8 @@ test:
 	pytest tests/test_iso_noise.py
 
 html:
-	python -m sphinx -T -E -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(HTMLOPTS)
+	cd docs && python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build
 	open docs/_build/index.html
-
-pdf:
-	$(SPHINXBUILD) -b latex "$(SOURCEDIR)" "$(BUILDDIR)"  $(PDFOPTS)
 
 lint:
 	-pylint laserbeamsize/background.py

@@ -5,3 +5,4 @@ imageio
 requests
 pillow
 pytest
+laserbeamsize
