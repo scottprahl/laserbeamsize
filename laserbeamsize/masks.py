@@ -214,7 +214,7 @@ def iso_background_mask(image,
         background_mask: 2D array of True/False values
     """
     # estimate background
-    ave, std = lbs.background_in_corners(image, corner_fraction=corner_fraction)
+    ave, std = lbs.corner_background(image, corner_fraction=corner_fraction)
 
     # defined ISO/TR 11146-3:2004, equation 59
     threshold = ave + nT * std
