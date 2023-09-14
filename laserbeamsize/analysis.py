@@ -17,8 +17,8 @@ Finding the center and diameters of a beam in a monochrome image is simple::
     >>>> import imageio.v3 as iio
     >>>> import numpy as np
     >>>> import laserbeamsize as lbs
-    >>>>
-    >>>> image = iio.imread("https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm")
+    >>>> file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
+    >>>> image = iio.imread(file)
     >>>> x, y, dx, dy, phi = lbs.beam_size(image)
     >>>> print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
     >>>> print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)

@@ -409,11 +409,13 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
     xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
     return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
 
+
 def create_cmap(vmin, vmax, band_percentage=4):
     """
-    Creates a colormap with a specific range, mapping vmin to 0 and vmax to 1. 
+    Create a colormap with a specific range, mapping vmin to 0 and vmax to 1.
+
     The colormap is interesting because negative values are blue and positive values
-    are red.  Zero is shown as a white band: blue, dark blue, white, dark red, and red. 
+    are red.  Zero is shown as a white band: blue, dark blue, white, dark red, and red.
     The transition points between the colors are determined by the normalized range.
 
     Args:
@@ -426,9 +428,10 @@ def create_cmap(vmin, vmax, band_percentage=4):
     """
     r = vmin / (vmin - vmax)
     delta = band_percentage/100
-    colors = [(0, 0, 0.6), (0, 0, 1), (1, 1, 1), (1, 0, 0), (0.6, 0, 0)]  
-    positions = [0, (1-delta)*r, r, (1+delta)*r, 1]  
+    colors = [(0, 0, 0.6), (0, 0, 1), (1, 1, 1), (1, 0, 0), (0.6, 0, 0)]
+    positions = [0, (1-delta)*r, r, (1+delta)*r, 1]
     return LinearSegmentedColormap.from_list("plus_minus", list(zip(positions, colors)), N=255)
+
 
 def create_plus_minus_cmap(data):
     """Create a color map with reds for positive and blues for negative values."""
@@ -440,4 +443,3 @@ def create_plus_minus_cmap(data):
         return plt.get_cmap('Blues')
 
     return create_cmap(vmin, vmax)
-
