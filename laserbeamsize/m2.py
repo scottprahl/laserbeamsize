@@ -10,27 +10,23 @@ A module for finding M² values for a laser beam.
 
 Full documentation is available at <https://laserbeamsize.readthedocs.io>
 
-Start with necessary imports::
-
-    >>>> import numpy as np
-    >>>> import laserbeamsize as lbs
-
 Finding the beam waist size, location, and M² for a beam is straightforward::
 
-    >>>> lambda0 = 632.8e-9 # m
-    >>>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
-    >>>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
-    >>>> lbs.M2_report(z * 1e-3, 2 * r * 1e-6, lambda0)
-
-A graphic of the fit to diameters can be created by::
-
-    >>>> lbs.M2_diameter_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
-    >>>> plt.show()
-
-A graphic of the radial fit can be created by::
-
-    >>>> lbs.M2_radius_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
-    >>>> plt.show()
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> import laserbeamsize as lbs
+    >>>
+    >>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
+    >>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
+    >>> lbs.M2_report(z * 1e-3, 2 * r * 1e-6, 632.8e-9)
+    >>>
+    >>> # create a graphic of the fit
+    >>> lbs.M2_diameter_plot(z * 1e-3, 2 * r * 1e-6, 632.8e-9)
+    >>> plt.show()
+    >>>
+    >>> # create a better graphic of the fit
+    >>> lbs.M2_radius_plot(z * 1e-3, 2 * r * 1e-6, 632.8e-9)
+    >>> plt.show()
 """
 
 import scipy.optimize
