@@ -5,19 +5,46 @@
 Routines for removing background for beam analysis.
 
 Full documentation is available at <https://laserbeamsize.readthedocs.io>
+
+Two functions are used to find the mean and standard deviation of images.
+`corner_background()` uses just the corner pixels and `iso_background()` uses
+all un-illuminated pixels::
+
+    >>> import imageio.v3 as iio
+    >>> import laserbeamsize as lbs
+    >>>
+    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
+    >>> image = iio.imread(file)
+    >>>
+    >>> mean, stdev = lbs.corner_background(image)
+    >>> print("The corner pixels have an average         %.1f ± %.1f)" % (mean, stdev))
+    >>> mean, stdev = lbs.iso_background(image)
+    >>> print("The un-illuminated pixels have an average %.1f ± %.1f)" % (mean, stdev))
+
+In addition to these functions, there are a variety of subtraction functions to
+remove the background.  The most useful is `subtract_iso_background()` which will
+return an image with the average of the un-illuminated pixels subtracted::
+
+    >>> import imageio.v3 as iio
+    >>> import laserbeamsize as lbs
+    >>>
+    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
+    >>> image = iio.imread(file)
+    >>>
+    >>> clean_image = subtract_iso_background(image)
 """
 
 import numpy as np
 import scipy.ndimage
 import laserbeamsize as lbs
 
-__all__ = ('subtract_background_image',
-           'subtract_constant',
-           'subtract_tilted_background',
-           'background_in_corners',
+__all__ = ('corner_background',
            'iso_background',
-           'subtract_iso_background',
+           'subtract_background_image',
+           'subtract_constant',
            'subtract_corner_background',
+           'subtract_iso_background',
+           'subtract_tilted_background',
            )
 
 
@@ -91,7 +118,7 @@ def subtract_constant(original,
     return subtracted
 
 
-def background_in_corners(image, corner_fraction=0.035):
+def corner_background(image, corner_fraction=0.035):
     """
     Return the mean and stdev of background in corners of image.
 
@@ -141,7 +168,7 @@ def iso_background(image,
         raise ValueError('corner_fraction must be positive and less than 0.25.')
 
     # estimate background
-    ave, std = background_in_corners(image, corner_fraction=corner_fraction)
+    ave, std = corner_background(image, corner_fraction=corner_fraction)
 
     # defined ISO/TR 11146-3:2004, equation 59
     threshold = ave + nT * std
@@ -272,7 +299,7 @@ def subtract_corner_background(image,
     Returns:
         image: 2D array with background subtracted
     """
-    back, sigma = background_in_corners(image, corner_fraction)
+    back, sigma = corner_background(image, corner_fraction)
 
     subtracted = image.astype(float)
     subtracted -= back

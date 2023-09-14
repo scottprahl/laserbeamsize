@@ -5,32 +5,37 @@
 # pylint: disable=too-many-statements
 
 """
-A module for graphing and displaying the beam size fit.
+A module for generating a graphical analysis of beam size fitting.
 
-A full graphic can be created by::
+Full documentation is available at <https://laserbeamsize.readthedocs.io>
 
-    >>>> import imageio
-    >>>> import numpy as np
-    >>>> import laserbeamsize as lbs
-    >>>> beam_image = imageio.v2.imread("t-hene.pgm")
-    >>>> x, y, dx, dy, phi = lbs.beam_size(beam_image)
-    >>>> print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
-    >>>> print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
-    >>>> print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
-    >>>> print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
-    >>>> lbs.plot_image_analysis(beam_image)
-    >>>> plt.show()
+A graphic showing the image and extracted beam parameters is achieved by::
+
+    >>> import imageio.v3 as iio
+    >>> import matplotlib.pyplot as plt
+    >>> import laserbeamsize as lbs
+    >>>
+    >>> repo = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/"
+    >>> image = iio.imread(repo + 't-hene.pgm')
+    >>>
+    >>> lbs.plot_image_analysis(image)
+    >>> plt.show()
 
 A mosaic of images might be created by::
 
-    >>>> # read images for each location
-    >>>> z = np.array([89,94,99,104,109,114,119,124,129,134,139], dtype=float) #[mm]
-    >>>> filenames = ["%d.pgm" % location for location in z]
-    >>>> images = [imageio.v2.imread(filename) for filename in filenames]
-    >>>> lbs.plot_image_montage(images, z * 1e-3, pixel_size=3.75, crop=True)
-    >>>> plt.show()
-
-Full documentation is available at <https://laserbeamsize.readthedocs.io>
+    >>> import imageio.v3 as iio
+    >>> import matplotlib.pyplot as plt
+    >>> import numpy as np
+    >>> import laserbeamsize as lbs
+    >>>
+    >>> repo = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/"
+    >>> z1 = np.array([168,210,280,348,414,480], dtype=float)
+    >>> fn1 = [repo + "t-%dmm.pgm" % number for number in z1]
+    >>> images = [iio.imread(fn) for fn in fn1]
+    >>>
+    >>> options = {'z':z1/1000, 'pixel_size':0.00375, 'units':'mm', 'crop':True}
+    >>> lbs.plot_image_montage(images, **options, iso_noise=False)
+    >>> plt.show()
 """
 
 import numpy as np

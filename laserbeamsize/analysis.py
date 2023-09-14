@@ -14,16 +14,17 @@ the algorithm automatically handle background noise.
 
 Finding the center and diameters of a beam in a monochrome image is simple::
 
-    >>>> import imageio.v3 as iio
-    >>>> import numpy as np
-    >>>> import laserbeamsize as lbs
-    >>>> file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
-    >>>> image = iio.imread(file)
-    >>>> x, y, dx, dy, phi = lbs.beam_size(image)
-    >>>> print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
-    >>>> print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
-    >>>> print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
-    >>>> print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
+    >>> import imageio.v3 as iio
+    >>> import laserbeamsize as lbs
+    >>>
+    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
+    >>> image = iio.imread(file)
+    >>>
+    >>> x, y, dx, dy, phi = lbs.beam_size(image)
+    >>> print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
+    >>> print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
+    >>> print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
+    >>> print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
 """
 
 import numpy as np

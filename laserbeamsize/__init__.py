@@ -3,18 +3,19 @@ A package to facilitate analysis of laser beam images.
 
 Full documentation is available at <https://laserbeamsize.readthedocs.io>
 
-Local help is available for the two modules that comprise the
-laserbeamsize package. laserbeamsize.laserbeamsize has functions
-for finding the size of an beam from as single image. This
-information can be found using
+The `laserbeamsize` module contains functions for finding the size of an beam
+using a single monochrome image. Details can be shown using::
 
-help(laserbeamsize.laserbeamsize)
+    help(laserbeamsize.analysis)
+    help(laserbeamsize.background)
+    help(laserbeamsize.display)
+    help(laserbeamsize.image_tools)
+    help(laserbeamsize.masks)
 
-The other module has the functions that find the M² value and other
-beam parameters from a sequence of images.  This information can be
-found using
+The other module, `laserbeamsize.m2`, contains functions that find the M² value 
+and other beam parameters from a sequence of images::
 
-help(laserbeamsize.m2)
+    help(laserbeamsize.m2)
 """
 __version__ = '1.9.4'
 __author__ = 'Scott Prahl'
@@ -28,5 +29,4 @@ from .image_tools import *
 from .background import *
 from .analysis import *
 from .display import *
-
 from .m2 import *
