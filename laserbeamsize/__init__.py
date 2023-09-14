@@ -17,7 +17,7 @@ and other beam parameters from a sequence of images::
 
     help(laserbeamsize.m2)
 """
-__version__ = '1.9.4'
+__version__ = '2.0.0'
 __author__ = 'Scott Prahl'
 __email__ = 'scott.prahl@oit.edu'
 __copyright__ = 'Copyright 2017-23, Scott Prahl'
