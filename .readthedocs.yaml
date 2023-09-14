@@ -12,6 +12,6 @@ sphinx:
 
 # Set the version of Python and requirements required
 python:
-  version: 3.7
+  version: 3.11
   install:
     - requirements: docs/requirements.txt

@@ -10,15 +10,16 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 
 Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make
-the algorithm less sensitive to background offset and noise.
+the algorithm automatically handle background noise.
 
 Finding the center and diameters of a beam in a monochrome image is simple::
 
-    >>>> import imageio
+    >>>> import imageio.v3 as iio
     >>>> import numpy as np
     >>>> import laserbeamsize as lbs
-    >>>> beam_image = imageio.imread("t-hene.pgm")
-    >>>> x, y, dx, dy, phi = lbs.beam_size(beam_image)
+    >>>>
+    >>>> image = iio.imread("https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm")
+    >>>> x, y, dx, dy, phi = lbs.beam_size(image)
     >>>> print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
     >>>> print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
     >>>> print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
@@ -26,10 +27,7 @@ Finding the center and diameters of a beam in a monochrome image is simple::
 """
 
 import numpy as np
-# import matplotlib.pyplot as plt
-# from matplotlib.colors import LinearSegmentedColormap
 import laserbeamsize.background as back
-# import laserbeamsize.image_tools as tools
 
 from laserbeamsize.masks import rotated_rect_mask
 
