@@ -14,6 +14,7 @@ docstrings that follow the Google docstring format.
 """
 
 import re
+import sys
 import os.path
 
 project = 'laserbeamsize'
@@ -29,6 +30,7 @@ def get_init_property(prop):
 
 release = get_init_property("__version__")
 author = get_init_property("__author__")
+sys.path.insert(0, os.path.abspath('../' + project))
 
 master_doc = 'index'
 
