@@ -204,7 +204,7 @@ def iso_background_mask(image,
 
     We estimate the mean and standard deviation using the values in the
     corners.  All pixel values that fall below the mean+nT*stdev are considered
-    unilluminated (background) pixels.  
+    unilluminated (background) pixels.
 
     Args:
         image : the image to work with

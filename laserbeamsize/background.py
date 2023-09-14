@@ -26,12 +26,12 @@ def subtract_background_image(original, background):
     Subtract a background image from the image with beam.
 
     The function operates on 2D arrays representing grayscale images. Since the
-    subtraction can result in negative pixel values, it is important that the 
+    subtraction can result in negative pixel values, it is important that the
     return array be an array of float (instead of unsigned arrays that will wrap
     around.
 
     Args:
-        original (numpy.ndarray): 2D array image with beam present. 
+        original (numpy.ndarray): 2D array image with beam present.
         background (numpy.ndarray): 2D array image without beam.
 
     Returns:
@@ -203,9 +203,9 @@ def image_background2(image,
 
 
 def subtract_iso_background(image,
-                              corner_fraction=0.035,
-                              nT=3,
-                              iso_noise=True):
+                            corner_fraction=0.035,
+                            nT=3,
+                            iso_noise=True):
     """
     Return image with ISO 11146 background subtracted.
 

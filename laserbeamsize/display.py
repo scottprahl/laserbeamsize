@@ -410,18 +410,18 @@ def plot_image_analysis(o_image,
 
 
 def plot_image_montage(images,
-                      z=None,
-                      cols=3,
-                      pixel_size=None,
-                      vmax=None,
-                      vmin=None,
-                      units='µm',
-                      crop=False,
-                      cmap='gist_ncar',
-                      corner_fraction=0.035,
-                      nT=3,
-                      iso_noise=True,
-                      **kwargs):
+                       z=None,
+                       cols=3,
+                       pixel_size=None,
+                       vmax=None,
+                       vmin=None,
+                       units='µm',
+                       crop=False,
+                       cmap='gist_ncar',
+                       corner_fraction=0.035,
+                       nT=3,
+                       iso_noise=True,
+                       **kwargs):
     """
     Create a beam size montage for a set of images.
 

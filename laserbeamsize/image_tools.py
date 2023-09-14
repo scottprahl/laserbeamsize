@@ -427,9 +427,9 @@ def create_cmap(vmin, vmax, band_percentage=4):
         matplotlib.colors.LinearSegmentedColormap: The generated colormap with 255 colors.
     """
     r = vmin / (vmin - vmax)
-    delta = band_percentage/100
+    delta = band_percentage / 100
     colors = [(0, 0, 0.6), (0, 0, 1), (1, 1, 1), (1, 0, 0), (0.6, 0, 0)]
-    positions = [0, (1-delta)*r, r, (1+delta)*r, 1]
+    positions = [0, (1 - delta) * r, r, (1 + delta) * r, 1]
     return LinearSegmentedColormap.from_list("plus_minus", list(zip(positions, colors)), N=255)
 
 
@@ -437,9 +437,10 @@ def create_plus_minus_cmap(data):
     """Create a color map with reds for positive and blues for negative values."""
     vmax = np.max(data)
     vmin = np.min(data)
-    if 0<=vmin<=vmax :
+
+    if 0 <= vmin <= vmax:
         return plt.get_cmap('Reds')
-    if vmin<=vmax <= 0 :
+    if vmin <= vmax <= 0:
         return plt.get_cmap('Blues')
 
     return create_cmap(vmin, vmax)
