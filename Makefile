@@ -14,7 +14,7 @@ test:
 	pytest tests/test_iso_noise.py
 
 html:
-	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(HTMLOPTS)
+	python -m sphinx -T -E -b html "$(SOURCEDIR)" "$(BUILDDIR)" $(HTMLOPTS)
 	open docs/_build/index.html
 
 pdf:

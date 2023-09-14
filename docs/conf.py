@@ -30,7 +30,10 @@ def get_init_property(prop):
 
 release = get_init_property("__version__")
 author = get_init_property("__author__")
-sys.path.insert(0, os.path.abspath('../' + project))
+
+here = os.path.abspath(os.path.dirname(__file__))
+source = os.path.join(here, '..', project)
+sys.path.insert(0, source)
 
 master_doc = 'index'
 
