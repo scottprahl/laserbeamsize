@@ -33,11 +33,6 @@ by Scott Prahl
    :target: https://pypi.org/project/laserbeamsize/
    :alt: Downloads
 
-|
-
- 
-    **Do not use latest github code. It doesn't work. Use the last released version v1.9.4.**
-
 __________
 
 Simple and fast calculation of beam sizes from a single monochrome image based
@@ -48,7 +43,6 @@ This module also supports M² calculations based on a series of images
 collected at various distances from the focused beam. 
 
 Extensive documentation can be found at <https://laserbeamsize.readthedocs.io>
-
 
 Using laserbeamsize
 -------------------
