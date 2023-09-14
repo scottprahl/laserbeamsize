@@ -1,6 +1,10 @@
 Changelog
 =========
 
+2.0.1
+-----
+* trying to get conda release working
+
 2.0.0
 -----
 * change default background removal to match ISO recommendation

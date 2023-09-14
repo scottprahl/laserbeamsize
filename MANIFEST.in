@@ -8,4 +8,3 @@ exclude .readthedocs.yaml
 exclude release.txt
 exclude Makefile
 exclude docs/*
-exclude tests/*
