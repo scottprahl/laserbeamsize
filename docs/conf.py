@@ -46,7 +46,6 @@ extensions = [
 numpydoc_show_class_members = False
 napoleon_use_param = False
 napoleon_use_rtype = False
-napoleon_custom_sections = [('Returns', 'params_style')]
 
 # List of patterns, relative to source directory, of files to ignore
 exclude_patterns = ['_build',
