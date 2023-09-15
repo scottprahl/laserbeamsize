@@ -29,188 +29,18 @@ Finding the beam waist size, location, and M² for a beam is straightforward::
     >>> plt.show()
 """
 
-import scipy.optimize
+import numpy as np
 import matplotlib.gridspec
 import matplotlib.pyplot as plt
-import numpy as np
+import scipy.optimize
+import laserbeamsize as lbs
 
-__all__ = ('z_rayleigh',
-           'beam_radius',
-           'magnification',
-           'image_distance',
-           'curvature',
-           'divergence',
-           'gouy_phase',
-           'focused_diameter',
-           'beam_parameter_product',
-           'artificial_to_original',
-           'M2_fit',
+__all__ = ('M2_fit',
            'M2_report',
            'M2_diameter_plot',
            'M2_radius_plot',
            'M2_focus_plot'
            )
-
-
-def z_rayleigh(w0, lambda0, M2=1):
-    """
-    Return the Rayleigh distance for a Gaussian beam.
-
-    Args:
-        w0: minimum beam radius [m]
-        lambda0: wavelength of light [m]
-    Returns:
-        z: axial distance from focus that irradiance has dropped 50% [m]
-    """
-    return np.pi * w0**2 / lambda0 / M2
-
-
-def beam_radius(w0, lambda0, z, z0=0, M2=1):
-    """
-    Return the beam radius at an axial location.
-
-    Args:
-        w0: minimum beam radius [m]
-        lambda0: wavelength of light [m]
-        z: axial location of desired beam radius [m]
-        z0: axial location of beam waist [m]
-        M2: beam propagation factor [-]
-    Returns:
-        r: beam radius at axial position [m]
-    """
-    zz = (z - z0) / z_rayleigh(w0, lambda0, M2)
-    return w0 * np.sqrt(1 + zz**2)
-
-
-def magnification(w0, lambda0, s, f, M2=1):
-    """
-    Return the magnification of a Gaussian beam.
-
-    If the beam waist is before the lens, then the distance s
-    will be negative, i.e. if it is at the front focus of the lens (s=-f).
-
-    The new beam waist will be `m * w0` and the new Rayleigh
-    distance will be `m**2 * zR`
-
-    Args:
-        f: focal distance of lens [m]
-        zR: Rayleigh distance [m]
-        s: distance of beam waist to lens [m]
-
-    Returns:
-        m: magnification [-]
-    """
-    zR2 = z_rayleigh(w0, lambda0, M2)**2
-    return f / np.sqrt((s + f)**2 + zR2)
-
-
-def curvature(w0, lambda0, z, z0=0, M2=1):
-    """
-    Calculate the radius of curvature of a Gaussian beam.
-
-    The curvature will be a maximum at the Rayleigh distance and
-    it will be infinite at the beam waist.
-
-    Args:
-        w0: minimum beam radius [m]
-        lambda0: wavelength of light [m]
-        z   axial position along beam  [m]
-        z0  axial position of the beam waist  [m]
-        M2: beam propagation factor [-]
-    Returns:
-        R: radius of curvature of field at z [m]
-    """
-    zR2 = z_rayleigh(w0, lambda0, M2)**2
-    return (z - z0) + zR2 / (z - z0)
-
-
-def divergence(w0, lambda0, M2=1):
-    """
-    Calculate the full angle of divergence of a Gaussian beam.
-
-    Args:
-        w0: minimum beam radius [m]
-        lambda0: wavelength of light [m]
-        M2: beam propagation factor [-]
-    Returns:
-        theta: divergence of beam [radians]
-    """
-    return 2 * w0 / z_rayleigh(w0, lambda0, M2)
-
-
-def gouy_phase(w0, lambda0, z, z0=0):
-    """
-    Calculate the Gouy phase of a Gaussian beam.
-
-    Args:
-        w0: minimum beam radius [m]
-        lambda0: wavelength of light [m]
-        z: axial position along beam  [m]
-        z0: axial position of beam waist  [m]
-    Returns:
-        phase: Gouy phase at axial position [radians]
-    """
-    zR = z_rayleigh(w0, lambda0)
-    return -np.arctan2(z - z0, zR)
-
-
-def focused_diameter(f, lambda0, d, M2=1):
-    """
-    Diameter of diffraction-limited focused beam.
-
-    see eq 6b from Roundy, "Current Technology of Beam Profile Measurements"
-    in Laser Beam Shaping: Theory and Techniques by Dickey, 2000
-
-    Args:
-        f: focal length of lens [m]
-        lambda0: wavelength of light [m]
-        d: diameter of limiting aperture [m]
-        M2: beam propagation factor [-]
-    Returns:
-        d: diffraction-limited beam diameter [m]
-    """
-    return 4 * M2**2 * lambda0 * f / (np.pi * d)
-
-
-def beam_parameter_product(Theta, d0, Theta_std=0, d0_std=0):
-    """
-    Find the beam parameter product (BPP).
-
-    Better beam quality is associated with the lower BPP values. The best
-    (smallest) BPP is λ / π and corresponds to a diffraction-limited Gaussian beam.
-
-    Args:
-        Theta: full beam divergence angle [radians]
-        d0: beam waist diameter [m]
-        Theta_std: std. dev. of full beam divergence angle [radians]
-        d0_std: std. dev. of beam waist diameter [m]
-    Returns:
-        BPP: Beam parameter product [m * radian]
-        BPP_std: standard deviation of beam parameter product [m * radian]
-    """
-    BPP = Theta * d0 / 4
-    BPP_std = BPP * np.sqrt((Theta_std / Theta)**2 + (d0_std / d0)**2)
-    return BPP, BPP_std
-
-
-def image_distance(w0, lambda0, s, f, M2=1):
-    """
-    Return the image location of a Gaussian beam.
-
-    The default case is when the beam waist is located at
-    the front focus of the lens (s=-f).
-
-    Args:
-        s: distance of beam waist to lens [m]
-        f: focal distance of lens [m]
-        w0: minimum beam radius [m]
-        lambda0: wavelength of light [m]
-        M2: beam propagation factor [-]
-    Returns:
-        z: location of new beam waist [m]
-    """
-    zR2 = z_rayleigh(w0, lambda0, M2)**2
-    return f * (s * f + s * s + zR2) / ((f + s)**2 + zR2)
 
 
 def _abc_fit(z, d, lambda0):
@@ -505,7 +335,7 @@ def M2_string(params, errors):
     """
     d0, z0, Theta, M2, zR = params
     d0_std, z0_std, Theta_std, M2_std, zR_std = errors
-    BPP, BPP_std = beam_parameter_product(Theta, d0, Theta_std, d0_std)
+    BPP, BPP_std = lbs.beam_parameter_product(Theta, d0, Theta_std, d0_std)
 
     s = ''
     s += "       M^2 = %.2f ± %.2f\n" % (M2, M2_std)
@@ -520,63 +350,6 @@ def M2_string(params, errors):
     s += "\n"
     s += "       BPP = %.2f ± %.2f mm mrad\n" % (BPP * 1e6, BPP_std * 1e6)
     return s
-
-
-def artificial_to_original(params, errors, f, hiatus=0):
-    """
-    Convert artificial beam parameters to original beam parameters.
-
-    ISO 11146-1 section 9 equations are used to retrieve the original beam
-    parameters from parameters measured for an artificial waist
-    created by focusing the beam with a lens.
-
-    M2 does not change.
-
-    Ideally, the waist position would be relative to the rear principal
-    plane of the lens and the original beam waist position would be corrected
-    by the hiatus between the principal planes of the lens.
-
-    The beam parameters are in an array `[d0,z0,Theta,M2,zR]` ::
-
-        d0: beam waist diameter [m]
-        z0: axial location of beam waist [m]
-        Theta: full beam divergence angle [radians]
-        M2: beam propagation parameter [-]
-        zR: Rayleigh distance [m]
-
-    The errors that are returned are not quite right at the moment.
-
-    Args:
-        params: array of artificial beam parameters
-        errors: array with std dev of above parameters
-        f: focal length of lens [m]
-        hiatus: distance between principal planes of focusing lens [m]
-
-    Returns:
-        params: array of original beam parameters (without lens)
-        errors: array of std deviations of above parameters
-    """
-    art_d0, art_z0, art_Theta, M2, art_zR = params
-    art_d0_std, art_z0_std, art_Theta_std, M2_std, art_zR_std = errors
-
-    x2 = art_z0 - f
-    V = f / np.sqrt(art_zR**2 + x2**2)
-
-    orig_d0 = V * art_d0
-    orig_d0_std = V * art_d0_std
-
-    orig_z0 = V**2 * x2 + f - hiatus
-    orig_z0_std = V**2 * art_z0_std
-
-    orig_zR = V**2 * art_zR
-    orig_zR_std = V**2 * art_zR_std
-
-    orig_Theta = art_Theta / V
-    orig_Theta_std = art_Theta_std / V
-
-    o_params = [orig_d0, orig_z0, orig_Theta, M2, orig_zR]
-    o_errors = [orig_d0_std, orig_z0_std, orig_Theta_std, M2_std, orig_zR_std]
-    return o_params, o_errors
 
 
 def _M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
@@ -599,7 +372,7 @@ def _M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
 
     s = "Beam propagation parameters for the focused beam\n"
     s += M2_string(params, errors)
-    o_params, o_errors = artificial_to_original(params, errors, f)
+    o_params, o_errors = lbs.artificial_to_original(params, errors, f)
     s += "\nBeam propagation parameters for the laser beam\n"
     s += M2_string(o_params, o_errors)
     return s
@@ -658,9 +431,9 @@ def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
     M2 = np.sqrt(M2x * M2y)
     M2_std = np.sqrt(M2x_std**2 + M2y_std**2)
 
-    BPP, BPP_std = beam_parameter_product(Theta, d0, Theta_std, d0_std)
-    BPPx, BPPx_std = beam_parameter_product(Thetax, d0x, Thetax_std, d0x_std)
-    BPPy, BPPy_std = beam_parameter_product(Thetay, d0y, Thetay_std, d0y_std)
+    BPP, BPP_std = lbs.beam_parameter_product(Theta, d0, Theta_std, d0_std)
+    BPPx, BPPx_std = lbs.beam_parameter_product(Thetax, d0x, Thetax_std, d0x_std)
+    BPPy, BPPy_std = lbs.beam_parameter_product(Thetay, d0y, Thetay_std, d0y_std)
 
     tag = ''
     if f is not None:
@@ -1052,18 +825,18 @@ def M2_focus_plot(w0, lambda0, f, z0, M2=1):
     # plot the beam from just before the waist to the lens
     left = 1.1 * z0
     z = np.linspace(left, 0)
-    r = beam_radius(w0, lambda0, z, z0=z0, M2=M2)
+    r = lbs.beam_radius(w0, lambda0, z, z0=z0, M2=M2)
     plt.fill_between(z * 1e3, -r * 1e6, r * 1e6, color='red', alpha=0.2)
 
     # find the gaussian beam parameters for the beam after the lens
-    w0_after = w0 * magnification(w0, lambda0, z0, f, M2=M2)
-    z0_after = image_distance(w0, lambda0, z0, f, M2=M2)
-    zR_after = z_rayleigh(w0_after, lambda0, M2)
+    w0_after = w0 * lbs.magnification(w0, lambda0, z0, f, M2=M2)
+    z0_after = lbs.image_distance(w0, lambda0, z0, f, M2=M2)
+    zR_after = lbs.z_rayleigh(w0_after, lambda0, M2)
 
     # plot the beam after the lens
     right = max(2 * f, z0_after + 4 * zR_after)
     z_after = np.linspace(0, right)
-    r_after = beam_radius(w0_after, lambda0, z_after, z0=z0_after, M2=M2)
+    r_after = lbs.beam_radius(w0_after, lambda0, z_after, z0=z0_after, M2=M2)
 
     # plt.axhline(w0_after * 1.41e6)
     plt.fill_between(z_after * 1e3, -r_after * 1e6, r_after * 1e6, color='red', alpha=0.2)

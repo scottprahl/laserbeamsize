@@ -12,7 +12,12 @@ using a single monochrome image. Details can be shown using::
     help(laserbeamsize.image_tools)
     help(laserbeamsize.masks)
 
-The other module, `laserbeamsize.m2`, contains functions that find the M² value 
+Another module, `laserbeamsize.gaussian`, contains functions that find properties
+of a propagating Gaussian beam::
+
+    help(laserbeamsize.gaussian)
+
+The last module, `laserbeamsize.m2`, contains functions that find the M² value
 and other beam parameters from a sequence of images::
 
     help(laserbeamsize.m2)
@@ -29,4 +34,5 @@ from .image_tools import *
 from .background import *
 from .analysis import *
 from .display import *
+from .gaussian import *
 from .m2 import *
