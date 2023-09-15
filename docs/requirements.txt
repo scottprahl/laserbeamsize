@@ -7,4 +7,5 @@ pillow
 nbsphinx
 sphinx-automodapi
 sphinx-rtd-theme
+Pygments==2.16.1
 laserbeamsize
