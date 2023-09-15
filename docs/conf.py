@@ -18,6 +18,7 @@ import sys
 import os.path
 
 project = 'laserbeamsize'
+master_doc = 'index'
 
 def get_init_property(prop):
     """Return property from __init__.py."""
@@ -28,11 +29,9 @@ def get_init_property(prop):
         result = re.search(regex, file.read())
     return result.group(1)
 
+sys.path.insert(0, os.path.abspath('../laserbeamsize'))
 release = get_init_property("__version__")
 author = get_init_property("__author__")
-
-sys.path.insert(0, os.path.abspath('../laserbeamsize'))
-master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 
