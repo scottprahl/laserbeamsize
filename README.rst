@@ -8,7 +8,7 @@ by Scott Prahl
    :alt: pypi
 
 .. image:: https://img.shields.io/conda/v/conda-forge/laserbeamsize.svg
-   :target: https://anaconda.org/conda-forge/laserbeamsize
+   :target: https://github.com/conda-forge/laserbeamsize-feedstock
    :alt: conda
 
 .. image:: https://zenodo.org/badge/131667397.svg
@@ -44,43 +44,41 @@ collected at various distances from the focused beam.
 
 Extensive documentation can be found at <https://laserbeamsize.readthedocs.io>
 
-Using laserbeamsize
--------------------
+Installation
+------------
 
-1. Install with ``pip``::
+Use ``pip``::
     
     pip install --user laserbeamsize
 
-2. or `run this code in the cloud using Google Collaboratory <https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master>`_ by selecting the Jupyter notebook that interests you.
+or ``conda``::
 
-3. use `binder <https://mybinder.org/v2/gh/scottprahl/laserbeamsize/master?filepath=docs>`_ which will create a new environment that allows you to run Jupyter notebooks.  This takes a bit longer to start, but it automatically installs ``laserbeamsize``.
+    conda install -c conda-forge laserbeamsize
 
-4. clone the `laserbeamsize github repository <https://github.com/scottprahl/laserbeamsize>`_ and then add the repository to your ``PYTHONPATH`` environment variable
 
 Determining the beam size in an image
 -------------------------------------
 
 Finding the center and dimensions of a good beam image::
 
-    import imageio
-    import numpy as np
-    import matplotlib.pyplot as plt
+    import imageio.v3 as iio
     import laserbeamsize as lbs
-
-    beam = imageio.v2.imread("t-hene.pgm")
-    x, y, dx, dy, phi = lbs.beam_size(beam)
-
-    print("The center of the beam ellipse is at (%.0f, %.0f)" % (x,y))
+    
+    file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
+    image = iio.imread(file)
+    
+    x, y, dx, dy, phi = lbs.beam_size(image)
+    print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
     print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
     print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
-    print("The ellipse is rotated %.0f° ccw from horizontal" % (phi*180/3.1416))
+    print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
 
 to produce::
 
-    The center of the beam ellipse is at (651, 491)
-    The ellipse diameter (closest to horizontal) is 334 pixels
-    The ellipse diameter (closest to   vertical) is 327 pixels
-    The ellipse is rotated 29° ccw from the horizontal
+    The center of the beam ellipse is at (651, 492)
+    The ellipse diameter (closest to horizontal) is 369 pixels
+    The ellipse diameter (closest to   vertical) is 347 pixels
+    The ellipse is rotated -12° ccw from the horizontal
 
 A visual report can be done with one function call::
 
