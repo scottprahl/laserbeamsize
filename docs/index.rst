@@ -46,7 +46,18 @@
    :caption: API
    :hidden:
 
-   laserbeamsize
+   analysis
+
+   background
+
+   display
+
+   image_tools
+
+   masks
+
+   m2
+
 
 .. toctree::
    :caption: Versions
