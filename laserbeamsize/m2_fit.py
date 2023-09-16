@@ -31,8 +31,8 @@ To facilitate interpretation of the results, there is also a `M2_report` functio
 
     >>> import numpy as np
     >>> import laserbeamsize as lbs
-    >>> lambda0 = 632.8e-9  # meters
     >>>
+    >>> lambda0 = 632.8e-9  # meters
     >>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770]) * 1e-3
     >>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397]) * 1e-6
     >>>
