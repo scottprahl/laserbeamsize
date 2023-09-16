@@ -1,6 +1,10 @@
 Changelog
 =========
 
+2.0.3
+-----
+* readthedocs does not do well with new module names
+
 2.0.2
 -----
 * splitting monolithic m2.py

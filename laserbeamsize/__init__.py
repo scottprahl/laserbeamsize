@@ -23,7 +23,7 @@ and other beam parameters from a sequence of images::
     help(laserbeamsize.m2_fit)
     help(laserbeamsize.m2_display)
 """
-__version__ = '2.0.2'
+__version__ = '2.0.3'
 __author__ = 'Scott Prahl'
 __email__ = 'scott.prahl@oit.edu'
 __copyright__ = 'Copyright 2017-23, Scott Prahl'
