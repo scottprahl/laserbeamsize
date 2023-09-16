@@ -22,13 +22,8 @@ lint:
 	-pylint laserbeamsize/image_tools.py
 	-pylint laserbeamsize/m2_fit.py
 	-pylint laserbeamsize/m2_display.py
-#	-pylint tests/test_back.py
-#	-pylint tests/test_masks.py
-#	-pylint tests/test_tools.py
-#	-pylint tests/test_basic_beam_size.py
-#	-pylint tests/test_no_noise.py
-#	-pylint tests/test_noise.py
-#	-pylint tests/test_gaussian.py
+	-pylint tests/test_all_notebooks.py
+
 
 doccheck:
 	-pydocstyle laserbeamsize/__init__.py
@@ -65,6 +60,8 @@ rcheck:
 	make html
 	check-manifest
 	pyroma -d .
+	pytest --verbose tests/test_all_notebooks.py
+
 
 clean:
 	rm -rf .eggs

@@ -6,6 +6,7 @@ Changelog
 * splitting monolithic m2.py
 * added tests for functions in gaussian.py
 * improved docstrings in gaussian.py
+* improved module docstrings in m2_fit and m2_display
 
 2.0.1
 -----
