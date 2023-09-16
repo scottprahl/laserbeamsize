@@ -29,6 +29,7 @@ def get_init_property(prop):
 
 release = get_init_property("__version__")
 author = get_init_property("__author__")
+copyright = get_init_property("__copyright__")
 
 # -- General configuration ---------------------------------------------------
 
