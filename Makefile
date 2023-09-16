@@ -46,7 +46,13 @@ rstcheck:
 	-rstcheck CHANGELOG.rst
 	-rstcheck docs/index.rst
 	-rstcheck docs/changelog.rst
-	-rstcheck --ignore-directives automodapi docs/laserbeamsize.rst
+	-rstcheck --ignore-directives automodapi docs/analysis.rst
+	-rstcheck --ignore-directives automodapi docs/background.rst
+	-rstcheck --ignore-directives automodapi docs/display.rst
+	-rstcheck --ignore-directives automodapi docs/image_tools.rst
+	-rstcheck --ignore-directives automodapi docs/m2_display.rst
+	-rstcheck --ignore-directives automodapi docs/m2_fit.rst
+	-rstcheck --ignore-directives automodapi docs/masks.rst
 
 rcheck:
 	make clean
