@@ -6,6 +6,8 @@ test:
 	pytest tests/test_no_noise.py
 	pytest tests/test_noise.py
 	pytest tests/test_iso_noise.py
+	pytest tests/test_gaussian.py
+
 
 html:
 	cd docs && python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build
@@ -25,6 +27,7 @@ lint:
 #	-pylint tests/test_basic_beam_size.py
 #	-pylint tests/test_no_noise.py
 #	-pylint tests/test_noise.py
+#	-pylint tests/test_gaussian.py
 
 doccheck:
 	-pydocstyle laserbeamsize/background.py
