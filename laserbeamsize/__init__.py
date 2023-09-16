@@ -20,9 +20,10 @@ of a propagating Gaussian beam::
 The last module, `laserbeamsize.m2`, contains functions that find the M² value
 and other beam parameters from a sequence of images::
 
-    help(laserbeamsize.m2)
+    help(laserbeamsize.m2_fit)
+    help(laserbeamsize.m2_display)
 """
-__version__ = '2.0.1'
+__version__ = '2.0.2'
 __author__ = 'Scott Prahl'
 __email__ = 'scott.prahl@oit.edu'
 __copyright__ = 'Copyright 2017-23, Scott Prahl'
@@ -35,4 +36,5 @@ from .background import *
 from .analysis import *
 from .display import *
 from .gaussian import *
-from .m2 import *
+from .m2_fit import *
+from .m2_display import *

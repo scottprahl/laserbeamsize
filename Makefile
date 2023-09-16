@@ -8,19 +8,20 @@ test:
 	pytest tests/test_iso_noise.py
 	pytest tests/test_gaussian.py
 
-
 html:
 	cd docs && python -m sphinx -T -E -b html -d _build/doctrees -D language=en . _build
 	open docs/_build/index.html
 
 lint:
+	-pylint laserbeamsize/__init__.py
+	-pylint laserbeamsize/analysis.py
 	-pylint laserbeamsize/background.py
+	-pylint laserbeamsize/display.py
+	-pylint laserbeamsize/gaussian.py
 	-pylint laserbeamsize/masks.py
 	-pylint laserbeamsize/image_tools.py
-	-pylint laserbeamsize/analysis.py
-	-pylint laserbeamsize/display.py
-	-pylint laserbeamsize/m2.py
-	-pylint laserbeamsize/__init__.py
+	-pylint laserbeamsize/m2_fit.py
+	-pylint laserbeamsize/m2_display.py
 #	-pylint tests/test_back.py
 #	-pylint tests/test_masks.py
 #	-pylint tests/test_tools.py
@@ -30,13 +31,15 @@ lint:
 #	-pylint tests/test_gaussian.py
 
 doccheck:
-	-pydocstyle laserbeamsize/background.py
-	-pydocstyle laserbeamsize/masks.py
-	-pydocstyle laserbeamsize/image_tools.py
-	-pydocstyle laserbeamsize/analysis.py
-	-pydocstyle laserbeamsize/display.py
-	-pydocstyle laserbeamsize/m2.py
 	-pydocstyle laserbeamsize/__init__.py
+	-pydocstyle laserbeamsize/analysis.py
+	-pydocstyle laserbeamsize/background.py
+	-pydocstyle laserbeamsize/display.py
+	-pydocstyle laserbeamsize/gaussian.py
+	-pydocstyle laserbeamsize/image_tools.py
+	-pydocstyle laserbeamsize/masks.py
+	-pydocstyle laserbeamsize/m2_fit.py
+	-pydocstyle laserbeamsize/m2_display.py
 
 rstcheck:
 	-rstcheck README.rst

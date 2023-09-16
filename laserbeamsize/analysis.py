@@ -28,9 +28,7 @@ Finding the center and diameters of a beam in a monochrome image is simple::
 """
 
 import numpy as np
-import laserbeamsize.background as back
-
-from laserbeamsize.masks import rotated_rect_mask
+import laserbeamsize as lbs
 
 __all__ = ('basic_beam_size',
            'beam_size',
@@ -190,17 +188,17 @@ def beam_size(image,
     _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi)
 
     # zero background for initial guess at beam size
-    image_no_bkgnd = back.subtract_iso_background(image,
-                                                  corner_fraction=corner_fraction,
-                                                  nT=nT,
-                                                  iso_noise=False)
+    image_no_bkgnd = lbs.subtract_iso_background(image,
+                                                 corner_fraction=corner_fraction,
+                                                 nT=nT,
+                                                 iso_noise=False)
     xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd)
 
     if iso_noise:  # follow iso background guidelines (positive & negative bkgnd values)
-        image_no_bkgnd = back.subtract_iso_background(image,
-                                                      corner_fraction=corner_fraction,
-                                                      nT=nT,
-                                                      iso_noise=True)
+        image_no_bkgnd = lbs.subtract_iso_background(image,
+                                                     corner_fraction=corner_fraction,
+                                                     nT=nT,
+                                                     iso_noise=True)
 
     for _iteration in range(1, max_iter):
 
@@ -210,7 +208,7 @@ def beam_size(image,
         xc2, yc2, dx2, dy2 = xc, yc, dx, dy
 
         # create a mask so only values within the mask are used
-        mask = rotated_rect_mask(image, xc, yc, dx, dy, phi_, mask_diameters)
+        mask = lbs.rotated_rect_mask(image, xc, yc, dx, dy, phi_, mask_diameters)
         masked_image = np.copy(image_no_bkgnd)
 
         # zero values outside mask (rotation allows mask pixels to differ from 0 or 1)
@@ -218,21 +216,6 @@ def beam_size(image,
 
         # find the new parameters
         xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
-
-#         xx,yy = tools.rotated_rect_arrays(xc, yc, dx, dy, phi_, mask_diameters)
-#         xe,ye = tools.ellipse_arrays(xc, yc, dx, dy, phi_)
-#         plt.imshow(masked_image)
-#         plt.plot(xx,yy)
-#         plt.plot(xe,ye)
-#         plt.title('iteration %d' % _iteration)
-#         plt.show()
-#
-#         print('iteration %d' % _iteration)
-#         print("    old  new")
-#         print("x  %4d %4d" % (xc2, xc))
-#         print("y  %4d %4d" % (yc2, yc))
-#         print("dx %4d %4d" % (dx2, dx))
-#         print("dy %4d %4d" % (dy2, dy))
 
         if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
             break

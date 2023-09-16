@@ -1,2 +1,0 @@
-.. automodapi:: laserbeamsize.m2
-   :no-inheritance-diagram:

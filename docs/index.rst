@@ -56,7 +56,9 @@
 
    masks
 
-   m2
+   m2_fit
+
+   m2_display
 
 
 .. toctree::

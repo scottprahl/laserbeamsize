@@ -1,6 +1,12 @@
 Changelog
 =========
 
+2.0.2
+-----
+* splitting monolithic m2.py
+* added tests for functions in gaussian.py
+* improved docstrings in gaussian.py
+
 2.0.1
 -----
 * trying to get conda release working

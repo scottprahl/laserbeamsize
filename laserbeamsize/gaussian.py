@@ -1,10 +1,5 @@
 # pylint: disable=invalid-name
 # pylint: disable=too-many-locals
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-statements
-# pylint: disable=unbalanced-tuple-unpacking
-# pylint: disable=consider-using-f-string)
-# pylint: disable=too-many-lines
 """
 A module for calculating properties of a Gaussian laser beam.
 
@@ -77,7 +72,7 @@ def z_rayleigh(w0, lambda0, M2=1):
     The Rayleigh distance is important not only because it marks a specific
     point in the evolution of the beam radius but also because it fundamentally
     characterizes the propagation of Gaussian beams.
-    
+
     The Rayleigh distance (zR) is the distance from the beam waist (the location
     where the beam radius is minimum) to the point where the beam radius has
     increased by a factor of √2, and consequently, the beam's cross-sectional
@@ -152,7 +147,7 @@ def magnification(w0, lambda0, s, f, M2=1):
 
 def curvature(w0, lambda0, z, z0=0, M2=1):
     """
-    Calculate the radius of curvature (R) of a Gaussian beam at a given axial position.
+    Calculate the radius of curvature of a Gaussian beam at a given axial position.
 
     The radius of curvature of a Gaussian beam refers to the curvature of the
     beam's wavefronts as it propagates in space. At the beam waist, where the
@@ -220,11 +215,11 @@ def gouy_phase(w0, lambda0, z, z0=0):
     """
     Calculate the Gouy phase shift of a Gaussian beam at a specific axial position.
 
-    The Gouy phase shift is an additional phase shift experienced by Gaussian beams, 
-    besides the normal propagation phase change. This phenomenon is prominent near the 
-    beam waist. The function utilizes the arctangent function to calculate this phase shift 
+    The Gouy phase shift is an additional phase shift experienced by Gaussian beams,
+    besides the normal propagation phase change. This phenomenon is prominent near the
+    beam waist. The function utilizes the arctangent function to calculate this phase shift
     at the specified axial position.
-    
+
     The beam waist location z0 defaults to 0, implying that the calculation is done
     assuming the beam waist is at the origin.
 
@@ -306,7 +301,7 @@ def image_distance(w0, lambda0, s, f, M2=1):
 
     Returns:
         The axial distance from the lens to the location of the new beam waist [m]
-     """
+    """
     zR2 = z_rayleigh(w0, lambda0, M2)**2
     return f * (s * f + s * s + zR2) / ((f + s)**2 + zR2)
 
@@ -328,23 +323,25 @@ def artificial_to_original(params, errors, f, hiatus=0):
     This function currently returns errors that might not be accurate.
 
     Args:
-        params (list or array): A list or array containing artificial beam parameters in the following order:
+        params: A list or array containing artificial beam parameters in the following order:
             - d0: beam waist diameter [m]
             - z0: axial location of beam waist [m]
             - Theta: full beam divergence angle [radians]
             - M2: beam propagation parameter [-]
             - zR: Rayleigh distance [m]
 
-        errors (list or array): A list or array containing the standard deviations of the artificial beam parameters.
+        errors (list or array): A list or array containing the standard deviations of
+        the artificial beam parameters.
 
         f (float): The focal length of the lens used to create the artificial waist [m].
 
-        hiatus (float, optional): The distance between the principal planes of the focusing lens [m]. Defaults to 0.
+        hiatus (float, optional): The distance between the principal planes of the
+        focusing lens [m]. Defaults to 0.
 
     Returns:
         tuple: A tuple containing two lists:
             - params: A list of the original beam parameters without the lens.
-            - errors: A list of the standard deviations of the original parameters, albeit they might not be accurate.
+            - errors: A list of the standard deviations of the original parameters.
     """
     # ... (rest of your code)
     art_d0, art_z0, art_Theta, M2, art_zR = params
