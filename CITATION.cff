@@ -8,4 +8,4 @@ doi: 10.5281/zenodo.8311678
 message: If you use this software, please cite it as below.
 title: 'laserbeamsize: a python module for ISO 11146 analysis of laser beams'
 url: https://zenodo.org/badge/latestdoi/131667397
-version: 2.0.2
+version: 2.0.3
