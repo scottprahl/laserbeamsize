@@ -11,8 +11,8 @@ by Scott Prahl
    :target: https://github.com/conda-forge/laserbeamsize-feedstock
    :alt: conda
 
-.. image:: https://zenodo.org/badge/131667397.svg
-   :target: https://zenodo.org/badge/latestdoi/131667397
+.. image:: https://zenodo.org/badge/107437651.svg
+   :target: https://zenodo.org/badge/latestdoi/107437651
    :alt: zenodo
 
 |
