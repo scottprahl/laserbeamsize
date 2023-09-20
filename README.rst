@@ -82,7 +82,7 @@ to produce::
 
 A visual report can be done with one function call::
 
-    lbs.beam_size_plot(beam)
+    lbs.plot_image_analysis(beam)
     plt.show()
     
 produces something like
@@ -92,7 +92,7 @@ produces something like
 
 or::
 
-    lbs.beam_size_plot(beam, r"Original Image $\lambda$=4µm beam", pixel_size = 12, units='µm')
+    lbs.plot_image_analysis(beam, r"Original Image $\lambda$=4µm beam", pixel_size = 12, units='µm')
     plt.show()
 
 produces something like
@@ -104,7 +104,7 @@ Non-gaussian beams work too::
 
     # 12-bit pixel image stored as high-order bits in 16-bit values
     tem02 = imageio.imread("TEM02_100mm.pgm") >> 4
-    lbs.beam_size_plot(tem02, title = r"TEM$_{02}$ at z=100mm", pixel_size=3.75)
+    lbs.plot_image_analysis(tem02, title = r"TEM$_{02}$ at z=100mm", pixel_size=3.75)
     plt.show()
 
 produces
