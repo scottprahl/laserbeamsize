@@ -3,9 +3,13 @@ laserbeamsize
 
 by Scott Prahl
 
-.. image:: https://img.shields.io/pypi/v/laserbeamsize.svg
+.. image:: https://img.shields.io/pypi/v/laserbeamsize?color=green
    :target: https://pypi.org/project/laserbeamsize/
    :alt: pypi
+
+.. image:: https://img.shields.io/github/v/tag/scottprahl/laserbeamsize?label=github&color=green
+   :target: https://github.com/scottprahl/laserbeamsize
+   :alt: github
 
 .. image:: https://img.shields.io/conda/v/conda-forge/laserbeamsize.svg
    :target: https://github.com/conda-forge/laserbeamsize-feedstock
@@ -21,8 +25,8 @@ by Scott Prahl
    :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
    :alt: License
 
-.. image:: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yml/badge.svg
-   :target: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yml
+.. image:: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yaml/badge.svg
+   :target: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yaml
    :alt: testing
 
 .. image:: https://readthedocs.org/projects/laserbeamsize/badge
@@ -55,6 +59,12 @@ or ``conda``::
 
     conda install -c conda-forge laserbeamsize
 
+
+or use immediately by clicking the Google Colaboratory button below
+
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+  :target: https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master
+  :alt: Colab
 
 Determining the beam size in an image
 -------------------------------------
@@ -176,4 +186,4 @@ the semi-major axis 2.6±0.7 is consistent with the expected value of 3 for the 
 License
 -------
 
-`laserbeamsize` is licensed under the terms of the MIT license.
+``laserbeamsize`` is licensed under the terms of the MIT license.
