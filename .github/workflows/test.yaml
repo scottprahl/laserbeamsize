@@ -27,15 +27,15 @@ jobs:
 
       - name: Install package and dependencies
         run: |
-          pip install -U pip setuptools wheel
           pip install -r requirements.txt
+          pip install -e .  # current package in editable mode
 
       - name: Test with pytest
         run: |
-          python -m pytest tests/test_back.py
-          python -m pytest tests/test_tools.py
-          python -m pytest tests/test_masks.py
-          python -m pytest tests/test_basic_beam_size.py
-          python -m pytest tests/test_noise.py
-          python -m pytest tests/test_no_noise.py
-          python -m pytest tests/test_iso_noise.py
+          pytest tests/test_back.py
+          pytest tests/test_tools.py
+          pytest tests/test_masks.py
+          pytest tests/test_basic_beam_size.py
+          pytest tests/test_noise.py
+          pytest tests/test_no_noise.py
+          pytest tests/test_iso_noise.py
