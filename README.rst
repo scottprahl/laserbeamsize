@@ -3,15 +3,15 @@ laserbeamsize
 
 by Scott Prahl
 
-.. image:: https://img.shields.io/pypi/v/laserbeamsize?color=green
+.. image:: https://img.shields.io/pypi/v/laserbeamsize?color=68CA66
    :target: https://pypi.org/project/laserbeamsize/
    :alt: pypi
 
-.. image:: https://img.shields.io/github/v/tag/scottprahl/laserbeamsize?label=github&color=green
+.. image:: https://img.shields.io/github/v/tag/scottprahl/laserbeamsize?label=github&color=v
    :target: https://github.com/scottprahl/laserbeamsize
    :alt: github
 
-.. image:: https://img.shields.io/conda/v/conda-forge/laserbeamsize.svg
+.. image:: https://img.shields.io/conda/vn/conda-forge/laserbeamsize?label=conda&color=68CA66
    :target: https://github.com/conda-forge/laserbeamsize-feedstock
    :alt: conda
 
@@ -21,7 +21,7 @@ by Scott Prahl
 
 |
 
-.. image:: https://img.shields.io/badge/MIT-license-yellow.svg
+.. image:: https://img.shields.io/github/license/scottprahl/laserbeamsize?color=68CA66
    :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
    :alt: License
 
@@ -29,11 +29,11 @@ by Scott Prahl
    :target: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yaml
    :alt: testing
 
-.. image:: https://readthedocs.org/projects/laserbeamsize/badge
+.. image:: https://readthedocs.org/projects/laserbeamsize/badge?color=68CA66
   :target: https://laserbeamsize.readthedocs.io
   :alt: docs
 
-.. image:: https://img.shields.io/pypi/dm/laserbeamsize
+.. image:: https://img.shields.io/pypi/dm/laserbeamsize?color=68CA66
    :target: https://pypi.org/project/laserbeamsize/
    :alt: Downloads
 
