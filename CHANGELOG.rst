@@ -3,12 +3,13 @@ Changelog
 
 2.0.4
 -----
-* fix zenodo
-* update CITATION.cff
-* add pypi github action
+* fix zenodo and CITATION.cff
+* fix pypi github action
 * fix copyright
-* correct readme to use plot_image_analysis()
+* fix manifest
+* correct README.rst to use `plot_image_analysis()`
 * tweak badges
+* allow fixed phi angle of 0° (thanks @cptyannick)
 
 2.0.3
 -----
