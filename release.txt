@@ -4,6 +4,7 @@ Releasing a new version
 
 # check
   make rcheck
+  python -m build
 
 # update the version in __init__.py
   git commit -m 'update version' laserbeamsize/__init__.py
@@ -16,11 +17,13 @@ Releasing a new version
   git tag 2.0.2
   git push origin 2.0.2
 
-# upload source to pypi
-  python3 -m build
-  python3 -m twine upload dist/*
-
-# update/check releases
+# manually publish release at
   open https://github.com/scottprahl/laserbeamsize
+  
+# verify action success
+  open https://zenodo.org/badge/latestdoi/107437651
   open https://pypi.org/project/laserbeamsize/
   open https://laserbeamsize.readthedocs.io
+  
+# wait for feedstock update
+  open https://github.com/conda-forge/laserbeamsize-feedstock

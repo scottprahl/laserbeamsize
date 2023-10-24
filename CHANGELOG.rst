@@ -1,6 +1,15 @@
 Changelog
 =========
 
+2.0.4
+-----
+* fix zenodo
+* update CITATION.cff
+* add pypi github action
+* fix copyright
+* correct readme to use plot_image_analysis()
+* tweak badges
+
 2.0.3
 -----
 * readthedocs does not do well with new module names
