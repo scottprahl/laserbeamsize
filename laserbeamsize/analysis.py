@@ -202,7 +202,8 @@ def beam_size(image,
 
     for _iteration in range(1, max_iter):
 
-        phi_ = phi if phi is not None else phi_
+        if phi is not None:
+            phi_ = phi
 
         # save current beam properties for later comparison
         xc2, yc2, dx2, dy2 = xc, yc, dx, dy
@@ -220,7 +221,9 @@ def beam_size(image,
         if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
             break
 
-    phi_ = phi if phi is not None else phi_
+    if phi is not None:
+        phi_ = phi
+
     return xc, yc, dx, dy, phi_
 
 
