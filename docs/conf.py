@@ -31,8 +31,6 @@ release = get_init_property("__version__")
 author = get_init_property("__author__")
 copyright = get_init_property("__copyright__")
 
-# -- General configuration ---------------------------------------------------
-
 # Sphinx extension modules
 extensions = [
     'sphinx.ext.napoleon',
@@ -47,7 +45,6 @@ napoleon_use_rtype = False
 
 # List of patterns, relative to source directory, of files to ignore
 exclude_patterns = ['_build',
-                    '.tox',
                     '**.ipynb_checkpoints',
                     'readme_images.ipynb',
                     ]
