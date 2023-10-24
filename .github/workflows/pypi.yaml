@@ -12,7 +12,7 @@ jobs:
 
     environment:
       name: pypi repository
-      url: https://pypi.org/p/pygrin
+      url: https://pypi.org/p/laserbeamsize
 
     permissions:
       id-token: write
