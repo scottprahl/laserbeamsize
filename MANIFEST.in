@@ -2,9 +2,3 @@ include CHANGELOG.rst
 include CITATION.cff
 include LICENSE.txt
 include requirements.txt
-
-exclude .gitignore
-exclude .readthedocs.yaml
-exclude release.txt
-exclude Makefile
-exclude docs/*
