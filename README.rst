@@ -7,7 +7,7 @@ by Scott Prahl
    :target: https://pypi.org/project/laserbeamsize/
    :alt: pypi
 
-.. image:: https://img.shields.io/github/v/tag/scottprahl/laserbeamsize?label=github&color=v
+.. image:: https://img.shields.io/github/v/tag/scottprahl/laserbeamsize?label=github&color=68CA66
    :target: https://github.com/scottprahl/laserbeamsize
    :alt: github
 
