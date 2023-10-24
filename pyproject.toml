@@ -1,6 +1,18 @@
 [build-system]
-requires = [
-    "setuptools >= 44",
-    "setuptools_scm >= 2.0.0, <3"
-]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 100
+ignore = ["F403", "F841"]
+exclude =['.git', '__pycache__', 'docs']
+
+[tool.check-manifest]
+ignore = [
+    ".readthedocs.yaml",
+    "docs/*",
+    "Makefile",
+    "release.txt",
+    "requirements.txt",
+    "todo.rst",
+]
