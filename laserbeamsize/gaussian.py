@@ -252,7 +252,7 @@ def focused_diameter(f, lambda0, d, M2=1):
     Returns:
         d: diffraction-limited beam diameter [m]
     """
-    return 4 * M2**2 * lambda0 * f / (np.pi * d)
+    return 4 * M2 * lambda0 * f / (np.pi * d)
 
 
 def beam_parameter_product(Theta, d0, Theta_std=0, d0_std=0):

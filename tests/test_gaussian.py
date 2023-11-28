@@ -215,9 +215,9 @@ def test_focused_diameter_varied_aperture_diameter():
 
 
 def test_focused_diameter_with_m2_factor():
-    f, lambda0, d, M2 = 0.01, 1e-6, 0.002, 2
+    f, lambda0, d, M2 = 120e-3, 532e-9, 10e-3, 1.3
     result = lbs.focused_diameter(f, lambda0, d, M2)
-    assert np.isclose(result, 2.5464791e-05)  # replace with the correct 8-digit accurate result
+    assert np.isclose(result, 0.010567e-03)  # replace with the correct 8-digit accurate result
 
 
 # beam parameter product
