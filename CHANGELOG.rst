@@ -1,6 +1,10 @@
 Changelog
 =========
 
+2.0.5
+-----
+* fix mistake in focused_diameter (thanks @rdgraham)
+
 2.0.4
 -----
 * fix zenodo and CITATION.cff
