@@ -3,9 +3,9 @@ authors:
   given-names: Scott
   orcid: https://orcid.org/0000-0003-1468-6851
 cff-version: 1.2.0
-date-released: '2023-10-24'
+date-released: '2023-11-28'
 doi: 10.5281/zenodo.8352116
 message: If you use this software, please cite it as below.
 title: 'laserbeamsize: a python module for ISO 11146 analysis of laser beams'
 url: https://zenodo.org/badge/latestdoi/107437651
-version: 2.0.4
+version: 2.0.5
