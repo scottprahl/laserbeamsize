@@ -10,7 +10,7 @@ all un-illuminated pixels::
     >>> import imageio.v3 as iio
     >>> import laserbeamsize as lbs
     >>>
-    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
+    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/t-hene.pgm"
     >>> image = iio.imread(file)
     >>>
     >>> mean, stdev = lbs.corner_background(image)
@@ -25,7 +25,7 @@ return an image with the average of the un-illuminated pixels subtracted::
     >>> import imageio.v3 as iio
     >>> import laserbeamsize as lbs
     >>>
-    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
+    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/t-hene.pgm"
     >>> image = iio.imread(file)
     >>>
     >>> clean_image = subtract_iso_background(image)

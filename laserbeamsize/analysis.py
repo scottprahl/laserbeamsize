@@ -12,7 +12,7 @@ Finding the center and diameters of a beam in a monochrome image is simple::
     >>> import imageio.v3 as iio
     >>> import laserbeamsize as lbs
     >>>
-    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
+    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/t-hene.pgm"
     >>> image = iio.imread(file)
     >>>
     >>> x, y, dx, dy, phi = lbs.beam_size(image)

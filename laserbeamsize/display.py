@@ -9,7 +9,7 @@ A graphic showing the image and extracted beam parameters is achieved by::
     >>> import matplotlib.pyplot as plt
     >>> import laserbeamsize as lbs
     >>>
-    >>> repo = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/"
+    >>> repo = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/"
     >>> image = iio.imread(repo + 't-hene.pgm')
     >>>
     >>> lbs.plot_image_analysis(image)
@@ -22,7 +22,7 @@ A mosaic of images might be created by::
     >>> import numpy as np
     >>> import laserbeamsize as lbs
     >>>
-    >>> repo = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/"
+    >>> repo = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/"
     >>> z1 = np.array([168,210,280,348,414,480], dtype=float)
     >>> fn1 = [repo + "t-%dmm.pgm" % number for number in z1]
     >>> images = [iio.imread(fn) for fn in fn1]

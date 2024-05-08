@@ -18,7 +18,7 @@ Original version is licensed under GPL 3.0 so this modified one is as well.
 
 The original can be located at::
 
-    https://github.com/alchemyst/Dynamics-and-Control/blob/master/test_all_notebooks.py
+    https://github.com/alchemyst/Dynamics-and-Control/blob/main/test_all_notebooks.py
 """
 import os.path
 import pathlib
