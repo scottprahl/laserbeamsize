@@ -31,4 +31,5 @@ disable = [
     "too-many-locals",
     "too-many-arguments",
     "consider-using-f-string",
+    "too-many-statements",
   ]
