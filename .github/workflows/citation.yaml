@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: 3.12
 
-      - name: Install PyYAML
+      - name: Install requests and PyYAML needed by update_citation
         run: |
           pip install requests PyYAML
 
