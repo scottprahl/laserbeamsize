@@ -71,7 +71,6 @@ Determining the beam size in an image
 
 Finding the center and dimensions of a good beam image::
 
-```python
     import imageio.v3 as iio
     import laserbeamsize as lbs
     
@@ -83,23 +82,18 @@ Finding the center and dimensions of a good beam image::
     print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
     print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
     print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
-```
 
 to produce::
 
-```
     The center of the beam ellipse is at (651, 492)
     The ellipse diameter (closest to horizontal) is 369 pixels
     The ellipse diameter (closest to   vertical) is 347 pixels
     The ellipse is rotated -12° ccw from the horizontal
-```
 
 A visual report can be done with one function call::
 
-```python
     lbs.plot_image_analysis(beam)
     plt.show()
-```
 
 produces something like
 
@@ -118,7 +112,7 @@ produces something like
 
 Non-gaussian beams work too::
 
-    # 12-bit pixel image stored as high-order bits in 16-bit values
+    # 12-bit pixel image stored as high-order bits in 16-bit integers
     tem02 = imageio.imread("TEM02_100mm.pgm") >> 4
     lbs.plot_image_analysis(tem02, title = r"TEM$_{02}$ at z=100mm", pixel_size=3.75)
     plt.show()
