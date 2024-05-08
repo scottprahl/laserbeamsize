@@ -3,9 +3,9 @@ name: Test
 
 on:    # yamllint disable-line rule:truthy
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:  # allow manual triggering
 
 jobs:
@@ -15,13 +15,13 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.8", "3.11"]
+        python-version: ["3.7", "3.12"]
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@master
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 

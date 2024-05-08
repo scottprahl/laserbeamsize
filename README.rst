@@ -15,7 +15,7 @@
    :alt: zenodo
 
 .. |license-badge| image:: https://img.shields.io/github/license/scottprahl/laserbeamsize?color=68CA66
-   :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
+   :target: https://github.com/scottprahl/laserbeamsize/blob/main/LICENSE.txt
    :alt: License
 
 .. |test-badge| image:: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yaml/badge.svg
@@ -63,7 +63,7 @@ or ``conda``::
 or use immediately by clicking the Google Colaboratory button below
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
-  :target: https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/master
+  :target: https://colab.research.google.com/github/scottprahl/laserbeamsize/blob/main
   :alt: Colab
 
 Determining the beam size in an image
@@ -74,7 +74,7 @@ Finding the center and dimensions of a good beam image::
     import imageio.v3 as iio
     import laserbeamsize as lbs
     
-    file = "https://github.com/scottprahl/laserbeamsize/raw/master/docs/t-hene.pgm"
+    file = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/t-hene.pgm"
     image = iio.imread(file)
     
     x, y, dx, dy, phi = lbs.beam_size(image)
@@ -97,7 +97,7 @@ A visual report can be done with one function call::
 
 produces something like
 
-.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/hene-report.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/hene-report.png
    :alt: HeNe report
 
 or::
@@ -107,7 +107,7 @@ or::
 
 produces something like
 
-.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/astigmatic-report.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/astigmatic-report.png
    :alt: astigmatic report
 
 Non-gaussian beams work too::
@@ -119,7 +119,7 @@ Non-gaussian beams work too::
 
 produces
 
-.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/tem02.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/tem02.png
    :alt: TEM02
 
 Determining M² 
@@ -137,7 +137,7 @@ than two Rayleigh distances::
 
 produces
 
-.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/m2fit.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/m2fit.png
    :alt: fit for M2
 
 Here is an analysis of a set of images that do not meet the ISO 11146
@@ -166,7 +166,7 @@ the optical table.::
 
 produces
 
-.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/sbmontage.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/sbmontage.png
    :alt: montage of laser images
 
 Here is one way to plot the fit using the above diameters::
@@ -179,7 +179,7 @@ of a pure gaussian beam.  Since real beams should diverge faster than this (not 
 there is some problem with the measurements (too few!).  On the other hand, the M² value 
 the semi-major axis 2.6±0.7 is consistent with the expected value of 3 for the TEM₁₀ mode.
 
-.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/sbfit.png
+.. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/sbfit.png
    :alt: fit
 
 

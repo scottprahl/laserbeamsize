@@ -18,13 +18,15 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@master
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@master
+      - name: Install python
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.12
 
-      - name: Build
+      - name: Build Release
         run: |
           pip install setuptools wheel twine build
           pip install -r requirements.txt
