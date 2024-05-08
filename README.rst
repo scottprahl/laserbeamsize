@@ -1,43 +1,43 @@
+.. |pypi-badge| image:: https://img.shields.io/pypi/v/laserbeamsize?color=68CA66
+   :target: https://pypi.org/project/laserbeamsize/
+   :alt: pypi
+
+.. |github-badge| image:: https://img.shields.io/github/v/tag/scottprahl/laserbeamsize?label=github&color=68CA66
+   :target: https://github.com/scottprahl/laserbeamsize
+   :alt: github
+
+.. |conda-badge| image:: https://img.shields.io/conda/vn/conda-forge/laserbeamsize?label=conda&color=68CA66
+   :target: https://github.com/conda-forge/laserbeamsize-feedstock
+   :alt: conda
+
+.. |zenodo-badge| image:: https://zenodo.org/badge/107437651.svg
+   :target: https://zenodo.org/badge/latestdoi/107437651
+   :alt: zenodo
+
+.. |license-badge| image:: https://img.shields.io/github/license/scottprahl/laserbeamsize?color=68CA66
+   :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
+   :alt: License
+
+.. |test-badge| image:: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yaml/badge.svg
+   :target: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yaml
+   :alt: testing
+
+.. |docs-badge| image:: https://readthedocs.org/projects/laserbeamsize/badge?color=68CA66
+  :target: https://laserbeamsize.readthedocs.io
+  :alt: docs
+
+.. |downloads-badge| image:: https://img.shields.io/pypi/dm/laserbeamsize?color=68CA66
+   :target: https://pypi.org/project/laserbeamsize/
+   :alt: Downloads
+
 laserbeamsize
 =============
 
 by Scott Prahl
 
-.. image:: https://img.shields.io/pypi/v/laserbeamsize?color=68CA66
-   :target: https://pypi.org/project/laserbeamsize/
-   :alt: pypi
+|pypi-badge| |github-badge| |conda-badge| |zenodo-badge|
 
-.. image:: https://img.shields.io/github/v/tag/scottprahl/laserbeamsize?label=github&color=68CA66
-   :target: https://github.com/scottprahl/laserbeamsize
-   :alt: github
-
-.. image:: https://img.shields.io/conda/vn/conda-forge/laserbeamsize?label=conda&color=68CA66
-   :target: https://github.com/conda-forge/laserbeamsize-feedstock
-   :alt: conda
-
-.. image:: https://zenodo.org/badge/107437651.svg
-   :target: https://zenodo.org/badge/latestdoi/107437651
-   :alt: zenodo
-
-|
-
-.. image:: https://img.shields.io/github/license/scottprahl/laserbeamsize?color=68CA66
-   :target: https://github.com/scottprahl/laserbeamsize/blob/master/LICENSE.txt
-   :alt: License
-
-.. image:: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yaml/badge.svg
-   :target: https://github.com/scottprahl/laserbeamsize/actions/workflows/test.yaml
-   :alt: testing
-
-.. image:: https://readthedocs.org/projects/laserbeamsize/badge?color=68CA66
-  :target: https://laserbeamsize.readthedocs.io
-  :alt: docs
-
-.. image:: https://img.shields.io/pypi/dm/laserbeamsize?color=68CA66
-   :target: https://pypi.org/project/laserbeamsize/
-   :alt: Downloads
-
-__________
+|license-badge| |test-badge| |docs-badge| |downloads-badge|
 
 Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make the 
@@ -71,6 +71,7 @@ Determining the beam size in an image
 
 Finding the center and dimensions of a good beam image::
 
+```python
     import imageio.v3 as iio
     import laserbeamsize as lbs
     
@@ -82,19 +83,24 @@ Finding the center and dimensions of a good beam image::
     print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
     print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
     print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
+```
 
 to produce::
 
+```
     The center of the beam ellipse is at (651, 492)
     The ellipse diameter (closest to horizontal) is 369 pixels
     The ellipse diameter (closest to   vertical) is 347 pixels
     The ellipse is rotated -12° ccw from the horizontal
+```
 
 A visual report can be done with one function call::
 
+```python
     lbs.plot_image_analysis(beam)
     plt.show()
-    
+```
+
 produces something like
 
 .. image:: https://raw.githubusercontent.com/scottprahl/laserbeamsize/master/docs/hene-report.png
