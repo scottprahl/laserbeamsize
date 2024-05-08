@@ -25,17 +25,6 @@ lint:
 	-pylint tests/test_all_notebooks.py
 
 
-doccheck:
-	-pydocstyle laserbeamsize/__init__.py
-	-pydocstyle laserbeamsize/analysis.py
-	-pydocstyle laserbeamsize/background.py
-	-pydocstyle laserbeamsize/display.py
-	-pydocstyle laserbeamsize/gaussian.py
-	-pydocstyle laserbeamsize/image_tools.py
-	-pydocstyle laserbeamsize/masks.py
-	-pydocstyle laserbeamsize/m2_fit.py
-	-pydocstyle laserbeamsize/m2_display.py
-
 rstcheck:
 	-rstcheck README.rst
 	-rstcheck CHANGELOG.rst
@@ -51,6 +40,7 @@ rstcheck:
 
 rcheck:
 	make clean
+	ruff check
 	make test
 	make lint
 	make doccheck
