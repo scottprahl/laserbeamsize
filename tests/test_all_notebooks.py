@@ -45,9 +45,10 @@ notebooks = [notebook for notebook in searchpath.glob('docs/*.ipynb')
 notebooks.sort()
 ids = [str(n) for n in notebooks]
 
+
 @pytest.mark.parametrize("notebook", notebooks, ids=ids)
 def test_run_notebook(notebook):
-    """Read and execute notebook
+    """Read and execute notebook.
 
     The method here is directly from the nbconvert docs
 

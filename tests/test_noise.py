@@ -1,6 +1,4 @@
-"""
-Tests for functions in analysis.py.
-"""
+"""Tests for functions in analysis.py."""
 
 import matplotlib.pyplot as plt
 import numpy as np

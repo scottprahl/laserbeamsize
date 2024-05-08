@@ -1,7 +1,3 @@
-# pylint: disable=invalid-name
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-arguments
-
 """
 Image manipulation routines needed for beam analysis.
 
@@ -172,10 +168,11 @@ def rotate_image(original, x0, y0, phi):
     in the same location.
 
     Args:
-        image: the image to work with
-        x:     column
-        y:     row
+        original: the image to work with
+        x0:     column
+        y0:     row
         phi: angle [radians]
+
     Returns:
         image: rotated 2D array with same dimensions as original
     """
@@ -228,6 +225,8 @@ def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
         dx: ellipse diameter for axis closest to horizontal
         dy: ellipse diameter for axis closest to vertical
         phi: angle that elliptical beam is rotated [radians]
+        mask_diameters: hide pixels outside this number of diameters
+
     Returns:
         x, y : two arrays for points on corners of rotated rectangle
     """
@@ -253,6 +252,8 @@ def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
         dx: ellipse diameter for axis closest to horizontal
         dy: ellipse diameter for axis closest to vertical
         phi: angle that elliptical beam is rotated [radians]
+        mask_diameters: hide pixels outside this number of diameters
+
     Returns:
         x, y arrays needed to draw semi-axes of ellipse
     """
@@ -278,6 +279,8 @@ def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
         dx: horizontal diameter of beam
         dy: vertical diameter of beam
         phi: angle that elliptical beam is rotated [radians]
+        npoints: (optional) number of points to use for ellipse
+
     Returns:
         x, y : two arrays of points on the ellipse
     """
@@ -305,8 +308,10 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_v
         dx: ellipse diameter for axis closest to horizontal
         dy: ellipse diameter for axis closest to vertical
         phi: angle that elliptical beam is rotated ccw [radians]
-        noise: normally distributed pixel noise to add to image
-        max_value: all values in image fall between 0 and `max_value`
+        noise: (optional) magnitued of normally distributed pixel noise to add
+        ntype: (optional) type of noise to use
+        max_value: (optional) all values in image fall between 0 and `max_value`
+
     Returns:
         image: an unsigned 2D integer array of a Gaussian elliptical spot
     """
@@ -374,6 +379,7 @@ def crop_image_to_rect(image, xc, yc, xmin, xmax, ymin, ymax):
         xmax: right edge (pixels)
         ymin: top edge (pixels)
         ymax: bottom edge (pixels)
+
     Returns:
         cropped_image: cropped image
         new_xc, new_yc: new beam center (pixels)
@@ -401,6 +407,7 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
         dx: horizontal diameter of beam
         dy: vertical diameter of beam
         phi: angle that elliptical beam is rotated [radians]
+
     Returns:
         cropped_image: cropped image
         new_xc: x-position of beam center in cropped image

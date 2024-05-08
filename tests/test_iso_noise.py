@@ -1,6 +1,4 @@
-"""
-Tests for functions in analysis.py.
-"""
+"""Tests for functions in analysis.py."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,11 +26,11 @@ def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_value=255,
         plt.plot(x, y)
         plt.show()
 
-    assert np.isclose(result_xc, xc, rtol=tol), f"Expected xc around {xc}, but got {result_xc}"
-    assert np.isclose(result_yc, yc, rtol=tol), f"Expected yc around {yc}, but got {result_yc}"
-    assert np.isclose(result_dx, dx, rtol=tol), f"Expected dx around {dx}, but got {result_dx}"
-    assert np.isclose(result_dy, dy, rtol=tol), f"Expected dy around {dy}, but got {result_dy}"
-    assert np.isclose(rp, erp, rtol=tol, atol=4), f"Expected phi around {rp}°, but got {erp}°"
+    assert np.isclose(result_xc, xc, rtol=tol), f"Expected xc = {xc}, but got {result_xc}"
+    assert np.isclose(result_yc, yc, rtol=tol), f"Expected yc = {yc}, but got {result_yc}"
+    assert np.isclose(result_dx, dx, rtol=tol), f"Expected dx = {dx}, but got {result_dx}"
+    assert np.isclose(result_dy, dy, rtol=tol), f"Expected dy = {dy}, but got {result_dy}"
+    assert np.isclose(rp, erp, rtol=tol, atol=4), f"Expected phi = {rp}°, but got {erp}°"
 
 
 # constant

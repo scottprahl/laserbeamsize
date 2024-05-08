@@ -1,3 +1,4 @@
+"""Setup needed for laserbeamsize module."""
 import re
 import os.path
 from setuptools import setup

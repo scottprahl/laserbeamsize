@@ -1,6 +1,3 @@
-# pylint: disable=invalid-name
-# pylint: disable=consider-using-f-string
-
 """
 Routines for removing background for beam analysis.
 
@@ -106,6 +103,7 @@ def subtract_constant(original,
     Args:
         original : the image to work with
         background: value to subtract every pixel
+        iso_noise: if True then allow negative pixel values
     Returns:
         image: 2D float array with constant background subtracted
     """
@@ -209,8 +207,9 @@ def image_background2(image,
 
     Args:
         image : the image to work with
+        fraction: the fractional size of corner rectangles
         nT: how many standard deviations to subtract
-        corner_fraction: the fractional size of corner rectangles
+
     Returns:
         background: average background value across image
     """
@@ -255,6 +254,8 @@ def subtract_iso_background(image,
         image : the image to work with
         corner_fraction: the fractional size of corner rectangles
         nT: how many standard deviations to subtract
+        iso_noise: if True then allow negative pixel values
+
     Returns:
         image: 2D array with background subtracted
     """
@@ -296,6 +297,8 @@ def subtract_corner_background(image,
         image : the image to work with
         corner_fraction: the fractional size of corner rectangles
         nT: how many standard deviations to subtract
+        iso_noise: if True then allow negative pixel values
+
     Returns:
         image: 2D array with background subtracted
     """

@@ -1,6 +1,4 @@
-"""
-Tests for functions in analysis.py.
-"""
+"""Tests for functions in analysis.py."""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,10 +29,10 @@ def run_test(xc, yc, dx, dy, phi, expected_dx=None, expected_dy=None, expected_p
         plt.colorbar()
         plt.show()
 
-    assert np.isclose(result_xc, xc, rtol=0.03), f"Expected xc around {xc}, but got {result_xc}"
-    assert np.isclose(result_yc, yc, rtol=0.03), f"Expected yc around {yc}, but got {result_yc}"
-    assert np.isclose(result_dx, expected_dx, rtol=0.03), f"Expected dx around {expected_dx}, but got {result_dx}"
-    assert np.isclose(result_dy, expected_dy, rtol=0.03), f"Expected dy around {expected_dy}, but got {result_dy}"
+    assert np.isclose(result_xc, xc, rtol=0.03), f"Expected xc = {xc}, but got {result_xc}"
+    assert np.isclose(result_yc, yc, rtol=0.03), f"Expected yc = {yc}, but got {result_yc}"
+    assert np.isclose(result_dx, expected_dx, rtol=0.03), f"Expected dx = {expected_dx}, but got {result_dx}"
+    assert np.isclose(result_dy, expected_dy, rtol=0.03), f"Expected dy = {expected_dy}, but got {result_dy}"
     assert np.isclose(rp, erp, rtol=0.03), f"Expected phi around {phi}°, but got {result_phi}°"
 
 

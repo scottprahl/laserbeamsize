@@ -1,8 +1,3 @@
-# pylint: disable=invalid-name
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-statements
-# pylint: disable=consider-using-f-string)
 """
 A module for finding M² values for a laser beam.
 
@@ -46,6 +41,10 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters  [m]
         lambda0: wavelength of the laser [m]
+        strict: (optional) boolean for strict usage of ISO 11146
+        z0: (optional) axial location of beam waist [m]
+        d0: (optional) beam waist diameter [m]
+
     Returns:
         residuals: array with differences between fit and data
         z0: location of focus
@@ -113,6 +112,10 @@ def _M2_diameter_plot(z, d, lambda0, strict=False, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters  [m]
         lambda0: wavelength of the laser [m]
+        strict: (optional) boolean for strict usage of ISO 11146
+        z0: (optional) axial location of beam waist [m]
+        d0: (optional) beam waist diameter [m]
+
     Returns:
         nothing
     """
@@ -158,7 +161,12 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     Args:
         z: array of axial position of beam measurements [m]
         lambda0: wavelength of the laser [m]
-        dx: array of beam diameters  [m]
+        dx: array of beam diameters in x-direction [m]
+        dy: array of beam diameters in y-direction [m]
+        strict: (optional) boolean for strict usage of ISO 11146
+        z0: (optional) axial location of beam waist [m]
+        d0: (optional) beam waist diameter [m]
+
     Returns:
         nothing
     """
@@ -237,6 +245,10 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters  [m]
         lambda0: wavelength of the laser [m]
+        strict: (optional) boolean for strict usage of ISO 11146
+        z0: (optional) axial location of beam waist [m]
+        d0: (optional) beam waist diameter [m]
+
     Returns:
         nothing
     """
@@ -365,6 +377,7 @@ def M2_focus_plot(w0, lambda0, f, z0, M2=1):
         f: focal length of lens [m]
         z0: location of beam waist [m]
         M2: beam propagation factor [-]
+
     Returns:
         nothing.
     """

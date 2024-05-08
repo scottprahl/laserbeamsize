@@ -29,7 +29,8 @@ def test_elliptical_mask_unrotated():
 def test_elliptical_mask_rotated():
     mask = lbs.elliptical_mask(image, 50, 50, 40, 60, np.pi / 4)  # 45-degree rotation
     unrotated_mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
-    assert not np.array_equal(mask, unrotated_mask), "Rotated mask should not be the same as the unrotated one."
+    assert not np.array_equal(mask, unrotated_mask), \
+        "Rotated mask should not be the same as the unrotated one."
 
 
 def test_elliptical_mask_edge_cases():
@@ -55,7 +56,8 @@ def test_corner_mask_custom_fraction():
     custom_fraction = 0.05  # 5%
     mask = lbs.corner_mask(image, corner_fraction=custom_fraction)
     expected_true_pixels = 4 * (custom_fraction * 100)**2
-    assert np.sum(mask) == expected_true_pixels, f"Expected {expected_true_pixels} True pixels, but got {np.sum(mask)}."
+    assert np.sum(mask) == expected_true_pixels, \
+        f"Expected {expected_true_pixels} True pixels, but got {np.sum(mask)}."
 
 
 def test_corner_mask_large_image():

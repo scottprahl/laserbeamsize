@@ -1,9 +1,3 @@
-# pylint: disable=invalid-name
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-arguments
-# pylint: disable=consider-using-f-string
-# pylint: disable=too-many-statements
-
 """
 A module for generating a graphical analysis of beam size fitting.
 
@@ -168,8 +162,12 @@ def plot_image_and_fit(o_image,
         vmax: (optional) maximum value for colorbar
         units: (optional) string used for units used on axes
         crop: (optional) crop image to integration rectangle
-        colorbar (optional) show the color bar,
+        colorbar: (optional) show the color bar,
         cmap: (optional) colormap to use
+        corner_fraction: (optional) the fractional size of corner rectangles
+        nT: (optional) how many standard deviations to subtract
+        iso_noise: (optional) if True then allow negative pixel values
+        **kwargs: (optional) extra options to modify display
 
     Returns:
         xc: horizontal center of beam
@@ -279,6 +277,11 @@ def plot_image_analysis(o_image,
         units: (optional) string used for units used on axes
         crop: (optional) crop image to integration rectangle
         cmap: (optional) colormap to use
+        corner_fraction: (optional) the fractional size of corner rectangles
+        nT: (optional) how many standard deviations to subtract
+        iso_noise: if True then allow negative pixel values
+        **kwargs: extra options to modify display
+
     Returns:
         nothing
     """
@@ -446,9 +449,15 @@ def plot_image_montage(images,
         cols: (optional) number of columns in the montage
         pixel_size: (optional) size of pixels
         vmax: (optional) maximum gray level to use
+        vmin: (optional) minimum gray level to use
         units: (optional) string used for units used on axes
         crop: (optional) crop image to integration rectangle
         cmap: (optional) colormap to use
+        corner_fraction: (optional) the fractional size of corner rectangles
+        nT: (optional) how many standard deviations to subtract
+        iso_noise: (optional) if True then allow negative pixel values
+        **kwargs: (optional) extra options to modify display
+
     Returns:
         dx: semi-major diameter
         dy: semi-minor diameter
@@ -483,7 +492,7 @@ def plot_image_montage(images,
         plt.subplot(rows, cols, i + 1)
 
         # should we add color bar?
-        cb = not (vmax is None) and (i + 1 == cols)
+        cb = vmax is not None and (i + 1 == cols)
 
         # plot the image and gather the beam diameters
         _, _, dx[i], dy[i], _ = plot_image_and_fit(im, **options, colorbar=cb)

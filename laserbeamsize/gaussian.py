@@ -1,5 +1,3 @@
-# pylint: disable=invalid-name
-# pylint: disable=too-many-locals
 """
 A module for calculating properties of a Gaussian laser beam.
 
@@ -98,6 +96,8 @@ def z_rayleigh(w0, lambda0, M2=1):
     Args:
         w0: minimum beam radius [m]
         lambda0: wavelength of light [m]
+        M2: beam propagation factor [-]
+
     Returns:
         z: axial distance from focus that irradiance has dropped 50% [m]
     """
@@ -114,6 +114,7 @@ def beam_radius(w0, lambda0, z, z0=0, M2=1):
         z: axial location of desired beam radius [m]
         z0: axial location of beam waist [m]
         M2: beam propagation factor [-]
+
     Returns:
         r: beam radius at axial position [m]
     """
@@ -172,11 +173,12 @@ def curvature(w0, lambda0, z, z0=0, M2=1):
     diverges more, indicating a decrease in beam quality.
 
     Args:
-        w0: minimum beam radius [m]
+        w0:      minimum beam radius [m]
         lambda0: wavelength of light [m]
-        z   axial position along beam  [m]
-        z0  axial position of the beam waist  [m]
-        M2: beam propagation factor [-]
+        z:       axial position along beam  [m]
+        z0:      axial position of the beam waist  [m]
+        M2:      beam propagation factor [-]
+
     Returns:
         R: radius of curvature of field at z [m]
     """
@@ -205,6 +207,7 @@ def divergence(w0, lambda0, M2=1):
         w0: minimum beam radius [m]
         lambda0: wavelength of light [m]
         M2: beam propagation factor [-]
+
     Returns:
         theta: divergence of beam [radians]
     """
@@ -228,6 +231,7 @@ def gouy_phase(w0, lambda0, z, z0=0):
         lambda0: wavelength of light [m]
         z: axial position where Gouy phase is calculated  [m]
         z0: axial position of beam waist  [m]
+
     Returns:
         phase: Gouy phase at the specified axial position [radians]
     """
@@ -249,6 +253,7 @@ def focused_diameter(f, lambda0, d, M2=1):
         lambda0: wavelength of light [m]
         d: diameter of limiting aperture [m]
         M2: beam propagation factor [-]
+
     Returns:
         d: diffraction-limited beam diameter [m]
     """
@@ -267,6 +272,7 @@ def beam_parameter_product(Theta, d0, Theta_std=0, d0_std=0):
         d0: beam waist diameter [m]
         Theta_std: std. dev. of full beam divergence angle [radians]
         d0_std: std. dev. of beam waist diameter [m]
+
     Returns:
         BPP: Beam parameter product [m * radian]
         BPP_std: standard deviation of beam parameter product [m * radian]

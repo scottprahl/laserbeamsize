@@ -1,7 +1,3 @@
-# pylint: disable=invalid-name
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-arguments
-
 """
 Routines for creating image masks helpful for beam analysis.
 
@@ -33,6 +29,7 @@ def elliptical_mask(image, xc, yc, dx, dy, phi):
         dx: ellipse diameter for axis closest to horizontal
         dy: ellipse diameter for axis closest to vertical
         phi: angle that elliptical beam is rotated [radians]
+
     Returns:
         masked_image: 2D array with True values inside ellipse
     """
@@ -129,6 +126,8 @@ def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
         dx: ellipse diameter for axis closest to horizontal
         dy: ellipse diameter for axis closest to vertical
         phi: angle that elliptical beam is rotated [radians]
+        mask_diameters: number of diameters to include
+
     Returns:
         masked_image: 2D array with True values inside rectangle
     """

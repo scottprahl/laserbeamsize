@@ -1,9 +1,4 @@
-# pylint: disable=invalid-name
-# pylint: disable=missing-function-docstring
-
-"""
-Tests for functions in image_tools.py.
-"""
+"""Tests for functions in image_tools.py."""
 
 import numpy as np
 import laserbeamsize as lbs

@@ -1,9 +1,4 @@
-# pylint: disable=invalid-name
-# pylint: disable=too-many-locals
-# pylint: disable=too-many-arguments
-# pylint: disable=too-many-statements
 # pylint: disable=unbalanced-tuple-unpacking
-# pylint: disable=consider-using-f-string)
 """
 A module for finding M² values for a laser beam.
 
@@ -51,22 +46,68 @@ __all__ = ('M2_fit',
 
 
 def _beam_fit_fn_1(z, d0, z0, Theta):
-    """Fitting function for d0, z0, and Theta."""
+    """
+    Fitting function d0, z0, and Theta.
+
+    Args:
+        z: position on optical axis [m]
+        d0: beam waist diameter  [m]
+        z0: axial location of beam waist [m]
+        Theta: full beam divergence angle [radians]
+
+    Returns:
+        beam diameter
+    """
     return np.sqrt(d0**2 + (Theta * (z - z0))**2)
 
 
 def _beam_fit_fn_2(z, d0, Theta):
-    """Fitting function for d0 and Theta."""
+    """
+    Fitting function for d0 and Theta.
+
+    The axial location of the beam waist is zero.
+
+    Args:
+        z: position on optical axis [m]
+        d0: beam waist diameter  [m]
+        Theta: full beam divergence angle [radians]
+
+    Returns:
+        beam diameter
+    """
     return np.sqrt(d0**2 + (Theta * z)**2)
 
 
 def _beam_fit_fn_3(z, z0, Theta):
-    """Fitting function for z0 and Theta."""
+    """
+    Fitting function for z0 and Theta.
+
+    The beam waist is assumed to be zero.
+
+    Args:
+        z: position on optical axis [m]
+        z0: axial location of beam waist [m]
+        Theta: full beam divergence angle [radians]
+
+    Returns:
+        beam diameter
+    """
     return np.abs(Theta * (z - z0))
 
 
 def _beam_fit_fn_4(z, Theta):
-    """Fitting function for just Theta."""
+    """
+    Fitting function for Theta.
+
+    The beam waist and axial location are both assumed to be zero.
+
+    Args:
+        z: position on optical axis [m]
+        Theta: full beam divergence angle [radians]
+
+    Returns:
+        beam diameter
+    """
     return np.abs(Theta * z)
 
 
@@ -84,8 +125,6 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
     standard deviations of those parameters.  The beam parameters are returned
     in one array and the errors in a separate array::
 
-        d0: beam waist diameter [m]
-        z0: axial location of beam waist [m]
         Theta: full beam divergence angle [radians]
         M2: beam propagation parameter [-]
         zR: Rayleigh distance [m]
@@ -94,6 +133,9 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters [m]
         lambda0: wavelength of the laser [m]
+        z0: (optional) axial location of beam waist [m]
+        d0: (optional) beam waist diameter [m]
+
     Returns:
         params: [d0, z0, Theta, M2, zR]
         errors: array with standard deviations of above values
@@ -281,9 +323,9 @@ def M2_string(params, errors):
     Return string describing a single set of beam measurements.
 
     Args:
-        z: array of axial position of beam measurements [m]
-        d: array of beam diameters [m]
-        lambda0: wavelength of the laser [m]
+        params: array of [d0, z0, Theta, M2, zR]
+        errors: array of standard deviations of above
+
     Returns:
         s: formatted string suitable for printing.
     """
@@ -314,6 +356,11 @@ def _M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
         z: array of axial position of beam measurements [m]
         d: array of beam diameters [m]
         lambda0: wavelength of the laser [m]
+        f: (optional) focal length of lens [m]
+        strict: (optional) boolean for strict usage of ISO 11146
+        z0: (optional) location of beam waist [m]
+        d0: (optional) diameter of beam waist [m]
+
     Returns:
         s: formatted string suitable for printing.
     """
@@ -345,6 +392,7 @@ def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
         strict: (optional) boolean for strict usage of ISO 11146
         z0: (optional) location of beam waist [m]
         d0: (optional) diameter of beam waist [m]
+
     Returns:
         s: formatted string suitable for printing.
     """
