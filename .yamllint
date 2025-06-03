@@ -1,0 +1,19 @@
+# .yamllint
+extends: default               # inherit the standard rules
+
+rules:
+  # --- General style -------------------------------------------------------
+  indentation:
+    spaces: 2                  # GA examples use 2-space indents
+    indent-sequences: false
+
+  line-length:
+    max: 120
+    level: warning             # warn rather than error
+
+  trailing-spaces: enable
+  new-line-at-end-of-file: enable
+
+  # --- GitHub-Actions-specific tweaks --------------------------------------
+  truthy: disable              # "on", "yes", etc. are common in workflows
+  document-start: disable      # GA YAML rarely begins with '---'
