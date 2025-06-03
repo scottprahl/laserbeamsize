@@ -19,14 +19,15 @@ REPO = os.getenv("GITHUB_REPOSITORY", "scottprahl/laserbeamsize")
 EVENT_FILE = os.getenv("GITHUB_EVENT_PATH")          # set by GitHub Actions
 
 
-def load_release_payload() -> dict[str, str]:
-    """Return the release JSON, prioritising the event payload."""
+def load_release_payload() -> dict:
+    """Return release JSON, using event payload when available."""
     if EVENT_FILE and Path(EVENT_FILE).is_file():
         with open(EVENT_FILE, "r", encoding="utf-8") as fp:
             event = json.load(fp)
-        return event["release"]          # present for 'release' triggers
+        if "release" in event:           # ← graceful guard
+            return event["release"]
 
-    # Fallback: hit the REST API (e.g. for manual runs)
+    # Fallback: hit the API (e.g. for workflow_dispatch runs)
     url = f"https://api.github.com/repos/{REPO}/releases/latest"
     headers = {}
     if (token := os.getenv("GITHUB_TOKEN")):
