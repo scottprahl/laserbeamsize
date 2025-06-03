@@ -48,19 +48,21 @@ Example:
     Rayleigh range: 4.811823616524697 meters
 
 """
+
 import numpy as np
 
-__all__ = ('z_rayleigh',
-           'beam_radius',
-           'magnification',
-           'image_distance',
-           'curvature',
-           'divergence',
-           'gouy_phase',
-           'focused_diameter',
-           'beam_parameter_product',
-           'artificial_to_original',
-           )
+__all__ = (
+    "z_rayleigh",
+    "beam_radius",
+    "magnification",
+    "image_distance",
+    "curvature",
+    "divergence",
+    "gouy_phase",
+    "focused_diameter",
+    "beam_parameter_product",
+    "artificial_to_original",
+)
 
 
 def z_rayleigh(w0, lambda0, M2=1):
@@ -142,8 +144,8 @@ def magnification(w0, lambda0, s, f, M2=1):
     Returns:
         m: magnification [-]
     """
-    zR2 = z_rayleigh(w0, lambda0, M2)**2
-    return f / np.sqrt((s + f)**2 + zR2)
+    zR2 = z_rayleigh(w0, lambda0, M2) ** 2
+    return f / np.sqrt((s + f) ** 2 + zR2)
 
 
 def curvature(w0, lambda0, z, z0=0, M2=1):
@@ -184,7 +186,7 @@ def curvature(w0, lambda0, z, z0=0, M2=1):
     """
     if z == z0:
         return np.inf
-    zR2 = z_rayleigh(w0, lambda0, M2)**2
+    zR2 = z_rayleigh(w0, lambda0, M2) ** 2
     return (z - z0) + zR2 / (z - z0)
 
 
@@ -278,7 +280,7 @@ def beam_parameter_product(Theta, d0, Theta_std=0, d0_std=0):
         BPP_std: standard deviation of beam parameter product [m * radian]
     """
     BPP = Theta * d0 / 4
-    BPP_std = BPP * np.sqrt((Theta_std / Theta)**2 + (d0_std / d0)**2)
+    BPP_std = BPP * np.sqrt((Theta_std / Theta) ** 2 + (d0_std / d0) ** 2)
     return BPP, BPP_std
 
 
@@ -308,8 +310,8 @@ def image_distance(w0, lambda0, s, f, M2=1):
     Returns:
         The axial distance from the lens to the location of the new beam waist [m]
     """
-    zR2 = z_rayleigh(w0, lambda0, M2)**2
-    return f * (s * f + s * s + zR2) / ((f + s)**2 + zR2)
+    zR2 = z_rayleigh(w0, lambda0, M2) ** 2
+    return f * (s * f + s * s + zR2) / ((f + s) ** 2 + zR2)
 
 
 def artificial_to_original(params, errors, f, hiatus=0):

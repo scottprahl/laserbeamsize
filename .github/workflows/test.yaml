@@ -1,41 +1,63 @@
----
-name: Test
+# .github/workflows/test.yaml
+name: CI
 
-on:    # yamllint disable-line rule:truthy
+on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:  # allow manual triggering
+  workflow_dispatch:
+
+concurrency:                       # cancel stale CI runs on the same branch
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    name: Build and test
+  tests:
+    name: Python ${{ matrix.python-version }} – ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.7", "3.12"]
+        os: [ubuntu-latest]
+        python-version: ["3.8", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout sources
+      uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip                       # built-in cache for wheels
+        cache-dependency-path: |
+          pyproject.toml
+          requirements*.txt
 
-      - name: Install package and dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -e .  # current package in editable mode
+    - name: Install package (+tests)
+      run: |
+        python -m pip install --upgrade pip
+        # if you use extras: python -m pip install -e .[test]
+        python -m pip install -e .
+        python -m pip install -r requirements.txt
+        python -m pip install pytest pytest-cov
 
-      - name: Test with pytest
-        run: |
-          pytest tests/test_back.py
-          pytest tests/test_tools.py
-          pytest tests/test_masks.py
-          pytest tests/test_basic_beam_size.py
-          pytest tests/test_noise.py
-          pytest tests/test_no_noise.py
-          pytest tests/test_iso_noise.py
+    - name: Run pytest
+      run: |
+        pytest -q \
+               --ignore=tests/test_all_notebooks.py \
+               --cov=laserbeamsize --cov-report=xml
+
+    - name: Upload coverage to summary
+      if: always()
+      run: |
+        coverage=$(awk '/^TOTAL/{print $4}' coverage.xml)
+        echo "### Test coverage: **${coverage%?}%**" >> $GITHUB_STEP_SUMMARY
+
+    - uses: actions/upload-artifact@v4     # optional: keep the XML
+      if: always()
+      with:
+        name: coverage-${{ matrix.python-version }}
+        path: coverage.xml

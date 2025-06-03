@@ -13,7 +13,9 @@ def test_elliptical_mask():
 
 def test_elliptical_mask_same_shape():
     mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
-    assert mask.shape == image.shape, "Output mask shape mismatch with input image shape."
+    assert (
+        mask.shape == image.shape
+    ), "Output mask shape mismatch with input image shape."
 
 
 def test_elliptical_mask_unrotated():
@@ -29,13 +31,16 @@ def test_elliptical_mask_unrotated():
 def test_elliptical_mask_rotated():
     mask = lbs.elliptical_mask(image, 50, 50, 40, 60, np.pi / 4)  # 45-degree rotation
     unrotated_mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
-    assert not np.array_equal(mask, unrotated_mask), \
-        "Rotated mask should not be the same as the unrotated one."
+    assert not np.array_equal(
+        mask, unrotated_mask
+    ), "Rotated mask should not be the same as the unrotated one."
 
 
 def test_elliptical_mask_edge_cases():
     mask = lbs.elliptical_mask(image, 150, 150, 200, 200, 0)
-    assert mask.shape == image.shape, "Output mask shape mismatch with input image shape for edge cases."
+    assert (
+        mask.shape == image.shape
+    ), "Output mask shape mismatch with input image shape for edge cases."
 
 
 # corner_mask()
@@ -47,7 +52,7 @@ def test_corner_mask():
 
 def test_corner_mask_default_fraction():
     mask = lbs.corner_mask(image)
-    expected_true_pixels = 4 * (int(0.035 * 100))**2  # for a 100x100 image
+    expected_true_pixels = 4 * (int(0.035 * 100)) ** 2  # for a 100x100 image
     msg = f"Expected {expected_true_pixels} True pixels, but got {np.sum(mask)}."
     assert np.sum(mask) == expected_true_pixels, msg
 
@@ -55,9 +60,10 @@ def test_corner_mask_default_fraction():
 def test_corner_mask_custom_fraction():
     custom_fraction = 0.05  # 5%
     mask = lbs.corner_mask(image, corner_fraction=custom_fraction)
-    expected_true_pixels = 4 * (custom_fraction * 100)**2
-    assert np.sum(mask) == expected_true_pixels, \
-        f"Expected {expected_true_pixels} True pixels, but got {np.sum(mask)}."
+    expected_true_pixels = 4 * (custom_fraction * 100) ** 2
+    assert (
+        np.sum(mask) == expected_true_pixels
+    ), f"Expected {expected_true_pixels} True pixels, but got {np.sum(mask)}."
 
 
 def test_corner_mask_large_image():
@@ -68,7 +74,9 @@ def test_corner_mask_large_image():
 
 def test_mask_regions_are_correct():
     mask = lbs.corner_mask(image)
-    n, m = int(100 * 0.035), int(100 * 0.035)  # for a 100x100 image with default fraction
+    n, m = int(100 * 0.035), int(
+        100 * 0.035
+    )  # for a 100x100 image with default fraction
     # Ensure center of the mask is False
     assert not np.any(mask[n:-n, m:-m]), "Center of the mask should be False"
     # Ensure corners are True
@@ -132,6 +140,7 @@ def test_rotated_rect_mask_slow():
 def test_rotated_rect_mask():
     mask = lbs.rotated_rect_mask(image, 50, 50, 40, 20, np.pi / 4)
     assert mask.shape == image.shape, "Mask shape mismatch"
+
 
 # import matplotlib.pyplot as plt
 #

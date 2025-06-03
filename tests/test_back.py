@@ -72,10 +72,7 @@ def test_subtract_constant_type_float():
 
 # corner_background
 def test_corner_known_mean_stdev():
-    image = np.array([[1, 2, 3, 4],
-                      [5, 6, 7, 8],
-                      [9, 10, 11, 12],
-                      [13, 14, 15, 16]])
+    image = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]])
     corner_mean, corner_stdev = lbs.corner_background(image, 0.25)
     # considering the corners: 1, 4, 13, 16
     expected_mean = np.mean([1, 4, 13, 16])
@@ -85,9 +82,7 @@ def test_corner_known_mean_stdev():
 
 
 def test_corner_zero_corner_fraction():
-    image = np.array([[1, 2, 3],
-                      [4, 5, 6],
-                      [7, 8, 9]])
+    image = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     corner_mean, corner_stdev = lbs.corner_background(image, 0)
     assert corner_mean == 0
     assert corner_stdev == 0
@@ -135,10 +130,7 @@ def test_corner_test_image_with_noise():
 
 # iso_background
 def test_iso_known_mean_stdev():
-    image = np.array([[1, 2, 3, 4],
-                      [5, 6, 7, 8],
-                      [9, 10, 11, 12],
-                      [13, 14, 15, 16]])
+    image = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]])
     corner_mean, corner_stdev = lbs.iso_background(image, 0.25)
     # considering the corners: 1, 4, 13, 16
     expected_mean = np.mean(image)
@@ -148,9 +140,7 @@ def test_iso_known_mean_stdev():
 
 
 def test_iso_zero_corner_fraction():
-    image = np.array([[1, 2, 3],
-                      [4, 5, 6],
-                      [7, 8, 9]])
+    image = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     try:
         lbs.iso_background(image, 0)
         assert False, "Expected ValueError for corner_fraction <= 0"

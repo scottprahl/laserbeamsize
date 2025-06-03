@@ -30,6 +30,11 @@
    :target: https://pypi.org/project/laserbeamsize/
    :alt: Downloads
 
+.. |black-badge| image:: https://img.shields.io/badge/code%20style-black-000000.svg
+   :target: https://github.com/psf/black
+   :alt: code style: black
+
+
 laserbeamsize
 =============
 
@@ -37,7 +42,7 @@ by Scott Prahl
 
 |pypi-badge| |github-badge| |conda-badge| |zenodo-badge|
 
-|license-badge| |test-badge| |docs-badge| |downloads-badge|
+|license-badge| |test-badge| |docs-badge| |downloads-badge| |black-badge|
 
 Simple and fast calculation of beam sizes from a single monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make the 

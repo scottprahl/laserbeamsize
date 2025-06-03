@@ -193,31 +193,42 @@ def test_gouy_phase_varied_wavelength():
 def test_focused_diameter_standard_conditions():
     f, lambda0, d, M2 = 0.01, 1e-6, 0.002, 1
     result = lbs.focused_diameter(f, lambda0, d, M2)
-    assert np.isclose(result, 6.3661977e-06)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result, 6.3661977e-06
+    )  # replace with the correct 8-digit accurate result
 
 
 def test_focused_diameter_varied_focal_length():
     f, lambda0, d, M2 = 0.02, 1e-6, 0.002, 1
     result = lbs.focused_diameter(f, lambda0, d, M2)
-    assert np.isclose(result, 1.2732395e-05)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result, 1.2732395e-05
+    )  # replace with the correct 8-digit accurate result
 
 
 def test_focused_diameter_varied_wavelength():
     f, lambda0, d, M2 = 0.01, 2e-6, 0.002, 1
     result = lbs.focused_diameter(f, lambda0, d, M2)
-    assert np.isclose(result, 1.2732395e-05)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result, 1.2732395e-05
+    )  # replace with the correct 8-digit accurate result
 
 
 def test_focused_diameter_varied_aperture_diameter():
     f, lambda0, d, M2 = 0.01, 1e-6, 0.004, 1
     result = lbs.focused_diameter(f, lambda0, d, M2)
-    assert np.isclose(result, 3.18309886e-06,)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result,
+        3.18309886e-06,
+    )  # replace with the correct 8-digit accurate result
 
 
 def test_focused_diameter_with_m2_factor():
     f, lambda0, d, M2 = 120e-3, 532e-9, 10e-3, 1.3
     result = lbs.focused_diameter(f, lambda0, d, M2)
-    assert np.isclose(result, 0.010567e-03)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result, 0.010567e-03
+    )  # replace with the correct 8-digit accurate result
 
 
 # beam parameter product
@@ -225,35 +236,45 @@ def test_beam_parameter_product_standard_conditions():
     Theta, d0, Theta_std, d0_std = 0.01, 0.002, 0.0001, 0.00002
     result, result_std = lbs.beam_parameter_product(Theta, d0, Theta_std, d0_std)
     assert np.isclose(result, 5e-06)  # replace with the correct 8-digit accurate result
-    assert np.isclose(result_std, 7.071067e-08)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result_std, 7.071067e-08
+    )  # replace with the correct 8-digit accurate result
 
 
 def test_beam_parameter_product_zero_std_conditions():
     Theta, d0, Theta_std, d0_std = 0.01, 0.002, 0, 0
     result, result_std = lbs.beam_parameter_product(Theta, d0, Theta_std, d0_std)
     assert np.isclose(result, 5e-06)  # replace with the correct 8-digit accurate result
-    assert np.isclose(result_std, 0.00000000)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result_std, 0.00000000
+    )  # replace with the correct 8-digit accurate result
 
 
 def test_beam_parameter_product_high_std_conditions():
     Theta, d0, Theta_std, d0_std = 0.01, 0.002, 0.005, 0.001
     result, result_std = lbs.beam_parameter_product(Theta, d0, Theta_std, d0_std)
     assert np.isclose(result, 5e-06)  # replace with the correct 8-digit accurate result
-    assert np.isclose(result_std, 3.5355339e-06)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result_std, 3.5355339e-06
+    )  # replace with the correct 8-digit accurate result
 
 
 def test_beam_parameter_product_varied_divergence_angle():
     Theta, d0, Theta_std, d0_std = 0.02, 0.002, 0.0001, 0.00002
     result, result_std = lbs.beam_parameter_product(Theta, d0, Theta_std, d0_std)
     assert np.isclose(result, 1e-05)  # replace with the correct 8-digit accurate result
-    assert np.isclose(result_std, 1.118034e-07)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result_std, 1.118034e-07
+    )  # replace with the correct 8-digit accurate result
 
 
 def test_beam_parameter_product_varied_waist_diameter():
     Theta, d0, Theta_std, d0_std = 0.01, 0.004, 0.0001, 0.00002
     result, result_std = lbs.beam_parameter_product(Theta, d0, Theta_std, d0_std)
     assert np.isclose(result, 1e-05)  # replace with the correct 8-digit accurate result
-    assert np.isclose(result_std, 1.118034e-07)  # replace with the correct 8-digit accurate result
+    assert np.isclose(
+        result_std, 1.118034e-07
+    )  # replace with the correct 8-digit accurate result
 
 
 # image distance

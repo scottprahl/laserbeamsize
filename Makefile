@@ -23,7 +23,9 @@ lint:
 	-pylint laserbeamsize/m2_fit.py
 	-pylint laserbeamsize/m2_display.py
 	-pylint tests/test_all_notebooks.py
-
+	-yamllint .github/workflows/citation.yaml
+	-yamllint .github/workflows/pypi.yaml
+	-yamllint .github/workflows/test.yaml
 
 rstcheck:
 	-rstcheck README.rst
@@ -56,11 +58,13 @@ rcheck:
 clean:
 	rm -rf .eggs
 	rm -rf .pytest_cache
+	rm -rf .ruff_cache
 	rm -rf .virtual_documents
 	rm -rf __pycache__
 	rm -rf dist
 	rm -rf laserbeamsize.egg-info
 	rm -rf laserbeamsize/__pycache__
+	rm -rf laserbeamsize/.ipynb_checkpoints
 	rm -rf docs/_build
 	rm -rf docs/api
 	rm -rf docs/.ipynb_checkpoints

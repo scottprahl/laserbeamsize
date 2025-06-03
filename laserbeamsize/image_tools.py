@@ -9,18 +9,19 @@ import scipy.ndimage
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 
-__all__ = ('rotate_image',
-           'axes_arrays',
-           'ellipse_arrays',
-           'major_axis_arrays',
-           'minor_axis_arrays',
-           'rotated_rect_arrays',
-           'create_test_image',
-           'crop_image_to_rect',
-           'crop_image_to_integration_rect',
-           'create_cmap',
-           'create_plus_minus_cmap',
-           )
+__all__ = (
+    "rotate_image",
+    "axes_arrays",
+    "ellipse_arrays",
+    "major_axis_arrays",
+    "minor_axis_arrays",
+    "rotated_rect_arrays",
+    "create_test_image",
+    "crop_image_to_rect",
+    "crop_image_to_integration_rect",
+    "create_cmap",
+    "create_plus_minus_cmap",
+)
 
 
 def rotate_points(x, y, x0, y0, phi):
@@ -69,7 +70,7 @@ def values_along_line(image, x0, y0, x1, y1, N=100):
         z: image values at each of the x, y positions
         s: distance from start of minor axis to x, y position
     """
-    d = np.sqrt((x1 - x0)**2 + (y1 - y0)**2)
+    d = np.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2)
     s = np.linspace(0, 1, N)
 
     x = x0 + s * (x1 - x0)
@@ -292,7 +293,9 @@ def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     return np.array([xp, yp])
 
 
-def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_value=255):
+def create_test_image(
+    h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_value=255
+):
     """
     Create a 2D test image with an elliptical beam and possible noise.
 
@@ -316,16 +319,16 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_v
         image: an unsigned 2D integer array of a Gaussian elliptical spot
     """
     if max_value < 0 or max_value >= 2**16:
-        raise ValueError('max_value must be positive and less than 65535')
+        raise ValueError("max_value must be positive and less than 65535")
 
     if not isinstance(h, int) or h <= 0:
-        raise ValueError('number of columns must be positive')
+        raise ValueError("number of columns must be positive")
 
     if not isinstance(v, int) or v <= 0:
-        raise ValueError('number of rows must be positive')
+        raise ValueError("number of rows must be positive")
 
     if abs(phi) > 2.1 * np.pi:
-        raise ValueError('the angle phi should be in radians!')
+        raise ValueError("the angle phi should be in radians!")
 
     rx = dx / 2
     ry = dy / 2
@@ -335,24 +338,24 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype='poisson', max_v
     y, x = np.ogrid[:v, :h]
 
     scale = max_value - 3 * noise
-    image0 = scale * np.exp(-2 * (x - xc)**2 / rx**2 - 2 * (y - yc)**2 / ry**2)
+    image0 = scale * np.exp(-2 * (x - xc) ** 2 / rx**2 - 2 * (y - yc) ** 2 / ry**2)
 
     image1 = rotate_image(image0, xc, yc, phi)
 
     if noise > 0:
-        if ntype == 'poisson':
+        if ntype == "poisson":
             # noise is the mean value of the distribution
             image1 += np.random.poisson(noise, size=(v, h))
 
-        if ntype == 'constant':
+        if ntype == "constant":
             # noise is the mean value of the distribution
             image1 += noise
 
-        if ntype in ('gaussian', 'normal'):
+        if ntype in ("gaussian", "normal"):
             # noise is the mean value of the distribution
             image1 += np.random.normal(noise, np.sqrt(noise), size=(v, h))
 
-        if ntype in ('flat', 'uniform'):
+        if ntype in ("flat", "uniform"):
             # noise is the mean value of the distribution
             image1 += np.random.uniform(0, noise, size=(v, h))
 
@@ -437,7 +440,9 @@ def create_cmap(vmin, vmax, band_percentage=4):
     delta = band_percentage / 100
     colors = [(0, 0, 0.6), (0, 0, 1), (1, 1, 1), (1, 0, 0), (0.6, 0, 0)]
     positions = [0, (1 - delta) * r, r, (1 + delta) * r, 1]
-    return LinearSegmentedColormap.from_list("plus_minus", list(zip(positions, colors)), N=255)
+    return LinearSegmentedColormap.from_list(
+        "plus_minus", list(zip(positions, colors)), N=255
+    )
 
 
 def create_plus_minus_cmap(data):
@@ -446,8 +451,8 @@ def create_plus_minus_cmap(data):
     vmin = np.min(data)
 
     if 0 <= vmin <= vmax:
-        return plt.get_cmap('Reds')
+        return plt.get_cmap("Reds")
     if vmin <= vmax <= 0:
-        return plt.get_cmap('Blues')
+        return plt.get_cmap("Blues")
 
     return create_cmap(vmin, vmax)

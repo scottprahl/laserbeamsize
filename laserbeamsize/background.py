@@ -35,14 +35,15 @@ import numpy as np
 import scipy.ndimage
 import laserbeamsize as lbs
 
-__all__ = ('corner_background',
-           'iso_background',
-           'subtract_background_image',
-           'subtract_constant',
-           'subtract_corner_background',
-           'subtract_iso_background',
-           'subtract_tilted_background',
-           )
+__all__ = (
+    "corner_background",
+    "iso_background",
+    "subtract_background_image",
+    "subtract_constant",
+    "subtract_corner_background",
+    "subtract_iso_background",
+    "subtract_tilted_background",
+)
 
 
 def subtract_background_image(original, background):
@@ -75,7 +76,9 @@ def subtract_background_image(original, background):
 
     # Checking if the inputs are two-dimensional arrays
     if original.ndim != 2 or background.ndim != 2:
-        raise ValueError('Inputs "original" and "background" must be two-dimensional arrays.')
+        raise ValueError(
+            'Inputs "original" and "background" must be two-dimensional arrays.'
+        )
 
     # Checking if the shapes of the inputs are equal
     if original.shape != background.shape:
@@ -89,9 +92,7 @@ def subtract_background_image(original, background):
     return subtracted
 
 
-def subtract_constant(original,
-                      background,
-                      iso_noise=True):
+def subtract_constant(original, background, iso_noise=True):
     """
     Return image with a constant value subtracted.
 
@@ -141,9 +142,7 @@ def corner_background(image, corner_fraction=0.035):
     return mean, stdev
 
 
-def iso_background(image,
-                   corner_fraction=0.035,
-                   nT=3):
+def iso_background(image, corner_fraction=0.035, nT=3):
     """
     Return the background for unilluminated pixels in an image.
 
@@ -163,7 +162,7 @@ def iso_background(image,
         mean, stdev: mean and stdev of background in the image
     """
     if corner_fraction <= 0 or corner_fraction > 0.25:
-        raise ValueError('corner_fraction must be positive and less than 0.25.')
+        raise ValueError("corner_fraction must be positive and less than 0.25.")
 
     # estimate background
     ave, std = corner_background(image, corner_fraction=corner_fraction)
@@ -175,8 +174,10 @@ def iso_background(image,
     unilluminated = image[image <= threshold]
 
     if len(unilluminated) == 0:
-        raise ValueError('est bkgnd=%.2f stdev=%.2f. No values in image are <= %.2f.'
-                         % (ave, std, threshold))
+        raise ValueError(
+            "est bkgnd=%.2f stdev=%.2f. No values in image are <= %.2f."
+            % (ave, std, threshold)
+        )
 
     mean = np.mean(unilluminated)
     stdev = np.std(unilluminated)
@@ -191,9 +192,7 @@ def _std_filter(values):
     return np.std(values)
 
 
-def image_background2(image,
-                      fraction=0.035,
-                      nT=3):
+def image_background2(image, fraction=0.035, nT=3):
     """
     Return the background of an image.
 
@@ -228,10 +227,7 @@ def image_background2(image,
     return background
 
 
-def subtract_iso_background(image,
-                            corner_fraction=0.035,
-                            nT=3,
-                            iso_noise=True):
+def subtract_iso_background(image, corner_fraction=0.035, nT=3, iso_noise=True):
     """
     Return image with ISO 11146 background subtracted.
 
@@ -271,10 +267,7 @@ def subtract_iso_background(image,
     return subtracted
 
 
-def subtract_corner_background(image,
-                               corner_fraction=0.035,
-                               nT=3,
-                               iso_noise=True):
+def subtract_corner_background(image, corner_fraction=0.035, nT=3, iso_noise=True):
     """
     Return image with background subtracted.
 
@@ -314,8 +307,7 @@ def subtract_corner_background(image,
     return subtracted
 
 
-def subtract_tilted_background(image,
-                               corner_fraction=0.035):
+def subtract_tilted_background(image, corner_fraction=0.035):
     """
     Return image with tilted planar background subtracted.
 

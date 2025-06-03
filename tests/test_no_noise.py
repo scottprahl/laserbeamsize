@@ -82,24 +82,38 @@ def test_phi_values():
 
 def run_test(h, v, xc, yc, dx, dy, phi, max_value=255):
 
-    test_img = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, max_value=max_value)
+    test_img = lbs.image_tools.create_test_image(
+        h, v, xc, yc, dx, dy, phi, max_value=max_value
+    )
     result_xc, result_yc, result_dx, result_dy, result_phi = lbs.beam_size(test_img)
     erp = np.degrees(phi)
     rp = np.degrees(result_phi)
 
     if interactive:
-        plt.title('result=%.1f° expected=%.1f°' % (rp, erp))
+        plt.title("result=%.1f° expected=%.1f°" % (rp, erp))
         plt.imshow(test_img)
-        x, y = lbs.image_tools.ellipse_arrays(result_xc, result_yc, result_dx, result_dy, result_phi)
+        x, y = lbs.image_tools.ellipse_arrays(
+            result_xc, result_yc, result_dx, result_dy, result_phi
+        )
         plt.plot(x, y)
         plt.colorbar()
         plt.show()
 
-    assert np.isclose(result_xc, xc, rtol=0.03), f"Expected xc around {xc}, but got {result_xc}"
-    assert np.isclose(result_yc, yc, rtol=0.03), f"Expected yc around {yc}, but got {result_yc}"
-    assert np.isclose(result_dx, dx, rtol=0.03), f"Expected dx around {dx}, but got {result_dx}"
-    assert np.isclose(result_dy, dy, rtol=0.03), f"Expected dy around {dy}, but got {result_dy}"
-    assert np.isclose(rp, erp, rtol=0.03), f"Expected phi around {phi}°, but got {result_phi}°"
+    assert np.isclose(
+        result_xc, xc, rtol=0.03
+    ), f"Expected xc around {xc}, but got {result_xc}"
+    assert np.isclose(
+        result_yc, yc, rtol=0.03
+    ), f"Expected yc around {yc}, but got {result_yc}"
+    assert np.isclose(
+        result_dx, dx, rtol=0.03
+    ), f"Expected dx around {dx}, but got {result_dx}"
+    assert np.isclose(
+        result_dy, dy, rtol=0.03
+    ), f"Expected dy around {dy}, but got {result_dy}"
+    assert np.isclose(
+        rp, erp, rtol=0.03
+    ), f"Expected phi around {phi}°, but got {result_phi}°"
 
 
 def test_horizontal_ellipse():
