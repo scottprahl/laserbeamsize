@@ -58,11 +58,13 @@ rcheck:
 clean:
 	rm -rf .eggs
 	rm -rf .pytest_cache
+	rm -rf .ruff_cache
 	rm -rf .virtual_documents
 	rm -rf __pycache__
 	rm -rf dist
 	rm -rf laserbeamsize.egg-info
 	rm -rf laserbeamsize/__pycache__
+	rm -rf laserbeamsize/.ipynb_checkpoints
 	rm -rf docs/_build
 	rm -rf docs/api
 	rm -rf docs/.ipynb_checkpoints

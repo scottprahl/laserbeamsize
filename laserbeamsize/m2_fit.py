@@ -40,9 +40,10 @@ import numpy as np
 import scipy.optimize
 import laserbeamsize as lbs
 
-__all__ = ('M2_fit',
-           'M2_report',
-           )
+__all__ = (
+    "M2_fit",
+    "M2_report",
+)
 
 
 def _beam_fit_fn_1(z, d0, z0, Theta):
@@ -58,7 +59,7 @@ def _beam_fit_fn_1(z, d0, z0, Theta):
     Returns:
         beam diameter
     """
-    return np.sqrt(d0**2 + (Theta * (z - z0))**2)
+    return np.sqrt(d0**2 + (Theta * (z - z0)) ** 2)
 
 
 def _beam_fit_fn_2(z, d0, Theta):
@@ -75,7 +76,7 @@ def _beam_fit_fn_2(z, d0, Theta):
     Returns:
         beam diameter
     """
-    return np.sqrt(d0**2 + (Theta * z)**2)
+    return np.sqrt(d0**2 + (Theta * z) ** 2)
 
 
 def _beam_fit_fn_3(z, z0, Theta):
@@ -153,7 +154,9 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
             p0 = [d0_guess, z0_guess, theta_guess]
             nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_1, z, d, p0=p0)
             d0, z0, Theta = nlfit
-            d0_std, z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
+            d0_std, z0_std, Theta_std = [
+                np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)
+            ]
         else:
             i = np.argmax(abs(z - z0_guess))
             theta_guess = abs(d[i] / (z[i] - z0_guess))
@@ -188,8 +191,8 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
     M2 = Theta / Theta0
     zR = np.pi * d0**2 / (4 * lambda0 * M2)
 
-    M2_std = M2 * np.sqrt((Theta_std / Theta)**2 + (d0_std / d0)**2)
-    zR_std = zR * np.sqrt((M2_std / M2)**2 + (2 * d0_std / d0)**2)
+    M2_std = M2 * np.sqrt((Theta_std / Theta) ** 2 + (d0_std / d0) ** 2)
+    zR_std = zR * np.sqrt((M2_std / M2) ** 2 + (2 * d0_std / d0) ** 2)
 
     params = [d0, z0, Theta, M2, zR]
     errors = [d0_std, z0_std, Theta_std, M2_std, zR_std]
@@ -333,7 +336,7 @@ def M2_string(params, errors):
     d0_std, z0_std, Theta_std, M2_std, zR_std = errors
     BPP, BPP_std = lbs.beam_parameter_product(Theta, d0, Theta_std, d0_std)
 
-    s = ''
+    s = ""
     s += "       M^2 = %.2f ± %.2f\n" % (M2, M2_std)
     s += "\n"
     s += "       d_0 = %.0f ± %.0f µm\n" % (d0 * 1e6, d0_std * 1e6)
@@ -427,7 +430,7 @@ def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
     BPPx, BPPx_std = lbs.beam_parameter_product(Thetax, d0x, Thetax_std, d0x_std)
     BPPy, BPPy_std = lbs.beam_parameter_product(Thetay, d0y, Thetay_std, d0y_std)
 
-    tag = ''
+    tag = ""
     if f is not None:
         tag = " of the focused beam"
 

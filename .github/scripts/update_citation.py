@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Refreshes the version and date-released fields in CITATION.cff
-using data from the GitHub release that triggered this workflow.
+Refreshes CITATION.cff with latest version and date.
+
+The updates use data from the GitHub release that triggered this workflow.
 """
 
 from __future__ import annotations
 import json
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -16,7 +16,7 @@ import yaml
 
 
 REPO = os.getenv("GITHUB_REPOSITORY", "scottprahl/laserbeamsize")
-EVENT_FILE = os.getenv("GITHUB_EVENT_PATH")          # set by GitHub Actions
+EVENT_FILE = os.getenv("GITHUB_EVENT_PATH")  # set by GitHub Actions
 
 
 def load_release_payload() -> dict:
@@ -24,13 +24,13 @@ def load_release_payload() -> dict:
     if EVENT_FILE and Path(EVENT_FILE).is_file():
         with open(EVENT_FILE, "r", encoding="utf-8") as fp:
             event = json.load(fp)
-        if "release" in event:           # ← graceful guard
+        if "release" in event:  # ← graceful guard
             return event["release"]
 
     # Fallback: hit the API (e.g. for workflow_dispatch runs)
     url = f"https://api.github.com/repos/{REPO}/releases/latest"
     headers = {}
-    if (token := os.getenv("GITHUB_TOKEN")):
+    if token := os.getenv("GITHUB_TOKEN"):
         headers["Authorization"] = f"token {token}"
     res = requests.get(url, headers=headers, timeout=15)
     res.raise_for_status()
@@ -43,8 +43,9 @@ def normalise_version(tag: str) -> str:
 
 
 def main() -> None:
+    """Main routine."""
     release = load_release_payload()
-    release_date = release["published_at"][:10]                  # YYYY-MM-DD
+    release_date = release["published_at"][:10]  # YYYY-MM-DD
     version = normalise_version(release["tag_name"])
 
     cff_path = Path("CITATION.cff")

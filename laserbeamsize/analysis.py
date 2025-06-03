@@ -25,9 +25,10 @@ Finding the center and diameters of a beam in a monochrome image is simple::
 import numpy as np
 import laserbeamsize as lbs
 
-__all__ = ('basic_beam_size',
-           'beam_size',
-           )
+__all__ = (
+    "basic_beam_size",
+    "beam_size",
+)
 
 
 def basic_beam_size(original):
@@ -58,15 +59,15 @@ def basic_beam_size(original):
     v, h = image.shape
 
     # total of all pixels
-    p = np.sum(image, dtype=float)     # float avoids integer overflow
+    p = np.sum(image, dtype=float)  # float avoids integer overflow
 
     # sometimes the image is all zeros, just return
     if p == 0:
         return int(h / 2), int(v / 2), 0, 0, 0
 
     # find the centroid
-    hh = np.arange(h, dtype=float)      # float avoids integer overflow
-    vv = np.arange(v, dtype=float)      # ditto
+    hh = np.arange(h, dtype=float)  # float avoids integer overflow
+    vv = np.arange(v, dtype=float)  # ditto
     xc = np.sum(np.dot(image, hh)) / p
     yc = np.sum(np.dot(image.T, vv)) / p
 
@@ -101,44 +102,42 @@ def basic_beam_size(original):
     return xc, yc, dx, dy, phi
 
 
-def _validate_inputs(image,
-                     mask_diameters=3,
-                     corner_fraction=0.035,
-                     nT=3,
-                     max_iter=25,
-                     phi=None
-                     ):
+def _validate_inputs(
+    image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25, phi=None
+):
     """
     Ensure arguments to validate inputs are sane.
 
     This is separate to keep the beam_size() a reasonable size.
     """
     if len(image.shape) > 2:
-        raise ValueError('Color images not supported. Image must be 2D.')
+        raise ValueError("Color images not supported. Image must be 2D.")
 
     if mask_diameters <= 0 or mask_diameters > 5:
-        raise ValueError('mask_diameters must be a positive number less than 5.')
+        raise ValueError("mask_diameters must be a positive number less than 5.")
 
     if corner_fraction < 0 or corner_fraction > 0.25:
-        raise ValueError('corner_fraction must be a positive number less than 0.25.')
+        raise ValueError("corner_fraction must be a positive number less than 0.25.")
 
     if nT < 2 or nT > 4:
-        raise ValueError('nT must be between 2 and 4.')
+        raise ValueError("nT must be between 2 and 4.")
 
     if max_iter < 0 or not isinstance(max_iter, int):
-        raise ValueError('max_iter must be a non-negative integer.')
+        raise ValueError("max_iter must be a non-negative integer.")
 
     if phi is not None and abs(phi) > 2.1 * np.pi:
-        raise ValueError('the angle phi should be in radians!')
+        raise ValueError("the angle phi should be in radians!")
 
 
-def beam_size(image,
-              mask_diameters=3,
-              corner_fraction=0.035,
-              nT=3,
-              max_iter=25,
-              phi=None,
-              iso_noise=True):
+def beam_size(
+    image,
+    mask_diameters=3,
+    corner_fraction=0.035,
+    nT=3,
+    max_iter=25,
+    phi=None,
+    iso_noise=True,
+):
     """
     Determine beam parameters in an image with noise.
 
@@ -185,17 +184,15 @@ def beam_size(image,
     _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi)
 
     # zero background for initial guess at beam size
-    image_no_bkgnd = lbs.subtract_iso_background(image,
-                                                 corner_fraction=corner_fraction,
-                                                 nT=nT,
-                                                 iso_noise=False)
+    image_no_bkgnd = lbs.subtract_iso_background(
+        image, corner_fraction=corner_fraction, nT=nT, iso_noise=False
+    )
     xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd)
 
     if iso_noise:  # follow iso background guidelines (positive & negative bkgnd values)
-        image_no_bkgnd = lbs.subtract_iso_background(image,
-                                                     corner_fraction=corner_fraction,
-                                                     nT=nT,
-                                                     iso_noise=True)
+        image_no_bkgnd = lbs.subtract_iso_background(
+            image, corner_fraction=corner_fraction, nT=nT, iso_noise=True
+        )
 
     for _iteration in range(1, max_iter):
 
@@ -215,7 +212,12 @@ def beam_size(image,
         # find the new parameters
         xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
 
-        if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
+        if (
+            abs(xc - xc2) < 1
+            and abs(yc - yc2) < 1
+            and abs(dx - dx2) < 1
+            and abs(dy - dy2) < 1
+        ):
             break
 
     if phi is not None:
@@ -260,16 +262,24 @@ def basic_beam_size_naive(image):
     xy = 0.0
     for i in range(v):
         for j in range(h):
-            xx += image[i, j] * (j - xc)**2
+            xx += image[i, j] * (j - xc) ** 2
             xy += image[i, j] * (j - xc) * (i - yc)
-            yy += image[i, j] * (i - yc)**2
+            yy += image[i, j] * (i - yc) ** 2
     xx /= p
     xy /= p
     yy /= p
 
     # compute major and minor axes as well as rotation angle
-    dx = 2 * np.sqrt(2) * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy)**2 + 4 * xy**2))
-    dy = 2 * np.sqrt(2) * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy)**2 + 4 * xy**2))
+    dx = (
+        2
+        * np.sqrt(2)
+        * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+    )
+    dy = (
+        2
+        * np.sqrt(2)
+        * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+    )
     phi = 2 * np.arctan2(2 * xy, xx - yy)
 
     return xc, yc, dx, dy, phi
