@@ -23,7 +23,9 @@ lint:
 	-pylint laserbeamsize/m2_fit.py
 	-pylint laserbeamsize/m2_display.py
 	-pylint tests/test_all_notebooks.py
-
+	-yamllint .github/workflows/citation.yaml
+	-yamllint .github/workflows/pypi.yaml
+	-yamllint .github/workflows/test.yaml
 
 rstcheck:
 	-rstcheck README.rst
