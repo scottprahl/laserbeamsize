@@ -170,7 +170,7 @@ def plot_image_and_fit(
     size is in pixels unless `pixel_size` is specified.  In that case the
     rectangle sizes are in whatever units `pixel_size` is .
 
-    All cropping is done after analysis and therefosre only affects
+    All cropping is done after analysis and therefore only affects
     what is displayed.  If the image needs to be cropped before analysis
     then that must be done before calling this function.
 
@@ -287,7 +287,7 @@ def plot_image_analysis(
     If `crop==True` then the displayed image is cropped to the ISO 11146 integration
     rectangle.
 
-    All cropping is done after analysis and therefosre only affects
+    All cropping is done after analysis and therefore only affects
     what is displayed.  If the image needs to be cropped before analysis
     then that must be done before calling this function.
 
@@ -471,7 +471,7 @@ def plot_image_montage(
     If `crop==True` then the displayed image is cropped to the ISO 11146 integration
     rectangle.
 
-    All cropping is done after analysis and therefosre only affects
+    All cropping is done after analysis and therefore only affects
     what is displayed.  If the image needs to be cropped before analysis
     then that must be done before calling this function.
 
