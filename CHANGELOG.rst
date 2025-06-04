@@ -1,6 +1,15 @@
 Changelog
 =========
 
+2.0.6
+-----
+* adopt ``pyproject.toml`` with PEP 621 metadata
+* lint YAML files and run ``ruff`` during ``make rcheck``
+* allow ``iso_noise`` option in display and background functions
+* rename ``tests/test_all_notebooks.py`` to ``tests/all_test_notebooks.py``
+* replace ``master`` branch references with ``main`` in docs
+* numerous style and docstring improvements
+
 2.0.5
 -----
 * fix mistake in focused_diameter (thanks @rdgraham)
