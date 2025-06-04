@@ -22,7 +22,7 @@ lint:
 	-pylint laserbeamsize/image_tools.py
 	-pylint laserbeamsize/m2_fit.py
 	-pylint laserbeamsize/m2_display.py
-	-pylint tests/test_all_notebooks.py
+	-pylint tests/all_test_notebooks.py
 	-yamllint .github/workflows/citation.yaml
 	-yamllint .github/workflows/pypi.yaml
 	-yamllint .github/workflows/test.yaml

@@ -8,11 +8,11 @@ directories that start with '.' and any files matching patterns found in the fil
 
 Sample invocations of pytest which make the output nicely readable::
 
-    pytest --verbose --durations=5 test_all_notebooks.py
+    pytest --verbose --durations=5 all_test_notebooks.py
 
 If you install `pytest-xdist` you can run tests in parallel with::
 
-    pytest --verbose --durations=5 -n 4 test_all_notebooks.py
+    pytest --verbose --durations=5 -n 4 all_test_notebooks.py
 
 Original version is licensed under GPL 3.0 so this modified one is as well.
 
