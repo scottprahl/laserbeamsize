@@ -167,7 +167,7 @@ def beam_size(
 
     Args:
         image: 2D array of image of beam
-        mask_diameters: (optional) the size of the integratifon rectangle in diameters
+        mask_diameters: (optional) the size of the integration rectangle in diameters
         corner_fraction: (optional) the fractional size of the corners
         nT: (optional) the multiple of background noise to remove
         max_iter: (optional) maximum number of iterations.
