@@ -253,8 +253,8 @@ def basic_beam_size_naive(image):
             p += image[i, j]
             xc += image[i, j] * j
             yc += image[i, j] * i
-    xc = int(xc / p)
-    yc = int(yc / p)
+    xc /= p
+    yc /= p
 
     # calculate variances
     xx = 0.0
