@@ -37,3 +37,4 @@ disable = [
     "consider-using-f-string",
     "too-many-statements",
   ]
+
