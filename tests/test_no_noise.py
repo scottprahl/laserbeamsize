@@ -68,13 +68,13 @@ def test_max_iter():
 
 def test_phi_values():
     try:
-        lbs.beam_size(image, phi=-10)
+        lbs.beam_size(image, phi_fixed=-10)
         assert False, "Expected ValueError for -2pi <= phi <= 2pi"
     except ValueError:
         pass
 
     try:
-        lbs.beam_size(image, phi=10)
+        lbs.beam_size(image, phi_fixed=10)
         assert False, "Expected ValueError for -2pi <= phi <= 2pi"
     except ValueError:
         pass

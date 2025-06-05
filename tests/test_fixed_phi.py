@@ -8,18 +8,18 @@ def create_image(phi=np.pi / 6):
 
 def test_basic_beam_size_phi_returned():
     image = create_image()
-    result = lbs.basic_beam_size(image, phi=0)
+    result = lbs.basic_beam_size(image, phi_fixed=0)
     assert np.isclose(result[4], 0)
 
 
 def test_beam_size_phi_returned():
     image = create_image()
-    result = lbs.beam_size(image, phi=-np.pi / 3)
+    result = lbs.beam_size(image, phi_fixed=-np.pi / 3)
     assert np.isclose(result[4], -np.pi / 3)
 
 
 def _run_case(image, phi_arg, expected_xc, expected_yc, expected_dx, expected_dy, expected_phi):
-    result = lbs.beam_size(image, phi=phi_arg)
+    result = lbs.beam_size(image, phi_fixed=phi_arg)
     assert np.isclose(result[0], expected_xc, rtol=0.01)
     assert np.isclose(result[1], expected_yc, rtol=0.01)
     assert np.isclose(result[2], expected_dx, rtol=0.05)

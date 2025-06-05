@@ -31,7 +31,7 @@ __all__ = (
 )
 
 
-def basic_beam_size(original):
+def basic_beam_size(original, phi_fixed=None):
     """
     Determine the beam center, diameters, and tilt using ISO 11146 standard.
 
@@ -53,7 +53,7 @@ def basic_beam_size(original):
         yc: vertical center of beam
         dx: horizontal diameter of beam
         dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
+        phi_fixed: angle that elliptical beam is rotated [radians]
     """
     image = original.astype(float)
     v, h = image.shape
@@ -71,8 +71,8 @@ def basic_beam_size(original):
     xc = np.sum(np.dot(image, hh)) / p
     yc = np.sum(np.dot(image.T, vv)) / p
 
-    if phi is not None:
-        image = lbs.rotate_image(image, xc, yc, -phi)
+    if phi_fixed is not None:
+        image = lbs.rotate_image(image, xc, yc, -phi_fixed)
 
     # find the variances
     hs = hh - xc
@@ -81,17 +81,7 @@ def basic_beam_size(original):
     xy = np.dot(np.dot(image.T, vs), hs) / p
     yy = np.sum(np.dot(image.T, vs**2)) / p
 
-<<<<<<< Updated upstream
-    # Ensure that the case xx==yy is handled correctly
-    if xx == yy:
-        disc = np.abs(2 * xy)
-        phi = np.sign(xy) * np.pi / 4
-    else:
-        diff = xx - yy
-        disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
-        phi = 0.5 * np.arctan(2 * xy / diff)
-=======
-    if phi is None:
+    if phi_fixed is None:
         xy = np.dot(np.dot(image.T, vs), hs) / p
     else:
         xy = 0
@@ -113,26 +103,12 @@ def basic_beam_size(original):
     if xx + yy - disc > 0:
         dy = np.sqrt(8 * (xx + yy - disc))
 
-    if phi is None:
+    if phi_fixed is None:
         phi_ *= -1  # phi is negative because image is inverted
-
     else:
-        phi_ = phi
->>>>>>> Stashed changes
+        phi_ = phi_fixed
 
-    # finally, the major and minor diameters
-    dx = 1
-    dy = 1
-    if xx + yy + disc > 0:  # fails when negative noise dominates
-        dx = np.sqrt(8 * (xx + yy + disc))
-
-    if xx + yy - disc > 0:
-        dy = np.sqrt(8 * (xx + yy - disc))
-
-    # phi is negative because image is inverted
-    phi *= -1
-
-    return xc, yc, dx, dy, phi
+    return xc, yc, dx, dy, phi_
 
 
 def _validate_inputs(
@@ -168,7 +144,7 @@ def beam_size(
     corner_fraction=0.035,
     nT=3,
     max_iter=25,
-    phi=None,
+    phi_fixed=None,
     iso_noise=True,
 ):
     """
@@ -204,7 +180,7 @@ def beam_size(
         corner_fraction: (optional) the fractional size of the corners
         nT: (optional) the multiple of background noise to remove
         max_iter: (optional) maximum number of iterations.
-        phi: (optional) fixed tilt of ellipse in radians
+        phi_fixed: (optional) fixed tilt of ellipse in radians
         iso_noise: if True then allow negative pixel values
 
     Returns:
@@ -214,7 +190,7 @@ def beam_size(
         dy: vertical diameter of beam
         phi: angle that elliptical beam is rotated ccw [radians]
     """
-    _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi)
+    _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi_fixed)
 
     # zero background for initial guess at beam size
     image_no_bkgnd = lbs.subtract_iso_background(
@@ -229,8 +205,8 @@ def beam_size(
 
     for _iteration in range(1, max_iter):
 
-        if phi is not None:
-            phi_ = phi
+        if phi_fixed is not None:
+            phi_ = phi_fixed
 
         # save current beam properties for later comparison
         xc2, yc2, dx2, dy2 = xc, yc, dx, dy
@@ -243,7 +219,7 @@ def beam_size(
         masked_image[mask < 0.5] = 0
 
         # find the new parameters
-        xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
+        xc, yc, dx, dy, phi_ = basic_beam_size(masked_image, phi_fixed)
 
         if (
             abs(xc - xc2) < 1
@@ -265,10 +241,7 @@ def basic_beam_size_naive(image):
 
     Args:
         image: 2D array of image with beam spot in it
-<<<<<<< Updated upstream
-=======
 
->>>>>>> Stashed changes
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
@@ -303,10 +276,6 @@ def basic_beam_size_naive(image):
     xy /= p
     yy /= p
 
-<<<<<<< Updated upstream
-    # compute major and minor axes as well as rotation angle
-=======
->>>>>>> Stashed changes
     dx = (
         2
         * np.sqrt(2)
@@ -317,10 +286,6 @@ def basic_beam_size_naive(image):
         * np.sqrt(2)
         * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
     )
-<<<<<<< Updated upstream
-    phi = 2 * np.arctan2(2 * xy, xx - yy)
-=======
     phi_ = 2 * np.arctan2(2 * xy, xx - yy)
->>>>>>> Stashed changes
 
     return xc, yc, dx, dy, phi
