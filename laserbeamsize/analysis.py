@@ -31,7 +31,7 @@ __all__ = (
 )
 
 
-def basic_beam_size(original):
+def basic_beam_size(original, phi=None):
     """
     Determine the beam center, diameters, and tilt using ISO 11146 standard.
 
@@ -48,6 +48,9 @@ def basic_beam_size(original):
 
     Args:
         original: 2D array of image with beam spot
+        phi: (optional) fixed rotation angle [radians]
+            If ``None`` the angle is determined from the image.
+
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
@@ -78,28 +81,36 @@ def basic_beam_size(original):
     xy = np.dot(np.dot(image.T, vs), hs) / p
     yy = np.sum(np.dot(image.T, vs**2)) / p
 
-    # Ensure that the case xx==yy is handled correctly
-    if xx == yy:
-        disc = np.abs(2 * xy)
-        phi = np.sign(xy) * np.pi / 4
+    if phi is None:
+        # Ensure that the case xx==yy is handled correctly
+        if xx == yy:
+            disc = np.abs(2 * xy)
+            phi_ = np.sign(xy) * np.pi / 4
+        else:
+            diff = xx - yy
+            disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
+            phi_ = 0.5 * np.arctan(2 * xy / diff)
+
+        dx = 1
+        dy = 1
+        if xx + yy + disc > 0:  # fails when negative noise dominates
+            dx = np.sqrt(8 * (xx + yy + disc))
+
+        if xx + yy - disc > 0:
+            dy = np.sqrt(8 * (xx + yy - disc))
+
+        # phi is negative because image is inverted
+        phi_ *= -1
     else:
-        diff = xx - yy
-        disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
-        phi = 0.5 * np.arctan(2 * xy / diff)
+        c = np.cos(phi)
+        s = np.sin(phi)
+        xx_rot = xx * c * c + yy * s * s + 2 * xy * s * c
+        yy_rot = xx * s * s + yy * c * c - 2 * xy * s * c
+        dx = np.sqrt(8 * xx_rot)
+        dy = np.sqrt(8 * yy_rot)
+        phi_ = phi
 
-    # finally, the major and minor diameters
-    dx = 1
-    dy = 1
-    if xx + yy + disc > 0:  # fails when negative noise dominates
-        dx = np.sqrt(8 * (xx + yy + disc))
-
-    if xx + yy - disc > 0:
-        dy = np.sqrt(8 * (xx + yy - disc))
-
-    # phi is negative because image is inverted
-    phi *= -1
-
-    return xc, yc, dx, dy, phi
+    return xc, yc, dx, dy, phi_
 
 
 def _validate_inputs(
@@ -187,7 +198,7 @@ def beam_size(
     image_no_bkgnd = lbs.subtract_iso_background(
         image, corner_fraction=corner_fraction, nT=nT, iso_noise=False
     )
-    xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd)
+    xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd, phi=phi)
 
     if iso_noise:  # follow iso background guidelines (positive & negative bkgnd values)
         image_no_bkgnd = lbs.subtract_iso_background(
@@ -210,7 +221,7 @@ def beam_size(
         masked_image[mask < 0.5] = 0
 
         # find the new parameters
-        xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
+        xc, yc, dx, dy, phi_ = basic_beam_size(masked_image, phi=phi)
 
         if (
             abs(xc - xc2) < 1
@@ -226,7 +237,7 @@ def beam_size(
     return xc, yc, dx, dy, phi_
 
 
-def basic_beam_size_naive(image):
+def basic_beam_size_naive(image, phi=None):
     """
     Slow but simple implementation of ISO 11146 beam standard.
 
@@ -235,6 +246,9 @@ def basic_beam_size_naive(image):
 
     Args:
         image: 2D array of image with beam spot in it
+        phi: (optional) fixed rotation angle [radians]
+            If ``None`` the angle is determined from the image.
+
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
@@ -269,17 +283,25 @@ def basic_beam_size_naive(image):
     xy /= p
     yy /= p
 
-    # compute major and minor axes as well as rotation angle
-    dx = (
-        2
-        * np.sqrt(2)
-        * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
-    )
-    dy = (
-        2
-        * np.sqrt(2)
-        * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
-    )
-    phi = 2 * np.arctan2(2 * xy, xx - yy)
+    if phi is None:
+        dx = (
+            2
+            * np.sqrt(2)
+            * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+        )
+        dy = (
+            2
+            * np.sqrt(2)
+            * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+        )
+        phi_ = 2 * np.arctan2(2 * xy, xx - yy)
+    else:
+        c = np.cos(phi)
+        s = np.sin(phi)
+        xx_rot = xx * c * c + yy * s * s + 2 * xy * s * c
+        yy_rot = xx * s * s + yy * c * c - 2 * xy * s * c
+        dx = np.sqrt(8 * xx_rot)
+        dy = np.sqrt(8 * yy_rot)
+        phi_ = phi
 
-    return xc, yc, dx, dy, phi
+    return xc, yc, dx, dy, phi_
