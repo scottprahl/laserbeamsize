@@ -71,6 +71,9 @@ def basic_beam_size(original):
     xc = np.sum(np.dot(image, hh)) / p
     yc = np.sum(np.dot(image.T, vv)) / p
 
+    if phi is not None:
+        image = lbs.rotate_image(image, xc, yc, -phi)
+
     # find the variances
     hs = hh - xc
     vs = vv - yc
@@ -78,6 +81,7 @@ def basic_beam_size(original):
     xy = np.dot(np.dot(image.T, vs), hs) / p
     yy = np.sum(np.dot(image.T, vs**2)) / p
 
+<<<<<<< Updated upstream
     # Ensure that the case xx==yy is handled correctly
     if xx == yy:
         disc = np.abs(2 * xy)
@@ -86,6 +90,35 @@ def basic_beam_size(original):
         diff = xx - yy
         disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
         phi = 0.5 * np.arctan(2 * xy / diff)
+=======
+    if phi is None:
+        xy = np.dot(np.dot(image.T, vs), hs) / p
+    else:
+        xy = 0
+
+    # Ensure that the case xx==yy is handled correctly
+    if xx == yy:
+        disc = np.abs(2 * xy)
+        phi_ = np.sign(xy) * np.pi / 4
+    else:
+        diff = xx - yy
+        disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
+        phi_ = 0.5 * np.arctan(2 * xy / diff)
+
+    dx = 1
+    dy = 1
+    if xx + yy + disc > 0:  # fails when negative noise dominates
+        dx = np.sqrt(8 * (xx + yy + disc))
+
+    if xx + yy - disc > 0:
+        dy = np.sqrt(8 * (xx + yy - disc))
+
+    if phi is None:
+        phi_ *= -1  # phi is negative because image is inverted
+
+    else:
+        phi_ = phi
+>>>>>>> Stashed changes
 
     # finally, the major and minor diameters
     dx = 1
@@ -220,9 +253,6 @@ def beam_size(
         ):
             break
 
-    if phi is not None:
-        phi_ = phi
-
     return xc, yc, dx, dy, phi_
 
 
@@ -235,6 +265,10 @@ def basic_beam_size_naive(image):
 
     Args:
         image: 2D array of image with beam spot in it
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
@@ -269,7 +303,10 @@ def basic_beam_size_naive(image):
     xy /= p
     yy /= p
 
+<<<<<<< Updated upstream
     # compute major and minor axes as well as rotation angle
+=======
+>>>>>>> Stashed changes
     dx = (
         2
         * np.sqrt(2)
@@ -280,6 +317,10 @@ def basic_beam_size_naive(image):
         * np.sqrt(2)
         * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
     )
+<<<<<<< Updated upstream
     phi = 2 * np.arctan2(2 * xy, xx - yy)
+=======
+    phi_ = 2 * np.arctan2(2 * xy, xx - yy)
+>>>>>>> Stashed changes
 
     return xc, yc, dx, dy, phi

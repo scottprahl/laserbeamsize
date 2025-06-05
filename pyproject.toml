@@ -56,7 +56,6 @@ packages = ["laserbeamsize"]
 
 [tool.ruff]
 line-length = 110
-exclude =['.git', '__pycache__', 'docs']
 
 [tool.ruff.lint]
 select = ["D", "E", "F", "W"]
@@ -89,3 +88,6 @@ disable = [
     "consider-using-f-string",
     "too-many-statements",
   ]
+
+[tool.black]
+line-length = 110
