@@ -61,6 +61,11 @@ def basic_beam_size(original, phi=None):
     image = original.astype(float)
     v, h = image.shape
 
+    if phi is not None:
+        x0 = (h - 1) / 2
+        y0 = (v - 1) / 2
+        image = lbs.rotate_image(image, x0, y0, -phi)
+
     # total of all pixels
     p = np.sum(image, dtype=float)  # float avoids integer overflow
 
@@ -81,33 +86,28 @@ def basic_beam_size(original, phi=None):
     xy = np.dot(np.dot(image.T, vs), hs) / p
     yy = np.sum(np.dot(image.T, vs**2)) / p
 
-    if phi is None:
-        # Ensure that the case xx==yy is handled correctly
-        if xx == yy:
-            disc = np.abs(2 * xy)
-            phi_ = np.sign(xy) * np.pi / 4
-        else:
-            diff = xx - yy
-            disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
-            phi_ = 0.5 * np.arctan(2 * xy / diff)
-
-        dx = 1
-        dy = 1
-        if xx + yy + disc > 0:  # fails when negative noise dominates
-            dx = np.sqrt(8 * (xx + yy + disc))
-
-        if xx + yy - disc > 0:
-            dy = np.sqrt(8 * (xx + yy - disc))
-
-        # phi is negative because image is inverted
-        phi_ *= -1
+    # Ensure that the case xx==yy is handled correctly
+    if xx == yy:
+        disc = np.abs(2 * xy)
+        phi_ = np.sign(xy) * np.pi / 4
     else:
-        c = np.cos(phi)
-        s = np.sin(phi)
-        xx_rot = xx * c * c + yy * s * s + 2 * xy * s * c
-        yy_rot = xx * s * s + yy * c * c - 2 * xy * s * c
-        dx = np.sqrt(8 * xx_rot)
-        dy = np.sqrt(8 * yy_rot)
+        diff = xx - yy
+        disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
+        phi_ = 0.5 * np.arctan(2 * xy / diff)
+
+    dx = 1
+    dy = 1
+    if xx + yy + disc > 0:  # fails when negative noise dominates
+        dx = np.sqrt(8 * (xx + yy + disc))
+
+    if xx + yy - disc > 0:
+        dy = np.sqrt(8 * (xx + yy - disc))
+
+    # phi is negative because image is inverted
+    phi_ *= -1
+
+    if phi is not None:
+        xc, yc = lbs.image_tools.rotate_points(xc, yc, x0, y0, phi)
         phi_ = phi
 
     return xc, yc, dx, dy, phi_
@@ -258,6 +258,11 @@ def basic_beam_size_naive(image, phi=None):
     """
     v, h = image.shape
 
+    if phi is not None:
+        x0 = (h - 1) / 2
+        y0 = (v - 1) / 2
+        image = lbs.rotate_image(image, x0, y0, -phi)
+
     # locate the center just like ndimage.center_of_mass(image)
     p = 0.0
     xc = 0.0
@@ -283,25 +288,20 @@ def basic_beam_size_naive(image, phi=None):
     xy /= p
     yy /= p
 
-    if phi is None:
-        dx = (
-            2
-            * np.sqrt(2)
-            * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
-        )
-        dy = (
-            2
-            * np.sqrt(2)
-            * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
-        )
-        phi_ = 2 * np.arctan2(2 * xy, xx - yy)
-    else:
-        c = np.cos(phi)
-        s = np.sin(phi)
-        xx_rot = xx * c * c + yy * s * s + 2 * xy * s * c
-        yy_rot = xx * s * s + yy * c * c - 2 * xy * s * c
-        dx = np.sqrt(8 * xx_rot)
-        dy = np.sqrt(8 * yy_rot)
+    dx = (
+        2
+        * np.sqrt(2)
+        * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+    )
+    dy = (
+        2
+        * np.sqrt(2)
+        * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+    )
+    phi_ = 2 * np.arctan2(2 * xy, xx - yy)
+
+    if phi is not None:
+        xc, yc = lbs.image_tools.rotate_points(xc, yc, x0, y0, phi)
         phi_ = phi
 
     return xc, yc, dx, dy, phi_
