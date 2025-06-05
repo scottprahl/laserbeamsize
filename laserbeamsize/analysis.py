@@ -49,7 +49,9 @@ def basic_beam_size(original, phi=None):
     Args:
         original: 2D array of image with beam spot
         phi: (optional) fixed rotation angle [radians]
-            If ``None`` the angle is determined from the image.
+            If ``None`` the angle is determined from the image.  When
+            provided, the image is rotated about the beam centroid
+            before determining the diameters.
 
     Returns:
         xc: horizontal center of beam
@@ -61,11 +63,6 @@ def basic_beam_size(original, phi=None):
     image = original.astype(float)
     v, h = image.shape
 
-    if phi is not None:
-        x0 = (h - 1) / 2
-        y0 = (v - 1) / 2
-        image = lbs.rotate_image(image, x0, y0, -phi)
-
     # total of all pixels
     p = np.sum(image, dtype=float)  # float avoids integer overflow
 
@@ -73,11 +70,16 @@ def basic_beam_size(original, phi=None):
     if p == 0:
         return int(h / 2), int(v / 2), 0, 0, 0
 
-    # find the centroid
     hh = np.arange(h, dtype=float)  # float avoids integer overflow
     vv = np.arange(v, dtype=float)  # ditto
     xc = np.sum(np.dot(image, hh)) / p
     yc = np.sum(np.dot(image.T, vv)) / p
+
+    if phi is not None:
+        image = lbs.rotate_image(image, xc, yc, -phi)
+        p = np.sum(image, dtype=float)
+        xc = np.sum(np.dot(image, hh)) / p
+        yc = np.sum(np.dot(image.T, vv)) / p
 
     # find the variances
     hs = hh - xc
@@ -107,7 +109,6 @@ def basic_beam_size(original, phi=None):
     phi_ *= -1
 
     if phi is not None:
-        xc, yc = lbs.image_tools.rotate_points(xc, yc, x0, y0, phi)
         phi_ = phi
 
     return xc, yc, dx, dy, phi_
@@ -258,11 +259,6 @@ def basic_beam_size_naive(image, phi=None):
     """
     v, h = image.shape
 
-    if phi is not None:
-        x0 = (h - 1) / 2
-        y0 = (v - 1) / 2
-        image = lbs.rotate_image(image, x0, y0, -phi)
-
     # locate the center just like ndimage.center_of_mass(image)
     p = 0.0
     xc = 0.0
@@ -274,6 +270,19 @@ def basic_beam_size_naive(image, phi=None):
             yc += image[i, j] * i
     xc /= p
     yc /= p
+
+    if phi is not None:
+        image = lbs.rotate_image(image, xc, yc, -phi)
+        p = 0.0
+        xc = 0.0
+        yc = 0.0
+        for i in range(v):
+            for j in range(h):
+                p += image[i, j]
+                xc += image[i, j] * j
+                yc += image[i, j] * i
+        xc /= p
+        yc /= p
 
     # calculate variances
     xx = 0.0
@@ -301,7 +310,6 @@ def basic_beam_size_naive(image, phi=None):
     phi_ = 2 * np.arctan2(2 * xy, xx - yy)
 
     if phi is not None:
-        xc, yc = lbs.image_tools.rotate_points(xc, yc, x0, y0, phi)
         phi_ = phi
 
     return xc, yc, dx, dy, phi_
