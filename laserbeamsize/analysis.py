@@ -111,9 +111,7 @@ def basic_beam_size(original, phi_fixed=None):
     return xc, yc, dx, dy, phi_
 
 
-def _validate_inputs(
-    image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25, phi=None
-):
+def _validate_inputs(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25, phi=None):
     """
     Ensure arguments to validate inputs are sane.
 
@@ -221,12 +219,7 @@ def beam_size(
         # find the new parameters
         xc, yc, dx, dy, phi_ = basic_beam_size(masked_image, phi_fixed)
 
-        if (
-            abs(xc - xc2) < 1
-            and abs(yc - yc2) < 1
-            and abs(dx - dx2) < 1
-            and abs(dy - dy2) < 1
-        ):
+        if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
             break
 
     return xc, yc, dx, dy, phi_
@@ -276,16 +269,8 @@ def basic_beam_size_naive(image):
     xy /= p
     yy /= p
 
-    dx = (
-        2
-        * np.sqrt(2)
-        * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
-    )
-    dy = (
-        2
-        * np.sqrt(2)
-        * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
-    )
-    phi_ = 2 * np.arctan2(2 * xy, xx - yy)
+    dx = 2 * np.sqrt(2) * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+    dy = 2 * np.sqrt(2) * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+    phi = 2 * np.arctan2(2 * xy, xx - yy)
 
     return xc, yc, dx, dy, phi

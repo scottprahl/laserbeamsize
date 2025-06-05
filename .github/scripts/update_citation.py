@@ -66,10 +66,7 @@ def main() -> None:
     if changed:
         with cff_path.open("w", encoding="utf-8") as fp:
             yaml.safe_dump(cff, fp, sort_keys=False)
-        print(
-            f"Updated CITATION.cff → version={version}, "
-            f"date-released={release_date}"
-        )
+        print(f"Updated CITATION.cff → version={version}, " f"date-released={release_date}")
     else:
         print("CITATION.cff already up-to-date.")
 

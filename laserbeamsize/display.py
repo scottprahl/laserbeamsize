@@ -151,7 +151,7 @@ def plot_image_and_fit(
     corner_fraction=0.035,
     nT=3,
     iso_noise=True,
-    **kwargs
+    **kwargs,
 ):
     """
     Plot the image, fitted ellipse, integration area, and semi-major/minor axes.
@@ -196,7 +196,7 @@ def plot_image_and_fit(
         phi: angle that elliptical beam is rotated [radians]
     """
     # only pass along arguments that apply to beam_size()
-    beamsize_keys = ["mask_diameters", "max_iter", "phi"]
+    beamsize_keys = ["mask_diameters", "max_iter", "phi_fixed"]
     bs_args = dict((k, kwargs[k]) for k in beamsize_keys if k in kwargs)
     bs_args["iso_noise"] = iso_noise
     bs_args["nT"] = nT
@@ -274,7 +274,7 @@ def plot_image_analysis(
     corner_fraction=0.035,
     nT=3,
     iso_noise=True,
-    **kwargs
+    **kwargs,
 ):
     """
     Create a visual report for image fitting.
@@ -307,9 +307,7 @@ def plot_image_analysis(
         nothing
     """
     # only pass along arguments that apply to beam_size()
-    bs_args = dict(
-        (k, kwargs[k]) for k in ["mask_diameters", "max_iter", "phi"] if k in kwargs
-    )
+    bs_args = dict((k, kwargs[k]) for k in ["mask_diameters", "max_iter", "phi_fixed"] if k in kwargs)
     bs_args["iso_noise"] = iso_noise
     bs_args["nT"] = nT
     bs_args["corner_fraction"] = corner_fraction
@@ -407,12 +405,8 @@ def plot_image_analysis(
     plt.plot(s * scale, z, "-b", lw=0.5)
     z_values = bkgnd + a * np.exp(-2 * (s / r_major) ** 2)
     plt.plot(s * scale, z_values, "k")
-    plt.annotate(
-        "", (-r_mag_s, baseline), (r_mag_s, baseline), arrowprops={"arrowstyle": "<->"}
-    )
-    plt.text(
-        0, 1.1 * baseline, "dx=%.0f %s" % (d_mag_s, units), va="bottom", ha="center"
-    )
+    plt.annotate("", (-r_mag_s, baseline), (r_mag_s, baseline), arrowprops={"arrowstyle": "<->"})
+    plt.text(0, 1.1 * baseline, "dx=%.0f %s" % (d_mag_s, units), va="bottom", ha="center")
     plt.text(0, bkgnd + a, "  Gaussian Fit")
     plt.xlabel("Distance from Center [%s]" % units)
     plt.ylabel("Pixel Intensity Along Semi-Major Axis")
@@ -429,12 +423,8 @@ def plot_image_analysis(
     plt.plot(s * scale, z, "-b", lw=0.5)
     z_values = bkgnd + a * np.exp(-2 * (s / r_minor) ** 2)
     plt.plot(s * scale, z_values, "k")
-    plt.annotate(
-        "", (-r_min_s, baseline), (r_min_s, baseline), arrowprops={"arrowstyle": "<->"}
-    )
-    plt.text(
-        0, 1.1 * baseline, "dy=%.0f %s" % (d_min_s, units), va="bottom", ha="center"
-    )
+    plt.annotate("", (-r_min_s, baseline), (r_min_s, baseline), arrowprops={"arrowstyle": "<->"})
+    plt.text(0, 1.1 * baseline, "dy=%.0f %s" % (d_min_s, units), va="bottom", ha="center")
     plt.text(0, bkgnd + a, "  Gaussian Fit")
     plt.xlabel("Distance from Center [%s]" % units)
     plt.ylabel("Pixel Intensity Along Semi-Minor Axis")
@@ -458,7 +448,7 @@ def plot_image_montage(
     corner_fraction=0.035,
     nT=3,
     iso_noise=True,
-    **kwargs
+    **kwargs,
 ):
     """
     Create a beam size montage for a set of images.

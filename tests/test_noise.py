@@ -7,9 +7,7 @@ import laserbeamsize as lbs
 interactive = False
 
 
-def run_test(
-    h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_value=255, tol=0.05
-):
+def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_value=255, tol=0.05):
 
     test_img = lbs.image_tools.create_test_image(
         h, v, xc, yc, dx, dy, phi, noise=noise, ntype=ntype, max_value=max_value
@@ -22,28 +20,16 @@ def run_test(
     if interactive:
         plt.title("noise=%.1f pixels, type=%s" % (noise, ntype))
         plt.imshow(test_img)
-        x, y = lbs.image_tools.ellipse_arrays(
-            result_xc, result_yc, result_dx, result_dy, result_phi
-        )
+        x, y = lbs.image_tools.ellipse_arrays(result_xc, result_yc, result_dx, result_dy, result_phi)
         plt.colorbar()
         plt.plot(x, y)
         plt.show()
 
-    assert np.isclose(
-        result_xc, xc, rtol=tol
-    ), f"Expected xc around {xc}, but got {result_xc}"
-    assert np.isclose(
-        result_yc, yc, rtol=tol
-    ), f"Expected yc around {yc}, but got {result_yc}"
-    assert np.isclose(
-        result_dx, dx, rtol=tol
-    ), f"Expected dx around {dx}, but got {result_dx}"
-    assert np.isclose(
-        result_dy, dy, rtol=tol
-    ), f"Expected dy around {dy}, but got {result_dy}"
-    assert np.isclose(
-        rp, erp, rtol=tol, atol=3
-    ), f"Expected phi around {rp}°, but got {erp}°"
+    assert np.isclose(result_xc, xc, rtol=tol), f"Expected xc around {xc}, but got {result_xc}"
+    assert np.isclose(result_yc, yc, rtol=tol), f"Expected yc around {yc}, but got {result_yc}"
+    assert np.isclose(result_dx, dx, rtol=tol), f"Expected dx around {dx}, but got {result_dx}"
+    assert np.isclose(result_dy, dy, rtol=tol), f"Expected dy around {dy}, but got {result_dy}"
+    assert np.isclose(rp, erp, rtol=tol, atol=3), f"Expected phi around {rp}°, but got {erp}°"
 
 
 # constant

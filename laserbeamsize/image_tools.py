@@ -293,9 +293,7 @@ def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
     return np.array([xp, yp])
 
 
-def create_test_image(
-    h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_value=255
-):
+def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_value=255):
     """
     Create a 2D test image with an elliptical beam and possible noise.
 
@@ -440,9 +438,7 @@ def create_cmap(vmin, vmax, band_percentage=4):
     delta = band_percentage / 100
     colors = [(0, 0, 0.6), (0, 0, 1), (1, 1, 1), (1, 0, 0), (0.6, 0, 0)]
     positions = [0, (1 - delta) * r, r, (1 + delta) * r, 1]
-    return LinearSegmentedColormap.from_list(
-        "plus_minus", list(zip(positions, colors)), N=255
-    )
+    return LinearSegmentedColormap.from_list("plus_minus", list(zip(positions, colors)), N=255)
 
 
 def create_plus_minus_cmap(data):

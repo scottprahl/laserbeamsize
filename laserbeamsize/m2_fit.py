@@ -154,9 +154,7 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
             p0 = [d0_guess, z0_guess, theta_guess]
             nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_1, z, d, p0=p0)
             d0, z0, Theta = nlfit
-            d0_std, z0_std, Theta_std = [
-                np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)
-            ]
+            d0_std, z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
         else:
             i = np.argmax(abs(z - z0_guess))
             theta_guess = abs(d[i] / (z[i] - z0_guess))

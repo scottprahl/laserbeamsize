@@ -43,9 +43,7 @@ def elliptical_mask(image, xc, yc, dx, dy, phi):
     ry = dy / 2
     xx = x - xc
     yy = y - yc
-    r2 = (xx * cosphi - yy * sinphi) ** 2 / rx**2 + (
-        xx * sinphi + yy * cosphi
-    ) ** 2 / ry**2
+    r2 = (xx * cosphi - yy * sinphi) ** 2 / rx**2 + (xx * sinphi + yy * cosphi) ** 2 / ry**2
     the_mask = r2 <= 1
 
     return the_mask
@@ -193,9 +191,7 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
     x4, y4 = xc - xx + yx, yc - xy + yy
 
     g = Image.new("L", (h, v), 0)
-    ImageDraw.Draw(g).polygon(
-        [(x1, y1), (x2, y2), (x3, y3), (x4, y4), (x1, y1)], outline=1, fill=1
-    )
+    ImageDraw.Draw(g).polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4), (x1, y1)], outline=1, fill=1)
     mask = np.array(g)
     return mask.astype(bool)
 

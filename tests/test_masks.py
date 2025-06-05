@@ -13,9 +13,7 @@ def test_elliptical_mask():
 
 def test_elliptical_mask_same_shape():
     mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
-    assert (
-        mask.shape == image.shape
-    ), "Output mask shape mismatch with input image shape."
+    assert mask.shape == image.shape, "Output mask shape mismatch with input image shape."
 
 
 def test_elliptical_mask_unrotated():
@@ -38,9 +36,7 @@ def test_elliptical_mask_rotated():
 
 def test_elliptical_mask_edge_cases():
     mask = lbs.elliptical_mask(image, 150, 150, 200, 200, 0)
-    assert (
-        mask.shape == image.shape
-    ), "Output mask shape mismatch with input image shape for edge cases."
+    assert mask.shape == image.shape, "Output mask shape mismatch with input image shape for edge cases."
 
 
 # corner_mask()
@@ -74,9 +70,7 @@ def test_corner_mask_large_image():
 
 def test_mask_regions_are_correct():
     mask = lbs.corner_mask(image)
-    n, m = int(100 * 0.035), int(
-        100 * 0.035
-    )  # for a 100x100 image with default fraction
+    n, m = int(100 * 0.035), int(100 * 0.035)  # for a 100x100 image with default fraction
     # Ensure center of the mask is False
     assert not np.any(mask[n:-n, m:-m]), "Center of the mask should be False"
     # Ensure corners are True

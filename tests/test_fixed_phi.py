@@ -32,9 +32,7 @@ def _run_case(image, phi_arg, expected_xc, expected_yc, expected_dx, expected_dy
 
 def test_fixed_45_examples():
     # 45°
-    beam1 = lbs.create_test_image(
-        h=600, v=600, xc=300, yc=300, dx=150, dy=100, phi=np.pi / 4
-    )
+    beam1 = lbs.create_test_image(h=600, v=600, xc=300, yc=300, dx=150, dy=100, phi=np.pi / 4)
     w = np.sqrt((150**2 + 100**2) / 2)
 
     cases1 = [
@@ -47,11 +45,10 @@ def test_fixed_45_examples():
     for phi_arg, xc, yc, dx, dy, phi in cases1:
         _run_case(beam1, phi_arg, xc, yc, dx, dy, phi)
 
+
 def test_fixed_30_examples():
     # -30°
-    beam2 = lbs.create_test_image(
-        h=600, v=600, xc=250, yc=350, dx=150, dy=100, phi=-np.pi / 6
-    )
+    beam2 = lbs.create_test_image(h=600, v=600, xc=250, yc=350, dx=150, dy=100, phi=-np.pi / 6)
     w = np.sqrt((150**2 + 100**2) / 2)
 
     cases2 = [
@@ -63,4 +60,3 @@ def test_fixed_30_examples():
     ]
     for phi_arg, xc, yc, dx, dy, phi in cases2:
         _run_case(beam2, phi_arg, xc, yc, dx, dy, phi)
-

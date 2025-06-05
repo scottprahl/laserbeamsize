@@ -61,9 +61,7 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     #    plt.plot(z_fit * 1e3, d_fit * 1e6, ':k')
     d_fit_lo = np.sqrt((d0 - d0_std) ** 2 + ((Theta - Theta_std) * (z_fit - z0)) ** 2)
     d_fit_hi = np.sqrt((d0 + d0_std) ** 2 + ((Theta + Theta_std) * (z_fit - z0)) ** 2)
-    plt.fill_between(
-        z_fit * 1e3, d_fit_lo * 1e6, d_fit_hi * 1e6, color="red", alpha=0.5
-    )
+    plt.fill_between(z_fit * 1e3, d_fit_lo * 1e6, d_fit_hi * 1e6, color="red", alpha=0.5)
 
     # show perfect gaussian caustic when unphysical M2 arises
     if M2 < 1:
@@ -72,9 +70,7 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
         plt.plot(z_fit * 1e3, d_00 * 1e6, ":k", lw=2, label="M²=1")
         plt.legend(loc="lower right")
 
-    plt.fill_between(
-        z_fit * 1e3, d_fit_lo * 1e6, d_fit_hi * 1e6, color="red", alpha=0.5
-    )
+    plt.fill_between(z_fit * 1e3, d_fit_lo * 1e6, d_fit_hi * 1e6, color="red", alpha=0.5)
     # data points
     plt.plot(z[used] * 1e3, d[used] * 1e6, "o", color="black", label="used")
     plt.plot(z[unused] * 1e3, d[unused] * 1e6, "ok", mfc="none", label="unused")
@@ -83,20 +79,12 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
 
     tax = plt.gca().transAxes
     plt.text(0.05, 0.30, "$M^2$ = %.2f±%.2f " % (M2, M2_std), transform=tax)
-    plt.text(
-        0.05, 0.25, "$d_0$ = %.0f±%.0f µm" % (d0 * 1e6, d0_std * 1e6), transform=tax
-    )
-    plt.text(
-        0.05, 0.15, "$z_0$  = %.0f±%.0f mm" % (z0 * 1e3, z0_std * 1e3), transform=tax
-    )
-    plt.text(
-        0.05, 0.10, "$z_R$  = %.0f±%.0f mm" % (zR * 1e3, zR_std * 1e3), transform=tax
-    )
+    plt.text(0.05, 0.25, "$d_0$ = %.0f±%.0f µm" % (d0 * 1e6, d0_std * 1e6), transform=tax)
+    plt.text(0.05, 0.15, "$z_0$  = %.0f±%.0f mm" % (z0 * 1e3, z0_std * 1e3), transform=tax)
+    plt.text(0.05, 0.10, "$z_R$  = %.0f±%.0f mm" % (zR * 1e3, zR_std * 1e3), transform=tax)
     Theta_ = Theta * 1e3
     Theta_std_ = Theta_std * 1e3
-    plt.text(
-        0.05, 0.05, r"$\Theta$  = %.2f±%.2f mrad" % (Theta_, Theta_std_), transform=tax
-    )
+    plt.text(0.05, 0.05, r"$\Theta$  = %.2f±%.2f mrad" % (Theta_, Theta_std_), transform=tax)
 
     plt.axvline(z0 * 1e3, color="black", lw=1)
     plt.axvspan((z0 - zR) * 1e3, (z0 + zR) * 1e3, color="cyan", alpha=0.3)
@@ -143,9 +131,7 @@ def _M2_diameter_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     fig.add_subplot(gs[1])
     plt.plot(z * 1e3, residualsx * 1e6, "ro")
     plt.plot(z[used] * 1e3, residualsx[used] * 1e6, "ok", label="used")
-    plt.plot(
-        z[unused] * 1e3, residualsx[unused] * 1e6, "ok", mfc="none", label="unused"
-    )
+    plt.plot(z[unused] * 1e3, residualsx[unused] * 1e6, "ok", mfc="none", label="unused")
 
     plt.axhline(color="gray", zorder=-1)
     plt.xlabel("axial position $z$ (mm)")
@@ -206,9 +192,7 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     fig.add_subplot(gs[1, 0])
     ax = plt.gca()
     plt.plot(z[used] * 1e3, residualsx[used] * 1e6, "ok", label="used")
-    plt.plot(
-        z[unused] * 1e3, residualsx[unused] * 1e6, "ok", mfc="none", label="unused"
-    )
+    plt.plot(z[unused] * 1e3, residualsx[unused] * 1e6, "ok", mfc="none", label="unused")
     plt.axhline(color="gray", zorder=-1)
     plt.xlabel("axial position $z$ (mm)")
     plt.ylabel("residuals (µm)")
@@ -230,9 +214,7 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     # semi-minor residuals
     fig.add_subplot(gs[1, 1])
     plt.plot(z[used] * 1e3, residualsy[used] * 1e6, "ok", label="used")
-    plt.plot(
-        z[unused] * 1e3, residualsy[unused] * 1e6, "ok", mfc="none", label="unused"
-    )
+    plt.plot(z[unused] * 1e3, residualsy[unused] * 1e6, "ok", mfc="none", label="unused")
     plt.axhline(color="gray", zorder=-1)
     plt.xlabel("axial position $z$ (mm)")
     plt.ylabel("")
@@ -293,9 +275,7 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     plt.plot([(zmin - z0) * 1e3, (zmax - z0) * 1e3], [-r_left, -r_right], "--b")
 
     # xticks along top axis
-    ticks = [
-        (i * zR) * 1e3 for i in range(int((zmin - z0) / zR), int((zmax - z0) / zR) + 1)
-    ]
+    ticks = [(i * zR) * 1e3 for i in range(int((zmin - z0) / zR), int((zmax - z0) / zR) + 1)]
     ticklabels1 = ["%.0f" % (z + z0 * 1e3) for z in ticks]
     ticklabels2 = []
     for i in range(int((zmin - z0) / zR), int((zmax - z0) / zR) + 1):
@@ -374,9 +354,7 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     # data points
     ax1.plot((z[used] - z0) * 1e3, d[used] * 1e6 / 2, "ok", label="used")
     ax1.plot((z[used] - z0) * 1e3, -d[used] * 1e6 / 2, "ok")
-    ax1.plot(
-        (z[unused] - z0) * 1e3, d[unused] * 1e6 / 2, "ok", mfc="none", label="unused"
-    )
+    ax1.plot((z[unused] - z0) * 1e3, d[unused] * 1e6 / 2, "ok", mfc="none", label="unused")
     ax1.plot((z[unused] - z0) * 1e3, -d[unused] * 1e6 / 2, "ok", mfc="none")
     if sum(z[unused]) > 0:
         ax1.legend(loc="center left")
@@ -421,9 +399,7 @@ def M2_focus_plot(w0, lambda0, f, z0, M2=1):
     r_after = lbs.beam_radius(w0_after, lambda0, z_after, z0=z0_after, M2=M2)
 
     # plt.axhline(w0_after * 1.41e6)
-    plt.fill_between(
-        z_after * 1e3, -r_after * 1e6, r_after * 1e6, color="red", alpha=0.2
-    )
+    plt.fill_between(z_after * 1e3, -r_after * 1e6, r_after * 1e6, color="red", alpha=0.2)
 
     # locate the lens and the two beam waists
     plt.axhline(0, color="black", lw=1)

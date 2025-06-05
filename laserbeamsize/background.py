@@ -76,9 +76,7 @@ def subtract_background_image(original, background):
 
     # Checking if the inputs are two-dimensional arrays
     if original.ndim != 2 or background.ndim != 2:
-        raise ValueError(
-            'Inputs "original" and "background" must be two-dimensional arrays.'
-        )
+        raise ValueError('Inputs "original" and "background" must be two-dimensional arrays.')
 
     # Checking if the shapes of the inputs are equal
     if original.shape != background.shape:
@@ -174,10 +172,7 @@ def iso_background(image, corner_fraction=0.035, nT=3):
     unilluminated = image[image <= threshold]
 
     if len(unilluminated) == 0:
-        raise ValueError(
-            "est bkgnd=%.2f stdev=%.2f. No values in image are <= %.2f."
-            % (ave, std, threshold)
-        )
+        raise ValueError("est bkgnd=%.2f stdev=%.2f. No values in image are <= %.2f." % (ave, std, threshold))
 
     mean = np.mean(unilluminated)
     stdev = np.std(unilluminated)
