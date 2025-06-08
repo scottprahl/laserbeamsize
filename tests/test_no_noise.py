@@ -96,6 +96,7 @@ def run_test(h, v, xc, yc, dx, dy, phi, max_value=255):
 
     test_img = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, max_value=max_value)
     result_xc, result_yc, result_dx, result_dy, result_phi = lbs.beam_size(test_img)
+    rp = np.degrees(result_phi)
     erp = np.degrees(phi)
 
     if interactive:
