@@ -55,49 +55,6 @@ def rotate_points(x, y, x0, y0, phi):
     return xf, yf
 
 
-# def values_along_line(image, x0, y0, x1, y1, N=100):
-#     """
-#     Return x, y, z, and distance values between (x0, y0) and (x1, y1).
-#
-#     Args:
-#         image: the image to work with
-#         x0: x-value of start of line
-#         y0: y-value of start of line
-#         x1: x-value of end of line
-#         y1: y-value of end of line
-#         N:  number of points in returned array
-#     Returns:
-#         x: index of horizontal pixel values along line
-#         y: index of vertical pixel values along line
-#         z: image values at each of the x, y positions
-#         s: distance from start of minor axis to x, y position
-#     """
-#     v, h = image.shape
-#
-#     d = np.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2)
-#     s = np.linspace(0, 1, N)
-#
-#     x = x0 + s * (x1 - x0)
-#     y = y0 + s * (y1 - y0)
-#
-#     x = x.astype(int)
-#     y = y.astype(int)
-#
-#     xxx = np.array([], dtype=float)
-#     yyy = np.array([], dtype=float)
-#     zzz = np.array([], dtype=float)
-#     ddd = np.array([], dtype=float)
-#
-#     for xx, yy, ss in zip(x,y,s):
-#         if xx>=0 and xx<h and yy>=0 and yy<v:
-#             xxx = np.append(xxx, xx)
-#             yyy = np.append(yyy, yy)
-#             zzz = np.append(zzz,image[yy,xx])
-#             ddd = np.append(ddd, (ss - 0.5) * d)
-#
-#     return xxx, yyy, zzz, ddd
-
-
 def values_along_line(image, x0, y0, x1, y1):
     """
     Return x, y, z, and distance values along discrete pixels from (x0, y0) to (x1, y1).
@@ -149,8 +106,8 @@ def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=2):
         xc: horizontal center of beam
         yc: vertical center of beam
         dx: ellipse major diameter
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
+        dy: ellipse minor diameter
+        phi: angle of major axis with x-axis [radians]
         diameters: number of diameters to use
     Returns:
         x: index of horizontal pixel values along line
@@ -182,7 +139,9 @@ def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=2):
         z: image values at each of the x, y positions
         s: distance from start of minor axis to x, y position
     """
+    # use major diameter so plots look better
     r = diameters * dx / 2
+    # minor axis is rotated 90° from major axis
     rx = r * np.cos(phi + np.pi / 2)
     ry = -r * np.sin(phi + np.pi / 2)
 
