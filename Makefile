@@ -3,6 +3,7 @@ test:
 	pytest tests/test_masks.py
 	pytest tests/test_tools.py
 	pytest tests/test_basic_beam_size.py
+	pytest tests/test_fixed_phi.py
 	pytest tests/test_no_noise.py
 	pytest tests/test_noise.py
 	pytest tests/test_iso_noise.py
