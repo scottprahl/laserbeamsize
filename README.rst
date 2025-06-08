@@ -44,7 +44,7 @@ by Scott Prahl
 
 |license-badge| |test-badge| |docs-badge| |downloads-badge| |black-badge|
 
-Simple and fast calculation of beam sizes from a single monochrome image based
+Simple and fast calculation of beam sizes from a monochrome image based
 on the ISO 11146 method of variances.  Some effort has been made to make the 
 algorithm less sensitive to background offset and noise.
 
@@ -84,16 +84,16 @@ Finding the center and dimensions of a good beam image::
     
     x, y, dx, dy, phi = lbs.beam_size(image)
     print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
-    print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
-    print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
-    print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
+    print("The semi-major ellipse diameter is %.0f pixels" % dx)
+    print("The semi-minor ellipse diameter is %.0f pixels" % dy)
+    print("The semi-major axis is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
 
 to produce::
 
     The center of the beam ellipse is at (651, 492)
-    The ellipse diameter (closest to horizontal) is 369 pixels
-    The ellipse diameter (closest to   vertical) is 347 pixels
-    The ellipse is rotated -12° ccw from the horizontal
+    The semi-major ellipse diameter is 369 pixels
+    The semi-minor ellipse diameter is 347 pixels
+    The semi-major axis is rotated -12° ccw from the horizontal
 
 A visual report can be done with one function call::
 
@@ -156,7 +156,7 @@ the optical table.::
     z10 = np.array([247,251,259,266,281,292])*1e-3 # meters
     filenames = ["sb_%.0fmm_10.pgm" % (number*1e3) for number in z10]
 
-    # the 12-bit pixel images are stored in high-order bits in 16-bit values
+    # the 12-bit pixel images are stored in high-order bits in 16-bit values in this image
     tem10 = [imageio.imread(name)>>4 for name in filenames]
 
     # remove top to eliminate artifact 
