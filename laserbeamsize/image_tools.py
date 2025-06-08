@@ -1,3 +1,4 @@
+# pylint: disable=import-error
 """
 Image manipulation routines needed for beam analysis.
 
@@ -59,14 +60,15 @@ def values_along_line(image, x0, y0, x1, y1):
     """
     Return x, y, z, and distance values along discrete pixels from (x0, y0) to (x1, y1).
 
-    (0, 0) is top-left of the image (standard image coordinate convention).
-
     This version ensures that no duplicate (x, y) values appear due to integer rounding.
+    It also works when some of the line is outside the image
 
     Args:
         image: 2D numpy array (image[y, x])
-        x0, y0: start coordinates (in pixels)
-        x1, y1: end coordinates (in pixels)
+        x0: x position of start of line (in pixels)
+        y0: y position of start of line (in pixels)
+        x1: x position of end of line (in pixels)
+        y1: y position of end of line (in pixels)
 
     Returns:
         x: x-pixel indices along the line
@@ -97,7 +99,7 @@ def values_along_line(image, x0, y0, x1, y1):
     return cc.astype(float), rr.astype(float), z.astype(float), d
 
 
-def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=2):
+def major_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=2):
     """
     Return x, y, z, and distance values along semi-major axis.
 
@@ -121,7 +123,7 @@ def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=2):
     return values_along_line(image, xc - rx, yc - ry, xc + rx, yc + ry)
 
 
-def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=2):
+def minor_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=2):
     """
     Return x, y, z, and distance values along semi-minor axis.
 
