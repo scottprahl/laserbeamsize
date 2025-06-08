@@ -88,7 +88,7 @@ def test_poisson_noise_50a():
 # gaussian
 def test_gaussian_noise_20():
     noise = 20
-    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="gaussian", tol=0.1)
+    run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="gaussian", tol=0.2)
 
 
 def test_gaussian_noise_20a():

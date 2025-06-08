@@ -43,7 +43,7 @@ def run_test(
     assert np.isclose(result_yc, yc, rtol=0.03), f"Expected yc = {yc}, but got {result_yc}"
     assert np.isclose(result_dx, expected_dx, rtol=0.03), f"Expected dx = {expected_dx}, but got {result_dx}"
     assert np.isclose(result_dy, expected_dy, rtol=0.03), f"Expected dy = {expected_dy}, but got {result_dy}"
-    assert np.isclose(rp, erp, rtol=0.03), f"Expected phi around {phi}°, but got {result_phi}°"
+    assert np.isclose(rp, erp, rtol=0.03), f"Expected phi around {erp}°, but got {rp}°"
 
 
 def test_horizontal_ellipse():
@@ -65,18 +65,18 @@ def test_ellipse_120_degree_rotation():
         100,
         50,
         2 * np.pi / 3,
-        expected_dx=50,
-        expected_dy=100,
-        expected_phi=np.pi / 6,
+        expected_dx=100,
+        expected_dy=50,
+        expected_phi=2 * np.pi / 3 - np.pi,
     )
 
 
 def test_vertical_ellipse_no_rotation():
-    run_test(200, 200, 50, 100, 0)
+    run_test(200, 200, 50, 100, 0, expected_dx=100, expected_dy=50, expected_phi=np.pi / 2)
 
 
 def test_horizontal_ellipse_off_center():
-    run_test(150, 300, 50, 100, np.pi / 6)
+    run_test(150, 300, 50, 100, np.pi / 6, expected_dx=100, expected_dy=50, expected_phi=-np.pi / 3)
 
 
 def test_horizontal_ellipse_4048():

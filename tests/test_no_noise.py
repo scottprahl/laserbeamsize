@@ -80,12 +80,23 @@ def test_phi_values():
         pass
 
 
+def wrap_phi(phi):
+    # Wrap to (-π/2, π/2]
+    phi = (phi + np.pi) % (2 * np.pi) - np.pi
+
+    if phi <= -np.pi / 2:
+        phi += np.pi
+    elif phi > np.pi / 2:
+        phi -= np.pi
+
+    return phi
+
+
 def run_test(h, v, xc, yc, dx, dy, phi, max_value=255):
 
     test_img = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, max_value=max_value)
     result_xc, result_yc, result_dx, result_dy, result_phi = lbs.beam_size(test_img)
     erp = np.degrees(phi)
-    rp = np.degrees(result_phi)
 
     if interactive:
         plt.title("result=%.1f° expected=%.1f°" % (rp, erp))
@@ -95,11 +106,19 @@ def run_test(h, v, xc, yc, dx, dy, phi, max_value=255):
         plt.colorbar()
         plt.show()
 
+    if dy > dx:
+        dd = dx
+        dx = dy
+        dy = dd
+        result_phi = wrap_phi(result_phi + np.pi / 2)
+
+    rp = np.degrees(result_phi)
+
     assert np.isclose(result_xc, xc, rtol=0.03), f"Expected xc around {xc}, but got {result_xc}"
     assert np.isclose(result_yc, yc, rtol=0.03), f"Expected yc around {yc}, but got {result_yc}"
     assert np.isclose(result_dx, dx, rtol=0.03), f"Expected dx around {dx}, but got {result_dx}"
     assert np.isclose(result_dy, dy, rtol=0.03), f"Expected dy around {dy}, but got {result_dy}"
-    assert np.isclose(rp, erp, rtol=0.03), f"Expected phi around {phi}°, but got {result_phi}°"
+    assert np.isclose(rp, erp, rtol=0.03), f"Expected phi around {erp}°, but got {rp}°"
 
 
 def test_horizontal_ellipse():
