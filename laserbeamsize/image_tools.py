@@ -8,6 +8,8 @@ import numpy as np
 import scipy.ndimage
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
+from skimage.draw import line
+
 
 __all__ = (
     "rotate_image",
@@ -53,38 +55,92 @@ def rotate_points(x, y, x0, y0, phi):
     return xf, yf
 
 
-def values_along_line(image, x0, y0, x1, y1, N=100):
+# def values_along_line(image, x0, y0, x1, y1, N=100):
+#     """
+#     Return x, y, z, and distance values between (x0, y0) and (x1, y1).
+#
+#     Args:
+#         image: the image to work with
+#         x0: x-value of start of line
+#         y0: y-value of start of line
+#         x1: x-value of end of line
+#         y1: y-value of end of line
+#         N:  number of points in returned array
+#     Returns:
+#         x: index of horizontal pixel values along line
+#         y: index of vertical pixel values along line
+#         z: image values at each of the x, y positions
+#         s: distance from start of minor axis to x, y position
+#     """
+#     v, h = image.shape
+#
+#     d = np.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2)
+#     s = np.linspace(0, 1, N)
+#
+#     x = x0 + s * (x1 - x0)
+#     y = y0 + s * (y1 - y0)
+#
+#     x = x.astype(int)
+#     y = y.astype(int)
+#
+#     xxx = np.array([], dtype=float)
+#     yyy = np.array([], dtype=float)
+#     zzz = np.array([], dtype=float)
+#     ddd = np.array([], dtype=float)
+#
+#     for xx, yy, ss in zip(x,y,s):
+#         if xx>=0 and xx<h and yy>=0 and yy<v:
+#             xxx = np.append(xxx, xx)
+#             yyy = np.append(yyy, yy)
+#             zzz = np.append(zzz,image[yy,xx])
+#             ddd = np.append(ddd, (ss - 0.5) * d)
+#
+#     return xxx, yyy, zzz, ddd
+
+
+def values_along_line(image, x0, y0, x1, y1):
     """
-    Return x, y, z, and distance values between (x0, y0) and (x1, y1).
+    Return x, y, z, and distance values along discrete pixels from (x0, y0) to (x1, y1).
+
+    (0, 0) is top-left of the image (standard image coordinate convention).
+
+    This version ensures that no duplicate (x, y) values appear due to integer rounding.
 
     Args:
-        image: the image to work with
-        x0: x-value of start of line
-        y0: y-value of start of line
-        x1: x-value of end of line
-        y1: y-value of end of line
-        N:  number of points in returned array
+        image: 2D numpy array (image[y, x])
+        x0, y0: start coordinates (in pixels)
+        x1, y1: end coordinates (in pixels)
+
     Returns:
-        x: index of horizontal pixel values along line
-        y: index of vertical pixel values along line
-        z: image values at each of the x, y positions
-        s: distance from start of minor axis to x, y position
+        x: x-pixel indices along the line
+        y: y-pixel indices along the line
+        z: image values at each (x, y)
+        s: distance from center of line (in pixels)
     """
-    d = np.sqrt((x1 - x0) ** 2 + (y1 - y0) ** 2)
-    s = np.linspace(0, 1, N)
+    height, width = image.shape
 
-    x = x0 + s * (x1 - x0)
-    y = y0 + s * (y1 - y0)
+    # Full set of pixel indices (row = y, col = x)
+    rr_full, cc_full = line(int(round(y0)), int(round(x0)), int(round(y1)), int(round(x1)))
 
-    xx = x.astype(int)
-    yy = y.astype(int)
+    # Total distance (from true endpoints)
+    total_distance = np.hypot(x1 - x0, y1 - y0)
 
-    zz = image[yy, xx]
+    # Compute relative distance along the full line
+    s = np.linspace(0, 1, len(rr_full))
+    d_full = (s - 0.5) * total_distance
 
-    return xx, yy, zz, (s - 0.5) * d
+    # Now mask to keep only valid pixels
+    mask = (rr_full >= 0) & (rr_full < height) & (cc_full >= 0) & (cc_full < width)
+    rr = rr_full[mask]
+    cc = cc_full[mask]
+    d = d_full[mask]
+
+    z = image[rr, cc]
+
+    return cc.astype(float), rr.astype(float), z.astype(float), d
 
 
-def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
+def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=2):
     """
     Return x, y, z, and distance values along semi-major axis.
 
@@ -92,7 +148,7 @@ def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
         image: the image to work with
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
+        dx: ellipse major diameter
         dy: ellipse diameter for axis closest to vertical
         phi: angle that elliptical beam is rotated [radians]
         diameters: number of diameters to use
@@ -102,27 +158,13 @@ def major_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
         z: image values at each of the x, y positions
         s: distance from start of minor axis to x, y position
     """
-    v, h = image.shape
-
-    if dx > dy:
-        rx = diameters * dx / 2
-        left = max(xc - rx, 0)
-        right = min(xc + rx, h - 1)
-        x = np.array([left, right])
-        y = np.array([yc, yc])
-        xr, yr = rotate_points(x, y, xc, yc, phi)
-    else:
-        ry = diameters * dy / 2
-        top = max(yc - ry, 0)
-        bottom = min(yc + ry, v - 1)
-        x = np.array([xc, xc])
-        y = np.array([top, bottom])
-        xr, yr = rotate_points(x, y, xc, yc, phi)
-
-    return values_along_line(image, xr[0], yr[0], xr[1], yr[1])
+    r = diameters * dx / 2
+    rx = r * np.cos(phi)
+    ry = -r * np.sin(phi)
+    return values_along_line(image, xc - rx, yc - ry, xc + rx, yc + ry)
 
 
-def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
+def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=2):
     """
     Return x, y, z, and distance values along semi-minor axis.
 
@@ -140,24 +182,11 @@ def minor_axis_arrays(image, xc, yc, dx, dy, phi, diameters=3):
         z: image values at each of the x, y positions
         s: distance from start of minor axis to x, y position
     """
-    v, h = image.shape
+    r = diameters * dx / 2
+    rx = r * np.cos(phi + np.pi / 2)
+    ry = -r * np.sin(phi + np.pi / 2)
 
-    if dx <= dy:
-        rx = diameters * dx / 2
-        left = max(xc - rx, 0)
-        right = min(xc + rx, h - 1)
-        x = np.array([left, right])
-        y = np.array([yc, yc])
-        xr, yr = rotate_points(x, y, xc, yc, phi)
-    else:
-        ry = diameters * dy / 2
-        top = max(yc - ry, 0)
-        bottom = min(yc + ry, v - 1)
-        x = np.array([xc, xc])
-        y = np.array([top, bottom])
-        xr, yr = rotate_points(x, y, xc, yc, phi)
-
-    return values_along_line(image, xr[0], yr[0], xr[1], yr[1])
+    return values_along_line(image, xc - rx, yc - ry, xc + rx, yc + ry)
 
 
 def rotate_image(original, x0, y0, phi):
