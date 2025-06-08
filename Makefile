@@ -52,7 +52,7 @@ rcheck:
 	make html
 	check-manifest
 	pyroma -d .
-	pytest --verbose tests/test_all_notebooks.py
+	pytest --verbose tests/all_test_notebooks.py
 
 
 clean:
