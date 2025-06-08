@@ -99,7 +99,7 @@ def values_along_line(image, x0, y0, x1, y1):
     return cc.astype(float), rr.astype(float), z.astype(float), d
 
 
-def major_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=2):
+def major_axis_arrays(image, xc, yc, d_major, _d_minor, phi, diameters=2):
     """
     Return x, y, z, and distance values along semi-major axis.
 
@@ -107,9 +107,9 @@ def major_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=2):
         image: the image to work with
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: ellipse major diameter
-        dy: ellipse minor diameter
-        phi: angle of major axis with x-axis [radians]
+        d_major: semi-major ellipse diameter
+        _d_minor: semi-minor ellipse diameter (unused)
+        phi: angle between horizontal and major axes [radians]
         diameters: number of diameters to use
     Returns:
         x: index of horizontal pixel values along line
@@ -117,13 +117,13 @@ def major_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=2):
         z: image values at each of the x, y positions
         s: distance from start of minor axis to x, y position
     """
-    r = diameters * dx / 2
+    r = diameters * d_major / 2
     rx = r * np.cos(phi)
     ry = -r * np.sin(phi)
     return values_along_line(image, xc - rx, yc - ry, xc + rx, yc + ry)
 
 
-def minor_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=2):
+def minor_axis_arrays(image, xc, yc, d_major, _d_minor, phi, diameters=2):
     """
     Return x, y, z, and distance values along semi-minor axis.
 
@@ -131,9 +131,9 @@ def minor_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=2):
         image: the image to work with
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: semi-major ellipse diameter
+        _d_minor: semi-minor ellipse diameter (unused)
+        phi: angle between horizontal and major axes [radians]
         diameters: number of diameters to use
     Returns:
         x: index of horizontal pixel values along line
@@ -142,7 +142,7 @@ def minor_axis_arrays(image, xc, yc, dx, _dy, phi, diameters=2):
         s: distance from start of minor axis to x, y position
     """
     # use major diameter so plots look better
-    r = diameters * dx / 2
+    r = diameters * d_major / 2
     # minor axis is rotated 90° from major axis
     rx = r * np.cos(phi + np.pi / 2)
     ry = -r * np.sin(phi + np.pi / 2)
@@ -206,23 +206,23 @@ def rotate_image(original, x0, y0, phi):
     return s
 
 
-def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
+def rotated_rect_arrays(xc, yc, d_major, d_minor, phi, mask_diameters=3):
     """
     Return x, y arrays to draw a rotated rectangle.
 
     Args:
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
+        phi: angle between horizontal and major axes [radians]
         mask_diameters: hide pixels outside this number of diameters
 
     Returns:
         x, y : two arrays for points on corners of rotated rectangle
     """
-    rx = mask_diameters * dx / 2
-    ry = mask_diameters * dy / 2
+    rx = mask_diameters * d_major / 2
+    ry = mask_diameters * d_minor / 2
 
     # rectangle with center at (xc, yc)
     x = np.array([-rx, -rx, +rx, +rx, -rx]) + xc
@@ -233,23 +233,23 @@ def rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
     return np.array([x_rot, y_rot])
 
 
-def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
+def axes_arrays(xc, yc, d_major, d_minor, phi, mask_diameters=3):
     """
     Return x, y arrays needed to draw semi-axes of ellipse.
 
     Args:
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
+        phi: angle between horizontal and major axes [radians]
         mask_diameters: hide pixels outside this number of diameters
 
     Returns:
         x, y arrays needed to draw semi-axes of ellipse
     """
-    rx = mask_diameters * dx / 2
-    ry = mask_diameters * dy / 2
+    rx = mask_diameters * d_major / 2
+    ry = mask_diameters * d_minor / 2
 
     # major and minor ellipse axes with center at (xc, yc)
     x = np.array([-rx, rx, 0, 0, 0]) + xc
@@ -260,30 +260,30 @@ def axes_arrays(xc, yc, dx, dy, phi, mask_diameters=3):
     return np.array([x_rot, y_rot])
 
 
-def ellipse_arrays(xc, yc, dx, dy, phi, npoints=200):
+def ellipse_arrays(xc, yc, d_major, d_minor, phi, npoints=200):
     """
     Return x, y arrays to draw a rotated ellipse.
 
     Args:
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
+        phi: angle between horizontal and major axes [radians]
         npoints: (optional) number of points to use for ellipse
 
     Returns:
         x, y : two arrays of points on the ellipse
     """
     t = np.linspace(0, 2 * np.pi, npoints)
-    a = dx / 2 * np.cos(t)
-    b = dy / 2 * np.sin(t)
+    a = d_major / 2 * np.cos(t)
+    b = d_minor / 2 * np.sin(t)
     xp = xc + a * np.cos(phi) - b * np.sin(phi)
     yp = yc - a * np.sin(phi) - b * np.cos(phi)
     return np.array([xp, yp])
 
 
-def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_value=255):
+def create_test_image(h, v, xc, yc, d_major, d_minor, phi, noise=0, ntype="poisson", max_value=255):
     """
     Create a 2D test image with an elliptical beam and possible noise.
 
@@ -296,9 +296,9 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_v
         v: number of rows in 2D test image
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated ccw [radians]
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
+        phi: angle between horizontal and major axes [radians]
         noise: (optional) magnitued of normally distributed pixel noise to add
         ntype: (optional) type of noise to use
         max_value: (optional) all values in image fall between 0 and `max_value`
@@ -318,8 +318,8 @@ def create_test_image(h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_v
     if abs(phi) > 2.1 * np.pi:
         raise ValueError("the angle phi should be in radians!")
 
-    rx = dx / 2
-    ry = dy / 2
+    rx = d_major / 2
+    ry = d_minor / 2
 
     image0 = np.zeros([v, h])
 
@@ -385,7 +385,7 @@ def crop_image_to_rect(image, xc, yc, xmin, xmax, ymin, ymax):
     return image[ymin:ymax, xmin:xmax], new_xc, new_yc
 
 
-def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
+def crop_image_to_integration_rect(image, xc, yc, d_major, d_minor, phi):
     """
     Return image cropped to integration rectangle.
 
@@ -395,16 +395,16 @@ def crop_image_to_integration_rect(image, xc, yc, dx, dy, phi):
         image: image of beam
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
+        phi: angle between horizontal and major axes [radians]
 
     Returns:
         cropped_image: cropped image
         new_xc: x-position of beam center in cropped image
         new_yc: y-position of beam center in cropped image
     """
-    xp, yp = rotated_rect_arrays(xc, yc, dx, dy, phi, mask_diameters=3)
+    xp, yp = rotated_rect_arrays(xc, yc, d_major, d_minor, phi, mask_diameters=3)
     return crop_image_to_rect(image, xc, yc, min(xp), max(xp), min(yp), max(yp))
 
 

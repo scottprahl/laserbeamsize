@@ -15,10 +15,10 @@ Finding the center and diameters of a beam in a monochrome image is simple::
     >>> file = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/t-hene.pgm"
     >>> image = iio.imread(file)
     >>>
-    >>> x, y, dx, dy, phi = lbs.beam_size(image)
+    >>> x, y, d_major, d_minor, phi = lbs.beam_size(image)
     >>> print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
-    >>> print("The ellipse major diameter is %.0f pixels" % dx)
-    >>> print("The ellipse minor diameter is %.0f pixels" % dy)
+    >>> print("The ellipse major diameter is %.0f pixels" % d_major)
+    >>> print("The ellipse minor diameter is %.0f pixels" % d_minor)
     >>> print("The major axis of the ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
 """
 
@@ -63,8 +63,8 @@ def basic_beam_size(original, phi_fixed=None):
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
+        d_major: major diameter of beam
+        d_minor: minor diameter of beam
         phi_fixed: angle that elliptical beam is rotated [radians]
     """
     image = original.astype(float)
@@ -106,13 +106,13 @@ def basic_beam_size(original, phi_fixed=None):
         disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
         phi_ = 0.5 * np.arctan2(2 * xy, diff)
 
-    dx = 1
-    dy = 1
+    d_major = 1
+    d_minor = 1
     if xx + yy + disc > 0:  # fails when negative noise dominates
-        dx = np.sqrt(8 * (xx + yy + disc))
+        d_major = np.sqrt(8 * (xx + yy + disc))
 
     if xx + yy - disc > 0:
-        dy = np.sqrt(8 * (xx + yy - disc))
+        d_minor = np.sqrt(8 * (xx + yy - disc))
 
     if phi_fixed is None:
         phi_ *= -1  # negative because image is inverted
@@ -120,10 +120,10 @@ def basic_beam_size(original, phi_fixed=None):
     else:
         phi_ = phi_fixed
 
-    if dy > dx:
-        dx, dy = dy, dx
+    if d_minor > d_major:
+        d_major, d_minor = d_minor, d_major
 
-    return xc, yc, dx, dy, phi_
+    return xc, yc, d_major, d_minor, phi_
 
 
 def _validate_inputs(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25, phi_fixed=None):
@@ -199,8 +199,8 @@ def beam_size(
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
+        d_major: major diameter of beam
+        d_minor: minor diameter of beam
         phi: angle that elliptical beam is rotated ccw [radians]
     """
     _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi_fixed)
@@ -209,7 +209,7 @@ def beam_size(
     image_no_bkgnd = lbs.subtract_iso_background(
         image, corner_fraction=corner_fraction, nT=nT, iso_noise=False
     )
-    xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd, phi_fixed)
+    xc, yc, d_major, d_minor, phi_ = basic_beam_size(image_no_bkgnd, phi_fixed)
 
     if iso_noise:  # follow iso background guidelines (positive & negative bkgnd values)
         image_no_bkgnd = lbs.subtract_iso_background(
@@ -219,10 +219,10 @@ def beam_size(
     for _iteration in range(1, max_iter):
 
         # save current beam properties for later comparison
-        xc2, yc2, dx2, dy2 = xc, yc, dx, dy
+        xc2, yc2, dx2, dy2 = xc, yc, d_major, d_minor
 
         # create a mask so only values within the mask are used
-        mask = lbs.rotated_rect_mask(image, xc, yc, dx, dy, phi_, mask_diameters)
+        mask = lbs.rotated_rect_mask(image, xc, yc, d_major, d_minor, phi_, mask_diameters)
         masked_image = np.copy(image_no_bkgnd)
 
         # zero values outside mask (rotation allows mask pixels to differ from 0 or 1)
@@ -230,14 +230,14 @@ def beam_size(
 
         # find the new parameters
         if phi_fixed is None:
-            xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
+            xc, yc, d_major, d_minor, phi_ = basic_beam_size(masked_image)
         else:
-            xc, yc, dx, dy, phi_ = basic_beam_size(masked_image, phi_)
+            xc, yc, d_major, d_minor, phi_ = basic_beam_size(masked_image, phi_)
 
-        if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
+        if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(d_major - dx2) < 1 and abs(d_minor - dy2) < 1:
             break
 
-    return xc, yc, dx, dy, phi_
+    return xc, yc, d_major, d_minor, phi_
 
 
 def basic_beam_size_naive(image):
@@ -253,8 +253,8 @@ def basic_beam_size_naive(image):
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
+        d_major: major diameter of beam
+        d_minor: minor diameter of beam
         phi: angle that elliptical beam is rotated [radians]
     """
     v, h = image.shape
@@ -284,8 +284,8 @@ def basic_beam_size_naive(image):
     xy /= p
     yy /= p
 
-    dx = 2 * np.sqrt(2) * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
-    dy = 2 * np.sqrt(2) * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+    d_major = 2 * np.sqrt(2) * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
+    d_minor = 2 * np.sqrt(2) * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
     phi = 2 * np.arctan2(2 * xy, xx - yy)
 
-    return xc, yc, dx, dy, phi
+    return xc, yc, d_major, d_minor, phi

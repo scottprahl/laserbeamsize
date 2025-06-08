@@ -17,7 +17,7 @@ __all__ = (
 )
 
 
-def elliptical_mask(image, xc, yc, dx, dy, phi):
+def elliptical_mask(image, xc, yc, d_major, d_minor, phi):
     """
     Create a boolean mask for a rotated elliptical disk.
 
@@ -27,9 +27,9 @@ def elliptical_mask(image, xc, yc, dx, dy, phi):
         image: 2D array
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
+        phi: angle between horizontal and major axes [radians]
 
     Returns:
         masked_image: 2D array with True values inside ellipse
@@ -39,8 +39,8 @@ def elliptical_mask(image, xc, yc, dx, dy, phi):
 
     sinphi = np.sin(phi)
     cosphi = np.cos(phi)
-    rx = dx / 2
-    ry = dy / 2
+    rx = d_major / 2
+    ry = d_minor / 2
     xx = x - xc
     yy = y - yc
     r2 = (xx * cosphi - yy * sinphi) ** 2 / rx**2 + (xx * sinphi + yy * cosphi) ** 2 / ry**2
@@ -101,7 +101,7 @@ def perimeter_mask(image, corner_fraction=0.035):
     return the_mask
 
 
-def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
+def rotated_rect_mask_slow(image, xc, yc, d_major, d_minor, phi, mask_diameters=3):
     """
     Create ISO 11146 rectangular mask for specified beam.
 
@@ -124,9 +124,9 @@ def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
         image: the image to work with
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
+        phi: angle between horizontal and major axes [radians]
         mask_diameters: number of diameters to include
 
     Returns:
@@ -134,8 +134,8 @@ def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
     """
     raw_mask = np.full_like(image, 0, dtype=float)
     v, h = image.shape
-    rx = mask_diameters * dx / 2
-    ry = mask_diameters * dy / 2
+    rx = mask_diameters * d_major / 2
+    ry = mask_diameters * d_minor / 2
     vlo = max(0, int(yc - ry))
     vhi = min(v, int(yc + ry))
     hlo = max(0, int(xc - rx))
@@ -146,7 +146,7 @@ def rotated_rect_mask_slow(image, xc, yc, dx, dy, phi, mask_diameters=3):
     return rot_mask
 
 
-def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
+def rotated_rect_mask(image, xc, yc, d_major, d_minor, phi, mask_diameters=3):
     """
     Create ISO 11146 rectangular mask for specified beam.
 
@@ -168,16 +168,16 @@ def rotated_rect_mask(image, xc, yc, dx, dy, phi, mask_diameters=3):
         image: the image to work with
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: ellipse diameter for axis closest to horizontal
-        dy: ellipse diameter for axis closest to vertical
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
+        phi: angle between horizontal and major axes [radians]
         mask_diameters: number of diameters to include
     Returns:
         masked_image: 2D array with True values inside rectangle
     """
     v, h = image.shape
-    rx = mask_diameters * dx / 2
-    ry = mask_diameters * dy / 2
+    rx = mask_diameters * d_major / 2
+    ry = mask_diameters * d_minor / 2
 
     s = np.sin(-phi)
     c = np.cos(-phi)

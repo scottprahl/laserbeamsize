@@ -45,7 +45,7 @@ __all__ = (
 )
 
 
-def beam_ellipticity(dx, dy):
+def beam_ellipticity(d_major, d_minor):
     """
     Calculate the ellipticity of the beam.
 
@@ -58,20 +58,20 @@ def beam_ellipticity(dx, dy):
     of the beam diameters.
 
     Args:
-        dx: x diameter of the beam spot
-        dy: y diameter of the beam spot
+        d_major: x diameter of the beam spot
+        d_minor: y diameter of the beam spot
     Returns:
         ellipticity: varies from 0 (line) to 1 (round)
         d_circular: equivalent diameter of a circular beam
     """
-    if dy < dx:
-        ellipticity = dy / dx
-    elif dx < dy:
-        ellipticity = dx / dy
+    if d_minor < d_major:
+        ellipticity = d_minor / d_major
+    elif d_major < d_minor:
+        ellipticity = d_major / d_minor
     else:
         ellipticity = 1
 
-    d_circular = np.sqrt((dx**2 + dy**2) / 2)
+    d_circular = np.sqrt((d_major**2 + d_minor**2) / 2)
 
     return ellipticity, d_circular
 
@@ -79,7 +79,7 @@ def beam_ellipticity(dx, dy):
 def plot_beam_diagram():
     """Draw a simple astigmatic beam ellipse with labels."""
     theta = np.radians(30)
-    xc, yc, dx, dy = 0, 0, 50, 25
+    xc, yc, d_major, d_minor = 0, 0, 50, 25
 
     plt.subplots(1, 1, figsize=(6, 6))
 
@@ -87,16 +87,16 @@ def plot_beam_diagram():
     # do not appear to be orthogonal to each other!
     plt.axes().set_aspect("equal")
 
-    xp, yp = lbs.ellipse_arrays(xc, yc, dx, dy, theta)
+    xp, yp = lbs.ellipse_arrays(xc, yc, d_major, d_minor, theta)
     plt.plot(xp, yp, "k", lw=2)
 
-    xp, yp = lbs.rotated_rect_arrays(xc, yc, dx, dy, theta)
+    xp, yp = lbs.rotated_rect_arrays(xc, yc, d_major, d_minor, theta)
     plt.plot(xp, yp, ":b", lw=2)
 
     sint = np.sin(theta) / 2
     cost = np.cos(theta) / 2
-    plt.plot([xc - dx * cost, xc + dx * cost], [yc + dx * sint, yc - dx * sint], ":b")
-    plt.plot([xc + dy * sint, xc - dy * sint], [yc + dy * cost, yc - dy * cost], ":r")
+    plt.plot([xc - d_major * cost, xc + d_major * cost], [yc + d_major * sint, yc - d_major * sint], ":b")
+    plt.plot([xc + d_minor * sint, xc - d_minor * sint], [yc + d_minor * cost, yc - d_minor * cost], ":r")
 
     # draw axes
     plt.annotate(
@@ -191,9 +191,9 @@ def plot_image_and_fit(
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
-        dx: horizontal diameter of beam
-        dy: vertical diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
+        phi: angle between horizontal and semi-major axes [radians]
     """
     # only pass along arguments that apply to beam_size()
     beamsize_keys = ["mask_diameters", "max_iter", "phi_fixed"]
@@ -203,7 +203,7 @@ def plot_image_and_fit(
     bs_args["corner_fraction"] = corner_fraction
 
     # find center and diameters
-    xc, yc, dx, dy, phi = lbs.beam_size(o_image, **bs_args)
+    xc, yc, d_major, d_minor, phi = lbs.beam_size(o_image, **bs_args)
 
     # establish scale and correct label
     if pixel_size is None:
@@ -221,7 +221,7 @@ def plot_image_and_fit(
         xmax = xc + crop[1] / 2 / scale
         image, xc, yc = lbs.crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
     elif crop:
-        image, xc, yc = lbs.crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
+        image, xc, yc = lbs.crop_image_to_integration_rect(o_image, xc, yc, d_major, d_minor, phi)
     else:
         image = o_image
 
@@ -241,15 +241,15 @@ def plot_image_and_fit(
     plt.ylabel(label)
 
     # draw semi-major and semi-minor axes
-    xp, yp = lbs.axes_arrays(xc, yc, dx, dy, phi)
+    xp, yp = lbs.axes_arrays(xc, yc, d_major, d_minor, phi)
     plot_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
     # show ellipse around beam
-    xp, yp = lbs.ellipse_arrays(xc, yc, dx, dy, phi)
+    xp, yp = lbs.ellipse_arrays(xc, yc, d_major, d_minor, phi)
     plot_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
     # show integration area around beam
-    xp, yp = lbs.rotated_rect_arrays(xc, yc, dx, dy, phi)
+    xp, yp = lbs.rotated_rect_arrays(xc, yc, d_major, d_minor, phi)
     plot_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
     # set limits on axes
@@ -261,7 +261,7 @@ def plot_image_and_fit(
         v, h = image.shape
         plt.colorbar(im, fraction=0.046 * v / h, pad=0.04)
 
-    return xc * scale, yc * scale, dx * scale, dy * scale, phi
+    return xc * scale, yc * scale, d_major * scale, d_minor * scale, phi
 
 
 def plot_image_analysis(
@@ -313,7 +313,7 @@ def plot_image_analysis(
     bs_args["corner_fraction"] = corner_fraction
 
     # find center and diameters
-    xc, yc, dx, dy, phi = lbs.beam_size(o_image, **bs_args)
+    xc, yc, d_major, d_minor, phi = lbs.beam_size(o_image, **bs_args)
 
     # determine scaling and labels
     if pixel_size is None:
@@ -334,7 +334,7 @@ def plot_image_analysis(
         xmax = xc + crop[1] / 2 / scale
         image, xc, yc = lbs.crop_image_to_rect(o_image, xc, yc, xmin, xmax, ymin, ymax)
     elif crop:
-        image, xc, yc = lbs.crop_image_to_integration_rect(o_image, xc, yc, dx, dy, phi)
+        image, xc, yc = lbs.crop_image_to_integration_rect(o_image, xc, yc, d_major, d_minor, phi)
     else:
         image = o_image
 
@@ -349,8 +349,8 @@ def plot_image_analysis(
     vv, hh = image.shape
 
     # determine the sizes of the semi-major and semi-minor axes
-    r_major = dx / 2.0
-    r_minor = dy / 2.0
+    r_major = d_major / 2.0
+    r_minor = d_minor / 2.0
 
     # scale all the dimensions
     v_s = vv * scale
@@ -378,13 +378,13 @@ def plot_image_analysis(
     plt.subplot(2, 2, 2)
     extent = np.array([-xc_s, h_s - xc_s, v_s - yc_s, -yc_s])
     im = plt.imshow(working_image, extent=extent, cmap=cmap)
-    xp, yp = lbs.ellipse_arrays(xc, yc, dx, dy, phi) * scale
+    xp, yp = lbs.ellipse_arrays(xc, yc, d_major, d_minor, phi) * scale
     plot_visible_dotted_line(xp - xc_s, yp - yc_s)
 
-    xp, yp = lbs.axes_arrays(xc, yc, dx, dy, phi) * scale
+    xp, yp = lbs.axes_arrays(xc, yc, d_major, d_minor, phi) * scale
     plot_visible_dotted_line(xp - xc_s, yp - yc_s)
 
-    xp, yp = lbs.rotated_rect_arrays(xc, yc, dx, dy, phi) * scale
+    xp, yp = lbs.rotated_rect_arrays(xc, yc, d_major, d_minor, phi) * scale
     plot_visible_dotted_line(xp - xc_s, yp - yc_s)
 
     plt.colorbar(im, fraction=0.046 * v_s / h_s, pad=0.04)
@@ -396,10 +396,10 @@ def plot_image_analysis(
     plt.title("Image w/o background, center at (%.0f, %.0f) %s" % (xc_s, yc_s, units))
 
     # calculate gaussian fit
-    _, _, z_major, s_major = lbs.major_axis_arrays(image, xc, yc, dx, dy, phi)
+    _, _, z_major, s_major = lbs.major_axis_arrays(image, xc, yc, d_major, d_minor, phi)
     a_major = np.sqrt(2 / np.pi) / r_major * abs(np.sum(z_major - bkgnd) * (s_major[1] - s_major[0]))
 
-    _, _, z_minor, s_minor = lbs.minor_axis_arrays(image, xc, yc, dx, dy, phi)
+    _, _, z_minor, s_minor = lbs.minor_axis_arrays(image, xc, yc, d_major, d_minor, phi)
     a_minor = np.sqrt(2 / np.pi) / r_minor * abs(np.sum(z_minor - bkgnd) * (s_minor[1] - s_minor[0]))
 
     # plot of values along semi-major axis
@@ -412,7 +412,7 @@ def plot_image_analysis(
     z_values = bkgnd + a_major * np.exp(-2 * (s_major / r_major) ** 2)
     plt.plot(s_major * scale, z_values, "k")
     plt.annotate("", (-r_mag_s, baseline), (r_mag_s, baseline), arrowprops={"arrowstyle": "<->"})
-    plt.text(0, 1.1 * baseline, "dx=%.0f %s_major" % (d_mag_s, units), va="bottom", ha="center")
+    plt.text(0, 1.1 * baseline, "d_major=%.0f %s_major" % (d_mag_s, units), va="bottom", ha="center")
     plt.text(0, bkgnd + a_major, "  Gaussian Fit")
     plt.xlabel("Distance from Center [%s]" % units)
     plt.ylabel("Pixel Intensity Along Semi-Major Axis")
@@ -431,7 +431,7 @@ def plot_image_analysis(
     z_values = bkgnd + a_minor * np.exp(-2 * (s_minor / r_minor) ** 2)
     plt.plot(s_minor * scale, z_values, "k")
     plt.annotate("", (-r_min_s, baseline), (r_min_s, baseline), arrowprops={"arrowstyle": "<->"})
-    plt.text(0, 1.1 * baseline, "dy=%.0f %s" % (d_min_s, units), va="bottom", ha="center")
+    plt.text(0, 1.1 * baseline, "d_minor=%.0f %s" % (d_min_s, units), va="bottom", ha="center")
     plt.text(0, bkgnd + a_minor, "  Gaussian Fit")
     plt.xlabel("Distance from Center [%s]" % units)
     plt.ylabel("Pixel Intensity Along Semi-Minor Axis")
@@ -490,12 +490,12 @@ def plot_image_montage(
         **kwargs: (optional) extra options to modify display
 
     Returns:
-        dx: semi-major diameter
-        dy: semi-minor diameter
+        d_major: semi-major ellipse diameter
+        d_minor: semi-minor ellipse diameter
     """
     # arrays to save diameters
-    dx = np.zeros(len(images))
-    dy = np.zeros(len(images))
+    d_major = np.zeros(len(images))
+    d_minor = np.zeros(len(images))
 
     # calculate the number of rows needed in the montage
     rows = (len(images) - 1) // cols + 1
@@ -528,13 +528,13 @@ def plot_image_montage(
         cb = vmax is not None and (i + 1 == cols)
 
         # plot the image and gather the beam diameters
-        _, _, dx[i], dy[i], _ = plot_image_and_fit(im, **options, colorbar=cb)
+        _, _, d_major[i], d_minor[i], _ = plot_image_and_fit(im, **options, colorbar=cb)
 
         # add a title
         if units == "mm":
-            s = "dx=%.2f%s, dy=%.2f%s" % (dx[i], units, dy[i], units)
+            s = "d_major=%.2f%s, d_minor=%.2f%s" % (d_major[i], units, d_minor[i], units)
         else:
-            s = "dx=%.0f%s, dy=%.0f%s" % (dx[i], units, dy[i], units)
+            s = "d_major=%.0f%s, d_minor=%.0f%s" % (d_major[i], units, d_minor[i], units)
         if z is None:
             plt.title(s)
         else:
@@ -556,4 +556,4 @@ def plot_image_montage(
         plt.subplot(rows, cols, i + 1)
         plt.axis("off")
 
-    return dx, dy
+    return d_major, d_minor
