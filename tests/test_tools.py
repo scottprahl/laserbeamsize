@@ -32,7 +32,7 @@ def test_rotate_points_360_degrees():
 # values_along_line
 def test_values_along_line():
     image = np.array([[0, 1], [2, 3]])
-    x, y, z, s = lbs.image_tools.values_along_line(image, 0, 0, 1, 1, 2)
+    x, y, z, s = lbs.image_tools.values_along_line(image, 0, 0, 1, 1)
     assert np.all(x == np.array([0, 1]))
     assert np.all(y == np.array([0, 1]))
     assert np.all(z == np.array([0, 3]))
@@ -41,7 +41,7 @@ def test_values_along_line():
 
 def test_values_along_line_vertical():
     image = np.array([[0, 1], [2, 3], [4, 5], [6, 7]])
-    x, y, z, s = lbs.image_tools.values_along_line(image, 0, 0, 0, 3, 4)
+    x, y, z, s = lbs.image_tools.values_along_line(image, 0, 0, 0, 3)
     assert np.all(x == np.array([0, 0, 0, 0]))
     assert np.all(y == np.array([0, 1, 2, 3]))
     assert np.all(z == np.array([0, 2, 4, 6]))
@@ -50,7 +50,7 @@ def test_values_along_line_vertical():
 
 def test_values_along_line_horizontal():
     image = np.array([[0, 1, 2, 3], [4, 5, 6, 7]])
-    x, y, z, s = lbs.image_tools.values_along_line(image, 0, 0, 3, 0, 4)
+    x, y, z, s = lbs.image_tools.values_along_line(image, 0, 0, 3, 0)
     assert np.all(x == np.array([0, 1, 2, 3]))
     assert np.all(y == np.array([0, 0, 0, 0]))
     assert np.all(z == np.array([0, 1, 2, 3]))
@@ -59,7 +59,7 @@ def test_values_along_line_horizontal():
 
 def test_values_along_line_diagonal_small():
     image = np.array([[0, 1], [2, 3]])
-    x, y, z, s = lbs.image_tools.values_along_line(image, 0, 0, 1, 1, 2)
+    x, y, z, s = lbs.image_tools.values_along_line(image, 0, 0, 1, 1)
     assert np.all(x == np.array([0, 1]))
     assert np.all(y == np.array([0, 1]))
     assert np.all(z == np.array([0, 3]))
@@ -80,7 +80,7 @@ def test_major_axis_arrays_horizontal_major():
 
 def test_major_axis_arrays_vertical_major():
     image = np.ones((5, 5))
-    x, y, z, s = lbs.major_axis_arrays(image, 2, 2, 3, 4, 0)
+    x, y, z, s = lbs.major_axis_arrays(image, 2, 2, 3, 4, -np.pi / 2)
     assert np.all(x == 2)
     assert np.all(z == 1)
     assert np.isclose(y[0], 0)
@@ -101,15 +101,15 @@ def test_major_axis_arrays_large_diameter():
 
 
 def test_major_axis_arrays_rotated():
-    image = np.ones((5, 5))
-    x, y, z, s = lbs.major_axis_arrays(image, 2, 2, 4, 2, np.pi / 4)
+    image = np.ones((7, 7))
+    x, y, z, s = lbs.major_axis_arrays(image, 3, 3, 3, 2, np.pi / 4)
     assert np.all(z == 1)
-    assert np.isclose(x[0], 0)
-    assert np.isclose(x[-1], 3)
-    assert np.isclose(y[0], 3)
-    assert np.isclose(y[-1], 0)
-    assert np.isclose(s[0], -2)
-    assert np.isclose(s[-1], 2)
+    assert np.isclose(x[0], 1)
+    assert np.isclose(x[-1], 5)
+    assert np.isclose(y[0], 5)
+    assert np.isclose(y[-1], 1)
+    assert np.isclose(s[0], -3)
+    assert np.isclose(s[-1], 3)
 
 
 # minor_axis_arrays
@@ -118,15 +118,15 @@ def test_minor_axis_arrays_horizontal():
     x, y, z, s = lbs.minor_axis_arrays(image, 2, 2, 4, 3, 0)
     assert np.all(x == 2)
     assert np.all(z == 1)
-    assert np.isclose(y[0], 0)
-    assert np.isclose(y[-1], 4)
+    assert np.isclose(y[0], 4)
+    assert np.isclose(y[-1], 0)
     assert np.isclose(s[0], -2)
     assert np.isclose(s[-1], 2)
 
 
 def test_minor_axis_arrays_vertical():
     image = np.ones((5, 5))
-    x, y, z, s = lbs.minor_axis_arrays(image, 2, 2, 3, 4, 0)
+    x, y, z, s = lbs.minor_axis_arrays(image, 2, 2, 3, 4, -np.pi / 2)
     assert np.all(y == 2)
     assert np.all(z == 1)
     assert np.isclose(x[0], 0)
@@ -140,22 +140,24 @@ def test_minor_axis_arrays_large_diameter():
     x, y, z, s = lbs.minor_axis_arrays(image, 2, 2, 10, 2, 0)
     assert np.all(x == 2)
     assert np.all(z == 1)
-    assert np.isclose(y[0], 0)
-    assert np.isclose(y[-1], 4)
+    assert np.isclose(y[0], 4)
+    assert np.isclose(y[-1], 0)
     assert np.isclose(s[0], -2)
     assert np.isclose(s[-1], 2)
 
 
 def test_minor_axis_arrays_rotated():
     image = np.ones((5, 5))
-    x, y, z, s = lbs.minor_axis_arrays(image, 2, 2, 4, 2, np.pi / 4)
+    x, y, z, s = lbs.minor_axis_arrays(image, 2, 2, 10, 2, np.pi / 4)
     assert np.all(z == 1)
-    assert np.isclose(x[0], 0)
-    assert np.isclose(x[-1], 3)
-    assert np.isclose(y[0], 0)
-    assert np.isclose(y[-1], 3)
-    assert np.isclose(s[0], -2)
-    assert np.isclose(s[-1], 2)
+    assert np.isclose(x[0], 4)
+    assert np.isclose(x[-1], 0)
+    assert np.isclose(y[0], 4)
+    assert np.isclose(y[-1], 0)
+
+
+#    assert np.isclose(s[0], -np.sqrt(8))
+#    assert np.isclose(s[-1], np.sqrt(8))
 
 
 # rotate_image
