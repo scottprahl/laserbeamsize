@@ -349,8 +349,8 @@ def plot_image_analysis(
     vv, hh = image.shape
 
     # determine the sizes of the semi-major and semi-minor axes
-    r_major = max(dx, dy) / 2.0
-    r_minor = min(dx, dy) / 2.0
+    r_major = dx / 2.0
+    r_minor = dy / 2.0
 
     # scale all the dimensions
     v_s = vv * scale
@@ -395,40 +395,49 @@ def plot_image_analysis(
     plt.ylabel(label)
     plt.title("Image w/o background, center at (%.0f, %.0f) %s" % (xc_s, yc_s, units))
 
+    # calculate gaussian fit
+    _, _, z_major, s_major = lbs.major_axis_arrays(image, xc, yc, dx, dy, phi)
+    a_major = np.sqrt(2 / np.pi) / r_major * abs(np.sum(z_major - bkgnd) * (s_major[1] - s_major[0]))
+
+    _, _, z_minor, s_minor = lbs.minor_axis_arrays(image, xc, yc, dx, dy, phi)
+    a_minor = np.sqrt(2 / np.pi) / r_minor * abs(np.sum(z_minor - bkgnd) * (s_minor[1] - s_minor[0]))
+
     # plot of values along semi-major axis
-    _, _, z, s = lbs.major_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2 / np.pi) / r_major * abs(np.sum(z - bkgnd) * (s[1] - s[0]))
-    baseline = a * np.exp(-2) + bkgnd
+
+    baseline = a_major * np.exp(-2) + bkgnd
 
     plt.subplot(2, 2, 3)
-    plt.plot(s * scale, z, "sb", markersize=2)
-    plt.plot(s * scale, z, "-b", lw=0.5)
-    z_values = bkgnd + a * np.exp(-2 * (s / r_major) ** 2)
-    plt.plot(s * scale, z_values, "k")
+    plt.plot(s_major * scale, z_major, "sb", markersize=2)
+    plt.plot(s_major * scale, z_major, "-b", lw=0.5)
+    z_values = bkgnd + a_major * np.exp(-2 * (s_major / r_major) ** 2)
+    plt.plot(s_major * scale, z_values, "k")
     plt.annotate("", (-r_mag_s, baseline), (r_mag_s, baseline), arrowprops={"arrowstyle": "<->"})
-    plt.text(0, 1.1 * baseline, "dx=%.0f %s" % (d_mag_s, units), va="bottom", ha="center")
-    plt.text(0, bkgnd + a, "  Gaussian Fit")
+    plt.text(0, 1.1 * baseline, "dx=%.0f %s_major" % (d_mag_s, units), va="bottom", ha="center")
+    plt.text(0, bkgnd + a_major, "  Gaussian Fit")
     plt.xlabel("Distance from Center [%s]" % units)
     plt.ylabel("Pixel Intensity Along Semi-Major Axis")
     plt.title("Semi-Major Axis")
+    plt.ylim(0, max(a_major, a_minor) * 1.05 + baseline)
+    plt.xlim(min(s_major) * scale, max(s_major) * scale)
+
     # plt.gca().set_ylim(bottom=0)
 
     # plot of values along semi-minor axis
-    _, _, z, s = lbs.minor_axis_arrays(image, xc, yc, dx, dy, phi)
-    a = np.sqrt(2 / np.pi) / r_minor * abs(np.sum(z - bkgnd) * (s[1] - s[0]))
-    baseline = a * np.exp(-2) + bkgnd
+    baseline = a_minor * np.exp(-2) + bkgnd
 
     plt.subplot(2, 2, 4)
-    plt.plot(s * scale, z, "sb", markersize=2)
-    plt.plot(s * scale, z, "-b", lw=0.5)
-    z_values = bkgnd + a * np.exp(-2 * (s / r_minor) ** 2)
-    plt.plot(s * scale, z_values, "k")
+    plt.plot(s_minor * scale, z_minor, "sb", markersize=2)
+    plt.plot(s_minor * scale, z_minor, "-b", lw=0.5)
+    z_values = bkgnd + a_minor * np.exp(-2 * (s_minor / r_minor) ** 2)
+    plt.plot(s_minor * scale, z_values, "k")
     plt.annotate("", (-r_min_s, baseline), (r_min_s, baseline), arrowprops={"arrowstyle": "<->"})
     plt.text(0, 1.1 * baseline, "dy=%.0f %s" % (d_min_s, units), va="bottom", ha="center")
-    plt.text(0, bkgnd + a, "  Gaussian Fit")
+    plt.text(0, bkgnd + a_minor, "  Gaussian Fit")
     plt.xlabel("Distance from Center [%s]" % units)
     plt.ylabel("Pixel Intensity Along Semi-Minor Axis")
     plt.title("Semi-Minor Axis")
+    plt.ylim(0, max(a_major, a_minor) * 1.05 + baseline)
+    plt.xlim(min(s_major) * scale, max(s_major) * scale)
     # plt.gca().set_ylim(bottom=0)
 
     # add more horizontal space between plots
