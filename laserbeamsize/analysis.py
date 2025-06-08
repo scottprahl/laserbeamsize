@@ -84,7 +84,6 @@ def basic_beam_size(original, phi_fixed=None):
     yc = np.sum(np.dot(image.T, vv)) / p
 
     if phi_fixed is not None:
-        print("vvvvvv", phi_fixed)
         image = lbs.rotate_image(image, xc, yc, -phi_fixed)
 
     # find the variances
