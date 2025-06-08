@@ -83,8 +83,8 @@ def plot_beam_diagram():
 
     plt.subplots(1, 1, figsize=(6, 6))
 
-    # If the aspect ratio is not `equal` then the major and minor radii
-    # do not appear to be orthogonal to each other!
+    # If the aspect ratio is not `equal` then the major and minor axes
+    # will not appear to be orthogonal to each other!
     plt.axes().set_aspect("equal")
 
     xp, yp = lbs.ellipse_arrays(xc, yc, d_major, d_minor, theta)
@@ -100,7 +100,7 @@ def plot_beam_diagram():
 
     # draw axes
     plt.annotate(
-        "x'",
+        "x",
         xy=(-25, 0),
         xytext=(25, 0),
         arrowprops={"arrowstyle": "<-"},
@@ -109,7 +109,7 @@ def plot_beam_diagram():
     )
 
     plt.annotate(
-        "y'",
+        "y",
         xy=(0, 25),
         xytext=(0, -25),
         arrowprops={"arrowstyle": "<-"},
@@ -125,8 +125,8 @@ def plot_beam_diagram():
         arrowprops={"arrowstyle": "<-", "connectionstyle": "arc3, rad=-0.2"},
     )
 
-    plt.annotate(r"$d_x$", xy=(-17, 7), color="blue", fontsize=16)
-    plt.annotate(r"$d_y$", xy=(-4, -8), color="red", fontsize=16)
+    plt.annotate(r"$d_{major}$", xy=(-17, 7), color="blue", fontsize=16)
+    plt.annotate(r"$d_{minor}$", xy=(-4, -8), color="red", fontsize=16)
 
     plt.xlim(-30, 30)
     plt.ylim(30, -30)  # inverted to match image coordinates!
@@ -154,7 +154,7 @@ def plot_image_and_fit(
     **kwargs,
 ):
     """
-    Plot the image, fitted ellipse, integration area, and semi-major/minor axes.
+    Plot the image, fitted ellipse, integration area, and major/minor axes.
 
     If pixel_size is defined, then the returned measurements are in units of
     pixel_size.
@@ -191,9 +191,9 @@ def plot_image_and_fit(
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: semi-major ellipse diameter
-        d_minor: semi-minor ellipse diameter
-        phi: angle between horizontal and semi-major axes [radians]
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
     """
     # only pass along arguments that apply to beam_size()
     beamsize_keys = ["mask_diameters", "max_iter", "phi_fixed"]
@@ -240,7 +240,7 @@ def plot_image_and_fit(
     plt.xlabel(label)
     plt.ylabel(label)
 
-    # draw semi-major and semi-minor axes
+    # draw major and minor axes
     xp, yp = lbs.axes_arrays(xc, yc, d_major, d_minor, phi)
     plot_visible_dotted_line((xp - xc) * scale, (yp - yc) * scale)
 
@@ -348,7 +348,7 @@ def plot_image_analysis(
     max_ = image.max()
     vv, hh = image.shape
 
-    # determine the sizes of the semi-major and semi-minor axes
+    # determine the semi-major and semi-minor radii
     r_major = d_major / 2.0
     r_minor = d_minor / 2.0
 
@@ -402,10 +402,8 @@ def plot_image_analysis(
     _, _, z_minor, s_minor = lbs.minor_axis_arrays(image, xc, yc, d_major, d_minor, phi)
     a_minor = np.sqrt(2 / np.pi) / r_minor * abs(np.sum(z_minor - bkgnd) * (s_minor[1] - s_minor[0]))
 
-    # plot of values along semi-major axis
-
+    # plot of values along major axis
     baseline = a_major * np.exp(-2) + bkgnd
-
     plt.subplot(2, 2, 3)
     plt.plot(s_major * scale, z_major, "sb", markersize=2)
     plt.plot(s_major * scale, z_major, "-b", lw=0.5)
@@ -415,16 +413,13 @@ def plot_image_analysis(
     plt.text(0, 1.1 * baseline, "d_major=%.0f %s_major" % (d_mag_s, units), va="bottom", ha="center")
     plt.text(0, bkgnd + a_major, "  Gaussian Fit")
     plt.xlabel("Distance from Center [%s]" % units)
-    plt.ylabel("Pixel Intensity Along Semi-Major Axis")
-    plt.title("Semi-Major Axis")
+    plt.ylabel("Pixel Intensity Along Major Axis")
+    plt.title("Major Axis")
     plt.ylim(0, max(a_major, a_minor) * 1.05 + baseline)
     plt.xlim(min(s_major) * scale, max(s_major) * scale)
 
-    # plt.gca().set_ylim(bottom=0)
-
-    # plot of values along semi-minor axis
+    # plot of values along minor axis
     baseline = a_minor * np.exp(-2) + bkgnd
-
     plt.subplot(2, 2, 4)
     plt.plot(s_minor * scale, z_minor, "sb", markersize=2)
     plt.plot(s_minor * scale, z_minor, "-b", lw=0.5)
@@ -434,8 +429,8 @@ def plot_image_analysis(
     plt.text(0, 1.1 * baseline, "d_minor=%.0f %s" % (d_min_s, units), va="bottom", ha="center")
     plt.text(0, bkgnd + a_minor, "  Gaussian Fit")
     plt.xlabel("Distance from Center [%s]" % units)
-    plt.ylabel("Pixel Intensity Along Semi-Minor Axis")
-    plt.title("Semi-Minor Axis")
+    plt.ylabel("Pixel Intensity Along Minor Axis")
+    plt.title("Minor Axis")
     plt.ylim(0, max(a_major, a_minor) * 1.05 + baseline)
     plt.xlim(min(s_major) * scale, max(s_major) * scale)
     # plt.gca().set_ylim(bottom=0)
@@ -490,8 +485,8 @@ def plot_image_montage(
         **kwargs: (optional) extra options to modify display
 
     Returns:
-        d_major: semi-major ellipse diameter
-        d_minor: semi-minor ellipse diameter
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
     """
     # arrays to save diameters
     d_major = np.zeros(len(images))
@@ -532,9 +527,9 @@ def plot_image_montage(
 
         # add a title
         if units == "mm":
-            s = "d_major=%.2f%s, d_minor=%.2f%s" % (d_major[i], units, d_minor[i], units)
+            s = "major=%.2f%s, minor=%.2f%s" % (d_major[i], units, d_minor[i], units)
         else:
-            s = "d_major=%.0f%s, d_minor=%.0f%s" % (d_major[i], units, d_minor[i], units)
+            s = "major=%.0f%s, minor=%.0f%s" % (d_major[i], units, d_minor[i], units)
         if z is None:
             plt.title(s)
         else:

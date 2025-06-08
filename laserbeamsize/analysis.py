@@ -58,14 +58,20 @@ def basic_beam_size(original, phi_fixed=None):
 
     When background noise dominates then a diameter of 1 is returned.
 
+    phi_fixed defaults to None, in which case the best fitted angle for the
+    ellipse is found.  If phi_fixed is specified, then an ellipse is rotated to
+    that angle and fitted to the image.
+
     Args:
         original: 2D array of image with beam spot
+        phi_fixed: angle that major axis of ellipse makes with horizontal [radians]
+
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: major diameter of beam
-        d_minor: minor diameter of beam
-        phi_fixed: angle that elliptical beam is rotated [radians]
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal [radians]
     """
     image = original.astype(float)
     v, h = image.shape
@@ -194,14 +200,14 @@ def beam_size(
         nT: (optional) the multiple of background noise to remove
         max_iter: (optional) maximum number of iterations.
         phi_fixed: (optional) fixed tilt of ellipse in radians
-        iso_noise: if True then allow negative pixel values
+        iso_noise: (optional) if True then allow negative pixel values
 
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: major diameter of beam
-        d_minor: minor diameter of beam
-        phi: angle that elliptical beam is rotated ccw [radians]
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
     """
     _validate_inputs(image, mask_diameters, corner_fraction, nT, max_iter, phi_fixed)
 
@@ -253,9 +259,9 @@ def basic_beam_size_naive(image):
     Returns:
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: major diameter of beam
-        d_minor: minor diameter of beam
-        phi: angle that elliptical beam is rotated [radians]
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
     """
     v, h = image.shape
 

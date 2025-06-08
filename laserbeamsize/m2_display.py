@@ -141,9 +141,9 @@ def _M2_diameter_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     plt.axvspan((z0 + 2 * zR) * 1e3, (zmax) * 1e3, color="cyan", alpha=0.3)
 
 
-def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
+def M2_diameter_plot(z, d_major, lambda0, d_minor=None, strict=False, z0=None, d0=None):
     """
-    Plot the semi-major and semi-minor beam fits and residuals.
+    Plot the major and minor beam fits and residuals.
 
     Example::
 
@@ -158,8 +158,8 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     Args:
         z: array of axial position of beam measurements [m]
         lambda0: wavelength of the laser [m]
-        dx: array of beam diameters in x-direction [m]
-        dy: array of beam diameters in y-direction [m]
+        d_major: array of major axis beam diameters [m]
+        d_minor: (optional) array of minor axis beam diameters [m]
         strict: (optional) boolean for strict usage of ISO 11146
         z0: (optional) axial location of beam waist [m]
         d0: (optional) beam waist diameter [m]
@@ -167,19 +167,19 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     Returns:
         nothing
     """
-    if dy is None:
-        _M2_diameter_plot(z, dx, lambda0, strict=strict, z0=z0, d0=d0)
+    if d_minor is None:
+        _M2_diameter_plot(z, d_major, lambda0, strict=strict, z0=z0, d0=d0)
         return
 
-    ymax = 1.1 * max(np.max(dx), np.max(dy)) * 1e6
+    ymax = 1.1 * max(np.max(d_major), np.max(d_minor)) * 1e6
 
     # Create figure window to plot data
     fig = plt.figure(1, figsize=(12, 8))
     gs = matplotlib.gridspec.GridSpec(2, 2, height_ratios=[6, 2])
 
-    # semi-major axis plot
+    # major axis plot
     fig.add_subplot(gs[0, 0])
-    residualsx, z0x, zR, used = _fit_plot(z, dx, lambda0, strict=strict, z0=z0, d0=d0)
+    residualsx, z0x, zR, used = _fit_plot(z, d_major, lambda0, strict=strict, z0=z0, d0=d0)
 
     zmin = min(np.min(z), z0x - 4 * zR)
     zmax = max(np.max(z), z0x + 4 * zR)
@@ -188,7 +188,7 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     plt.title("Semi-major Axis Diameters")
     plt.ylim(0, ymax)
 
-    # semi-major residuals
+    # major axis residuals
     fig.add_subplot(gs[1, 0])
     ax = plt.gca()
     plt.plot(z[used] * 1e3, residualsx[used] * 1e6, "ok", label="used")
@@ -200,18 +200,18 @@ def M2_diameter_plot(z, dx, lambda0, dy=None, strict=False, z0=None, d0=None):
     plt.axvspan((z0x - 2 * zR) * 1e3, (zmin) * 1e3, color="cyan", alpha=0.3)
     plt.axvspan((z0x + 2 * zR) * 1e3, (zmax) * 1e3, color="cyan", alpha=0.3)
 
-    # semi-minor axis plot
+    # minor axis plot
     fig.add_subplot(gs[0, 1])
-    residualsy, z0y, zR, used = _fit_plot(z, dy, lambda0, strict=strict, z0=z0, d0=d0)
+    residualsy, z0y, zR, used = _fit_plot(z, d_minor, lambda0, strict=strict, z0=z0, d0=d0)
     unused = np.logical_not(used)
-    plt.title("Semi-minor Axis Diameters")
+    plt.title("Minor Axis Diameters")
     plt.ylim(0, ymax)
 
     ymax = max(np.max(residualsx), np.max(residualsy)) * 1e6
     ymin = min(np.min(residualsx), np.min(residualsy)) * 1e6
     ax.set_ylim(ymin, ymax)
 
-    # semi-minor residuals
+    # minor axis residuals
     fig.add_subplot(gs[1, 1])
     plt.plot(z[used] * 1e3, residualsy[used] * 1e6, "ok", label="used")
     plt.plot(z[unused] * 1e3, residualsy[unused] * 1e6, "ok", mfc="none", label="unused")

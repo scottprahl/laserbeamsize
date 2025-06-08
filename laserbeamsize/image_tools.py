@@ -101,15 +101,15 @@ def values_along_line(image, x0, y0, x1, y1):
 
 def major_axis_arrays(image, xc, yc, d_major, _d_minor, phi, diameters=2):
     """
-    Return x, y, z, and distance values along semi-major axis.
+    Return x, y, z, and distance values along major axis.
 
     Args:
         image: the image to work with
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: semi-major ellipse diameter
-        _d_minor: semi-minor ellipse diameter (unused)
-        phi: angle between horizontal and major axes [radians]
+        d_major: major axis (i.e, major diameter)
+        _d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
         diameters: number of diameters to use
     Returns:
         x: index of horizontal pixel values along line
@@ -125,15 +125,15 @@ def major_axis_arrays(image, xc, yc, d_major, _d_minor, phi, diameters=2):
 
 def minor_axis_arrays(image, xc, yc, d_major, _d_minor, phi, diameters=2):
     """
-    Return x, y, z, and distance values along semi-minor axis.
+    Return x, y, z, and distance values along minor axis.
 
     Args:
         image: the image to work with
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: semi-major ellipse diameter
-        _d_minor: semi-minor ellipse diameter (unused)
-        phi: angle between horizontal and major axes [radians]
+        d_major: major axis (i.e, major diameter)
+        _d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
         diameters: number of diameters to use
     Returns:
         x: index of horizontal pixel values along line
@@ -213,9 +213,9 @@ def rotated_rect_arrays(xc, yc, d_major, d_minor, phi, mask_diameters=3):
     Args:
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: semi-major ellipse diameter
-        d_minor: semi-minor ellipse diameter
-        phi: angle between horizontal and major axes [radians]
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
         mask_diameters: hide pixels outside this number of diameters
 
     Returns:
@@ -235,18 +235,18 @@ def rotated_rect_arrays(xc, yc, d_major, d_minor, phi, mask_diameters=3):
 
 def axes_arrays(xc, yc, d_major, d_minor, phi, mask_diameters=3):
     """
-    Return x, y arrays needed to draw semi-axes of ellipse.
+    Return x, y arrays needed to draw axes of ellipse.
 
     Args:
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: semi-major ellipse diameter
-        d_minor: semi-minor ellipse diameter
-        phi: angle between horizontal and major axes [radians]
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
         mask_diameters: hide pixels outside this number of diameters
 
     Returns:
-        x, y arrays needed to draw semi-axes of ellipse
+        x, y arrays needed to draw axes of ellipse
     """
     rx = mask_diameters * d_major / 2
     ry = mask_diameters * d_minor / 2
@@ -267,9 +267,9 @@ def ellipse_arrays(xc, yc, d_major, d_minor, phi, npoints=200):
     Args:
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: semi-major ellipse diameter
-        d_minor: semi-minor ellipse diameter
-        phi: angle between horizontal and major axes [radians]
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
         npoints: (optional) number of points to use for ellipse
 
     Returns:
@@ -296,9 +296,9 @@ def create_test_image(h, v, xc, yc, d_major, d_minor, phi, noise=0, ntype="poiss
         v: number of rows in 2D test image
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: semi-major ellipse diameter
-        d_minor: semi-minor ellipse diameter
-        phi: angle between horizontal and major axes [radians]
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
         noise: (optional) magnitued of normally distributed pixel noise to add
         ntype: (optional) type of noise to use
         max_value: (optional) all values in image fall between 0 and `max_value`
@@ -395,9 +395,9 @@ def crop_image_to_integration_rect(image, xc, yc, d_major, d_minor, phi):
         image: image of beam
         xc: horizontal center of beam
         yc: vertical center of beam
-        d_major: semi-major ellipse diameter
-        d_minor: semi-minor ellipse diameter
-        phi: angle between horizontal and major axes [radians]
+        d_major: major axis (i.e, major diameter)
+        d_minor: minor axis (i.e, minor diameter)
+        phi: angle between major axis and horizontal axis [radians]
 
     Returns:
         cropped_image: cropped image

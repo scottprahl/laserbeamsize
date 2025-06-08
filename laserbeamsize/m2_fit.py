@@ -380,15 +380,15 @@ def _M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
     return s
 
 
-def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
+def M2_report(z, d_major, lambda0, d_minor=None, f=None, strict=False, z0=None, d0=None):
     """
     Return string describing a one or more sets of beam measurements.
 
     Args:
         z: array of axial position of beam measurements [m]
-        dx: array of beam diameters for semi-major axis [m]
+        d_major: array of major axis (diameters) [m]
         lambda0: wavelength of the laser [m]
-        dy: (optional) array of beam diameters for semi-minor axis [m]
+        d_minor: (optional) array of beam diameters for minor axis [m]
         f: (optional) focal length of lens [m]
         strict: (optional) boolean for strict usage of ISO 11146
         z0: (optional) location of beam waist [m]
@@ -397,15 +397,15 @@ def M2_report(z, dx, lambda0, dy=None, f=None, strict=False, z0=None, d0=None):
     Returns:
         s: formatted string suitable for printing.
     """
-    if dy is None:
-        s = _M2_report(z, dx, lambda0, f=f, strict=strict, z0=z0, d0=d0)
+    if d_minor is None:
+        s = _M2_report(z, d_major, lambda0, f=f, strict=strict, z0=z0, d0=d0)
         return s
 
-    params, errors, _ = M2_fit(z, dx, lambda0, strict=strict, z0=z0, d0=d0)
+    params, errors, _ = M2_fit(z, d_major, lambda0, strict=strict, z0=z0, d0=d0)
     d0x, z0x, Thetax, M2x, zRx = params
     d0x_std, z0x_std, Thetax_std, M2x_std, zRx_std = errors
 
-    params, errors, _ = M2_fit(z, dy, lambda0, strict=strict, z0=z0, d0=d0)
+    params, errors, _ = M2_fit(z, d_minor, lambda0, strict=strict, z0=z0, d0=d0)
     d0y, z0y, Thetay, M2y, zRy = params
     d0y_std, z0y_std, Thetay_std, M2y_std, zRy_std = errors
 
