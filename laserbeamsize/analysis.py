@@ -17,9 +17,9 @@ Finding the center and diameters of a beam in a monochrome image is simple::
     >>>
     >>> x, y, dx, dy, phi = lbs.beam_size(image)
     >>> print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
-    >>> print("The ellipse diameter (closest to horizontal) is %.0f pixels" % dx)
-    >>> print("The ellipse diameter (closest to   vertical) is %.0f pixels" % dy)
-    >>> print("The ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
+    >>> print("The ellipse major diameter is %.0f pixels" % dx)
+    >>> print("The ellipse minor diameter is %.0f pixels" % dy)
+    >>> print("The major axis of the ellipse is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
 """
 
 import numpy as np
@@ -29,6 +29,18 @@ __all__ = (
     "basic_beam_size",
     "beam_size",
 )
+
+
+def wrap_phi(phi):
+    # Wrap to (-π/2, π/2]
+    phi = (phi + np.pi) % (2 * np.pi) - np.pi
+
+    if phi <= -np.pi / 2:
+        phi += np.pi
+    elif phi > np.pi / 2:
+        phi -= np.pi
+
+    return phi
 
 
 def basic_beam_size(original, phi_fixed=None):
@@ -72,13 +84,13 @@ def basic_beam_size(original, phi_fixed=None):
     yc = np.sum(np.dot(image.T, vv)) / p
 
     if phi_fixed is not None:
+        print("vvvvvv", phi_fixed)
         image = lbs.rotate_image(image, xc, yc, -phi_fixed)
 
     # find the variances
     hs = hh - xc
     vs = vv - yc
     xx = np.sum(np.dot(image, hs**2)) / p
-    xy = np.dot(np.dot(image.T, vs), hs) / p
     yy = np.sum(np.dot(image.T, vs**2)) / p
 
     if phi_fixed is None:
@@ -93,7 +105,7 @@ def basic_beam_size(original, phi_fixed=None):
     else:
         diff = xx - yy
         disc = np.sign(diff) * np.sqrt(diff**2 + 4 * xy**2)
-        phi_ = 0.5 * np.arctan(2 * xy / diff)
+        phi_ = 0.5 * np.arctan2(2 * xy, diff)
 
     dx = 1
     dy = 1
@@ -104,14 +116,20 @@ def basic_beam_size(original, phi_fixed=None):
         dy = np.sqrt(8 * (xx + yy - disc))
 
     if phi_fixed is None:
-        phi_ *= -1  # phi is negative because image is inverted
+        phi_ *= -1  # negative because image is inverted
+        phi_ = wrap_phi(phi_)
     else:
         phi_ = phi_fixed
+
+    if dy > dx:
+        dd = dx
+        dx = dy
+        dy = dd
 
     return xc, yc, dx, dy, phi_
 
 
-def _validate_inputs(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25, phi=None):
+def _validate_inputs(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25, phi_fixed=None):
     """
     Ensure arguments to validate inputs are sane.
 
@@ -132,7 +150,7 @@ def _validate_inputs(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_i
     if max_iter < 0 or not isinstance(max_iter, int):
         raise ValueError("max_iter must be a non-negative integer.")
 
-    if phi is not None and abs(phi) > 2.1 * np.pi:
+    if phi_fixed is not None and abs(phi_fixed) > 2.1 * np.pi:
         raise ValueError("the angle phi should be in radians!")
 
 
@@ -194,7 +212,7 @@ def beam_size(
     image_no_bkgnd = lbs.subtract_iso_background(
         image, corner_fraction=corner_fraction, nT=nT, iso_noise=False
     )
-    xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd)
+    xc, yc, dx, dy, phi_ = basic_beam_size(image_no_bkgnd, phi_fixed)
 
     if iso_noise:  # follow iso background guidelines (positive & negative bkgnd values)
         image_no_bkgnd = lbs.subtract_iso_background(
@@ -202,9 +220,6 @@ def beam_size(
         )
 
     for _iteration in range(1, max_iter):
-
-        if phi_fixed is not None:
-            phi_ = phi_fixed
 
         # save current beam properties for later comparison
         xc2, yc2, dx2, dy2 = xc, yc, dx, dy
@@ -217,7 +232,10 @@ def beam_size(
         masked_image[mask < 0.5] = 0
 
         # find the new parameters
-        xc, yc, dx, dy, phi_ = basic_beam_size(masked_image, phi_fixed)
+        if phi_fixed is None:
+            xc, yc, dx, dy, phi_ = basic_beam_size(masked_image)
+        else:
+            xc, yc, dx, dy, phi_ = basic_beam_size(masked_image, phi_)
 
         if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(dx - dx2) < 1 and abs(dy - dy2) < 1:
             break
