@@ -18,12 +18,12 @@ def test_beam_size_phi_returned():
     assert np.isclose(result[4], -np.pi / 3)
 
 
-def _run_case(image, phi_arg, expected_xc, expected_yc, expected_dx, expected_dy, expected_phi):
+def _run_case(image, phi_arg, expected_xc, expected_yc, expect_major, expect_minor, expected_phi):
     result = lbs.beam_size(image, phi_fixed=phi_arg)
     assert np.isclose(result[0], expected_xc, rtol=0.01)
     assert np.isclose(result[1], expected_yc, rtol=0.01)
-    assert np.isclose(result[2], expected_dx, rtol=0.05)
-    assert np.isclose(result[3], expected_dy, rtol=0.05)
+    assert np.isclose(result[2], expect_major, rtol=0.05)
+    assert np.isclose(result[3], expect_minor, rtol=0.05)
     if phi_arg is None:
         assert np.isclose(result[4], expected_phi, atol=1e-2)
     else:
@@ -32,7 +32,7 @@ def _run_case(image, phi_arg, expected_xc, expected_yc, expected_dx, expected_dy
 
 def test_fixed_45_examples():
     # 45°
-    beam1 = lbs.create_test_image(h=600, v=600, xc=300, yc=300, dx=150, dy=100, phi=np.pi / 4)
+    beam1 = lbs.create_test_image(h=600, v=600, xc=300, yc=300, d_major=150, d_minor=100, phi=np.pi / 4)
     w = np.sqrt((150**2 + 100**2) / 2)
 
     cases1 = [
@@ -40,15 +40,15 @@ def test_fixed_45_examples():
         (np.pi / 4, 300, 300, 150, 100, np.pi / 4),
         (0, 300, 300, w, w, 0),
         (np.pi / 2, 300, 300, w, w, np.pi / 2),
-        (-np.pi / 4, 300, 300, 100, 150, -np.pi / 4),
+        (-np.pi / 4, 300, 300, 150, 100, -np.pi / 4),
     ]
-    for phi_arg, xc, yc, dx, dy, phi in cases1:
-        _run_case(beam1, phi_arg, xc, yc, dx, dy, phi)
+    for phi_arg, xc, yc, d_major, d_minor, phi in cases1:
+        _run_case(beam1, phi_arg, xc, yc, d_major, d_minor, phi)
 
 
 def test_fixed_30_examples():
     # -30°
-    beam2 = lbs.create_test_image(h=600, v=600, xc=250, yc=350, dx=150, dy=100, phi=-np.pi / 6)
+    beam2 = lbs.create_test_image(h=600, v=600, xc=250, yc=350, d_major=150, d_minor=100, phi=-np.pi / 6)
     w = np.sqrt((150**2 + 100**2) / 2)
 
     cases2 = [
@@ -56,7 +56,7 @@ def test_fixed_30_examples():
         (-np.pi / 6, 250, 350, 150, 100, -np.pi / 6),
         (-np.pi / 6 + np.pi / 4, 250, 350, w, w, -np.pi / 6 + np.pi / 4),
         (-np.pi / 6 - np.pi / 4, 250, 350, w, w, -np.pi / 6 - np.pi / 4),
-        (np.pi / 3, 250, 350, 100, 150, np.pi / 3),
+        (np.pi / 3, 250, 350, 150, 100, np.pi / 3),
     ]
-    for phi_arg, xc, yc, dx, dy, phi in cases2:
-        _run_case(beam2, phi_arg, xc, yc, dx, dy, phi)
+    for phi_arg, xc, yc, d_major, d_minor, phi in cases2:
+        _run_case(beam2, phi_arg, xc, yc, d_major, d_minor, phi)
