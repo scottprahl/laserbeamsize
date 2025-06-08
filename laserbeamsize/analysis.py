@@ -32,7 +32,7 @@ __all__ = (
 
 
 def wrap_phi(phi):
-    # Wrap to (-π/2, π/2]
+    """Wrap phi to range (-π/2, π/2]."""
     phi = (phi + np.pi) % (2 * np.pi) - np.pi
 
     if phi <= -np.pi / 2:
@@ -122,9 +122,7 @@ def basic_beam_size(original, phi_fixed=None):
         phi_ = phi_fixed
 
     if dy > dx:
-        dd = dx
-        dx = dy
-        dy = dd
+        dx, dy = dy, dx
 
     return xc, yc, dx, dy, phi_
 
