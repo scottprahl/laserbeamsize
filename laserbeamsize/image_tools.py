@@ -9,7 +9,6 @@ import numpy as np
 import scipy.ndimage
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from skimage.draw import line
 
 
 __all__ = (
@@ -25,6 +24,67 @@ __all__ = (
     "create_cmap",
     "create_plus_minus_cmap",
 )
+
+
+def line(r0, c0, r1, c1):
+    """
+    Returns coordinates of line between two points.
+
+    Bresenham's line algorithm (adapted from scikit-image).
+
+    Generate the coordinates of points between (r0, c0) and (r1, c1).
+
+    Args:
+        r0: Row of the starting point.
+        c0: Column of the starting point.
+        r1: Row of the ending point.
+        c1: Column of the ending point.
+
+    Returns:
+        rr, cc : Coordinates of pixels in the line.
+    """
+    r0 = int(r0)
+    c0 = int(c0)
+    r1 = int(r1)
+    c1 = int(c1)
+
+    steep = abs(r1 - r0) > abs(c1 - c0)
+
+    if steep:
+        r0, c0 = c0, r0
+        r1, c1 = c1, r1
+
+    if c0 > c1:
+        c0, c1 = c1, c0
+        r0, r1 = r1, r0
+
+    dr = abs(r1 - r0)
+    dc = c1 - c0
+    error = dc // 2
+    r = r0
+
+    if r0 < r1:
+        step = 1
+    else:
+        step = -1
+
+    rr = []
+    cc = []
+
+    for c in range(c0, c1 + 1):
+        if steep:
+            rr.append(c)
+            cc.append(r)
+        else:
+            rr.append(r)
+            cc.append(c)
+
+        error -= dr
+        if error < 0:
+            r += step
+            error += dc
+
+    return np.array(rr), np.array(cc)
 
 
 def rotate_points(x, y, x0, y0, phi):
@@ -169,7 +229,7 @@ def rotate_image(original, x0, y0, phi):
     """
     if phi is None:
         return original
-    
+
     # center of original image
     cy, cx = (np.array(original.shape) - 1) / 2.0
 
