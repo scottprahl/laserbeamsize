@@ -5,7 +5,6 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 """
 
 import numpy as np
-from PIL import Image, ImageDraw
 import laserbeamsize as lbs
 
 __all__ = (
@@ -148,6 +147,8 @@ def rotated_rect_mask_slow(image, xc, yc, d_major, d_minor, phi, mask_diameters=
 
 def rotated_rect_mask(image, xc, yc, d_major, d_minor, phi, mask_diameters=3):
     """
+    Create a boolean mask of a rotated rectangle within an image using NumPy.
+
     Create ISO 11146 rectangular mask for specified beam.
 
     ISO 11146-2 §7.2 states that integration should be carried out over
@@ -175,25 +176,24 @@ def rotated_rect_mask(image, xc, yc, d_major, d_minor, phi, mask_diameters=3):
     Returns:
         masked_image: 2D array with True values inside rectangle
     """
-    v, h = image.shape
+    height, width = image.shape
     rx = mask_diameters * d_major / 2
     ry = mask_diameters * d_minor / 2
 
-    s = np.sin(-phi)
-    c = np.cos(-phi)
+    # create a meshgrid of pixel coordinates
+    y, x = np.ogrid[:height, :width]
+    x = x - xc
+    y = y - yc
 
-    xx, xy = rx * c, rx * s
-    yx, yy = -ry * s, ry * c
+    # rotate coordinates by -phi
+    cos_phi = np.cos(phi)
+    sin_phi = np.sin(phi)
+    x_rot = x * cos_phi + y * sin_phi
+    y_rot = -x * sin_phi + y * cos_phi
 
-    x1, y1 = xc + xx + yx, yc + xy + yy
-    x2, y2 = xc + xx - yx, yc + xy - yy
-    x3, y3 = xc - xx - yx, yc - xy - yy
-    x4, y4 = xc - xx + yx, yc - xy + yy
-
-    g = Image.new("L", (h, v), 0)
-    ImageDraw.Draw(g).polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4), (x1, y1)], outline=1, fill=1)
-    mask = np.array(g)
-    return mask.astype(bool)
+    # define mask for points inside the rotated rectangle
+    mask = (np.abs(x_rot) <= rx) & (np.abs(y_rot) <= ry)
+    return mask
 
 
 def iso_background_mask(image, corner_fraction=0.035, nT=3):
