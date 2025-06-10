@@ -82,18 +82,18 @@ Finding the center and dimensions of a good beam image::
     file = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/t-hene.pgm"
     image = iio.imread(file)
     
-    x, y, dx, dy, phi = lbs.beam_size(image)
+    x, y, d_major, d_minor, phi = lbs.beam_size(image)
     print("The center of the beam ellipse is at (%.0f, %.0f)" % (x, y))
-    print("The semi-major ellipse diameter is %.0f pixels" % dx)
-    print("The semi-minor ellipse diameter is %.0f pixels" % dy)
-    print("The semi-major axis is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
+    print("The major axis (diameter) is %.0f pixels" % d_major)
+    print("The minor axis (diameter) is %.0f pixels" % d_minor)
+    print("The major axis is rotated %.0f° ccw from the horizontal" % (phi * 180/3.1416))
 
 to produce::
 
     The center of the beam ellipse is at (651, 492)
-    The semi-major ellipse diameter is 369 pixels
-    The semi-minor ellipse diameter is 347 pixels
-    The semi-major axis is rotated -12° ccw from the horizontal
+    The major axis (diameter) is 369 pixels
+    The minor axis (diameter) is 347 pixels
+    The major axis is rotated -12° ccw from the horizontal
 
 A visual report can be done with one function call::
 
