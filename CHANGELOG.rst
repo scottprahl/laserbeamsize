@@ -4,7 +4,7 @@ Changelog
 2.1.0
 -----
 * move away from 'axis near horizontal' to simply major/minor axes
-* make fixed angle work much better. 
+* make fixed angle work much better (thanks @przemororo)
 * use black for all formatting
 * adopt ``pyproject.toml`` with PEP 621 metadata and eliminate setup.cfg
 * lint YAML files and run ``ruff`` during ``make rcheck``
