@@ -8,7 +8,7 @@ imageio>=3.0
 requests
 
 # testing
-yaml
+pyyaml
 json
 pytest
 
