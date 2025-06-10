@@ -122,11 +122,10 @@ def basic_beam_size(original, phi_fixed=None):
     if phi_fixed is None:
         phi_ *= -1  # negative because y=0 is at the top
         phi_ = wrap_phi(phi_)
+        if d_minor > d_major:
+            d_major, d_minor = d_minor, d_major
     else:
         phi_ = phi_fixed
-
-    if phi_fixed is None and d_minor > d_major:
-        d_major, d_minor = d_minor, d_major
 
     return xc, yc, d_major, d_minor, phi_
 
