@@ -39,7 +39,7 @@ def test_fixed_45_examples():
         (None, 300, 300, 150, 100, np.pi / 4),
         (np.pi / 4, 300, 300, 150, 100, np.pi / 4),
         (0, 300, 300, w, w, 0),
-        (3*np.pi / 4, 300, 300, 100, 150, np.pi / 2),
+        (3 * np.pi / 4, 300, 300, 100, 150, np.pi / 2),
         (-np.pi / 4, 300, 300, 100, 150, -np.pi / 4),
     ]
     for phi_arg, xc, yc, d_major, d_minor, phi in cases1:
