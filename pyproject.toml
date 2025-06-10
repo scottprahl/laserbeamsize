@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "setuptools_scm", "wheel"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -33,7 +33,6 @@ keywords = [
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: MIT License",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.8",
@@ -49,7 +48,7 @@ dependencies = [
     "scipy",
 ]
 authors = [{name = "Scott Prahl", email = "scott.prahl@oit.edu"}]
-license = {text = "MIT"}
+license = "MIT"
 urls = {Homepage = "https://github.com/scottprahl/laserbeamsize"}
 dynamic = ["version"]
 
