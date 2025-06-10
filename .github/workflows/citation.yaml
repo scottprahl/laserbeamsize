@@ -44,5 +44,5 @@ jobs:
           git config user.name  "GitHub Actions"
           git add CITATION.cff
           git commit -m "chore(citation): refresh after ${{ github.event.release.tag_name }}"
-          git push
+          git push origin HEAD:main
         fi
