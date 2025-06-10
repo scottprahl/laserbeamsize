@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "laserbeamsize"
 description = "ISO 11146 Calculation of Laser Beam Center, Diameter, and M²"
 readme = "README.rst"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 keywords = [
     "variance",
     "gaussian",
@@ -47,7 +47,6 @@ dependencies = [
     "numpy",
     "matplotlib",
     "scipy",
-    "imageio",
 ]
 authors = [{name = "Scott Prahl", email = "scott.prahl@oit.edu"}]
 license = {text = "MIT"}
