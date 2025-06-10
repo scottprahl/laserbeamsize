@@ -1,7 +1,8 @@
 include CHANGELOG.rst
 include CITATION.cff
 include LICENSE.txt
-include requirements.txt
+include requirements-dev.txt
 include setup.sh
 include tests/all_test_notebooks.py
+include tests/human_test_for_phi_fixed.py
 exclude .yamllint
