@@ -1,0 +1,26 @@
+# runtime dependencies
+numpy
+matplotlib
+scipy
+
+# notebooks
+imageio>=3.0
+requests
+
+# testing
+yaml
+json
+pytest
+
+# linting
+ruff
+pylint
+
+# formatting
+black
+
+# docs
+sphinx
+nbformat
+nbconvert
+
