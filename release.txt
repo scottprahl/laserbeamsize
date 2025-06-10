@@ -9,7 +9,7 @@ Releasing a new version
 # update the version in __init__.py
   git commit -m 'update version' laserbeamsize/__init__.py
 
-# update CHANGELOG.rst  `git shortlog v1.9.0..HEAD`
+# update CHANGELOG.rst  `git shortlog 2.0.5..HEAD`
   git commit -m 'update recent changes' CHANGELOG.rst
   git push
 

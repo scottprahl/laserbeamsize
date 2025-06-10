@@ -5,21 +5,20 @@ include CITATION.cff
 include pyproject.toml
 include setup.py
 
+# Include the actual package
+recursive-include laserbeamsize *.py
+
+# and tests
+recursive-include tests *.py
+
+# stuff we don't want to include in package
+prune docs
+prune .github
+exclude requirements-dev.txt
+exclude setup.sh
 exclude .gitignore
 exclude .readthedocs.yaml
 exclude .yamllint
 exclude Makefile
 exclude release.txt
 
-# Include the actual package
-recursive-include laserbeamsize *.py
-
-# Optional: Include specific test files (if needed)
-# recursive-include tests *.py
-
-# Explicitly exclude stuff you don't want
-prune docs
-prune .github
-prune tests
-exclude requirements-dev.txt
-exclude setup.sh

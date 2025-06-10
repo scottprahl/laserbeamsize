@@ -3,8 +3,11 @@ Changelog
 
 2.1.0
 -----
-* move away from 'axis near horizontal' to simply major/minor axes
 * make fixed angle work much better (thanks @przemororo)
+* use major axis (d_major) instead of dx (near x-axis)
+* trim distribution down to core files
+* eliminate dependence on pillow and scikit-image
+* correct angle definitions
 * use black for all formatting
 * adopt ``pyproject.toml`` with PEP 621 metadata and eliminate setup.cfg
 * lint YAML files and run ``ruff`` during ``make rcheck``
@@ -13,6 +16,8 @@ Changelog
 * replace ``master`` branch references with ``main`` in docs
 * numerous style and docstring improvements
 * remove flake8
+* bump minimum python version to 3.9
+* eliminate non-standard use of semi-major and semi-minor
 
 2.0.5
 -----
