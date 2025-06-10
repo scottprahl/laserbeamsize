@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=66", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -48,7 +48,7 @@ dependencies = [
     "scipy",
 ]
 authors = [{name = "Scott Prahl", email = "scott.prahl@oit.edu"}]
-license = { text = "MIT" }
+license = "MIT"
 urls = {Homepage = "https://github.com/scottprahl/laserbeamsize"}
 dynamic = ["version"]
 
