@@ -48,7 +48,7 @@ dependencies = [
     "scipy",
 ]
 authors = [{name = "Scott Prahl", email = "scott.prahl@oit.edu"}]
-license = "MIT"
+license = { text = "MIT" }
 urls = {Homepage = "https://github.com/scottprahl/laserbeamsize"}
 dynamic = ["version"]
 
