@@ -30,7 +30,6 @@ keywords = [
     "laser metrology",
     "beam quality",
     "beam analysis",
-    "python package",
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
