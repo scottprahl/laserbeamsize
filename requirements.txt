@@ -1,8 +1,0 @@
-numpy
-matplotlib
-scipy
-imageio
-requests
-pillow
-scikit-image
-pytest
