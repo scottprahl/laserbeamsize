@@ -118,8 +118,8 @@ def test_minor_axis_arrays_horizontal():
     x, y, z, s = lbs.minor_axis_arrays(image, 2, 2, 4, 3, 0)
     assert np.all(x == 2)
     assert np.all(z == 1)
-    assert np.isclose(y[0], 4)
-    assert np.isclose(y[-1], 0)
+    assert np.isclose(y[0], 0)
+    assert np.isclose(y[-1], 4)
     assert np.isclose(s[0], -2)
     assert np.isclose(s[-1], 2)
 
@@ -140,8 +140,8 @@ def test_minor_axis_arrays_large_diameter():
     x, y, z, s = lbs.minor_axis_arrays(image, 2, 2, 10, 2, 0)
     assert np.all(x == 2)
     assert np.all(z == 1)
-    assert np.isclose(y[0], 4)
-    assert np.isclose(y[-1], 0)
+    assert np.isclose(y[0], 0)
+    assert np.isclose(y[-1], 4)
     assert np.isclose(s[0], -2)
     assert np.isclose(s[-1], 2)
 
@@ -150,14 +150,10 @@ def test_minor_axis_arrays_rotated():
     image = np.ones((5, 5))
     x, y, z, s = lbs.minor_axis_arrays(image, 2, 2, 10, 2, np.pi / 4)
     assert np.all(z == 1)
-    assert np.isclose(x[0], 4)
-    assert np.isclose(x[-1], 0)
-    assert np.isclose(y[0], 4)
-    assert np.isclose(y[-1], 0)
-
-
-#    assert np.isclose(s[0], -np.sqrt(8))
-#    assert np.isclose(s[-1], np.sqrt(8))
+    assert np.isclose(x[0], 0)
+    assert np.isclose(x[-1], 4)
+    assert np.isclose(y[0], 0)
+    assert np.isclose(y[-1], 4)
 
 
 # rotate_image
