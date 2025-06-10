@@ -57,6 +57,7 @@ rcheck:
 
 
 clean:
+	rm -rf .DS_Store
 	rm -rf .eggs
 	rm -rf .pytest_cache
 	rm -rf .ruff_cache
@@ -66,10 +67,13 @@ clean:
 	rm -rf laserbeamsize.egg-info
 	rm -rf laserbeamsize/__pycache__
 	rm -rf laserbeamsize/.ipynb_checkpoints
+	rm -rf laserbeamsize/.DS_Store
 	rm -rf docs/_build
 	rm -rf docs/api
+	rm -rf docs/.DS_Store
 	rm -rf docs/.ipynb_checkpoints
 	rm -rf tests/__pycache__
+	rm -rf tests/.DS_Store
 	rm -rf build
 
 
