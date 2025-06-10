@@ -167,6 +167,9 @@ def rotate_image(original, x0, y0, phi):
     Returns:
         image: rotated 2D array with same dimensions as original
     """
+    if phi is None:
+        return original
+    
     # center of original image
     cy, cx = (np.array(original.shape) - 1) / 2.0
 
@@ -315,7 +318,7 @@ def create_test_image(h, v, xc, yc, d_major, d_minor, phi, noise=0, ntype="poiss
     if not isinstance(v, int) or v <= 0:
         raise ValueError("number of rows must be positive")
 
-    if abs(phi) > 2.1 * np.pi:
+    if phi is not None and abs(phi) > 2.1 * np.pi:
         raise ValueError("the angle phi should be in radians!")
 
     rx = d_major / 2

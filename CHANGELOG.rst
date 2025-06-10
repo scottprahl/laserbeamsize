@@ -1,14 +1,18 @@
 Changelog
 =========
 
-2.0.6
+2.1.0
 -----
-* adopt ``pyproject.toml`` with PEP 621 metadata
+* move away from 'axis near horizontal' to simply major/minor axes
+* make fixed angle work much better. 
+* use black for all formatting
+* adopt ``pyproject.toml`` with PEP 621 metadata and eliminate setup.cfg
 * lint YAML files and run ``ruff`` during ``make rcheck``
 * allow ``iso_noise`` option in display and background functions
 * rename ``tests/test_all_notebooks.py`` to ``tests/all_test_notebooks.py``
 * replace ``master`` branch references with ``main`` in docs
 * numerous style and docstring improvements
+* remove flake8
 
 2.0.5
 -----

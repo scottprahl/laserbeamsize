@@ -98,10 +98,9 @@ def basic_beam_size(original, phi_fixed=None):
     xx = np.sum(np.dot(image, hs**2)) / p
     yy = np.sum(np.dot(image.T, vs**2)) / p
 
+    xy = 0
     if phi_fixed is None:
         xy = np.dot(np.dot(image.T, vs), hs) / p
-    else:
-        xy = 0
 
     # Ensure that the case xx==yy is handled correctly
     if xx == yy:
@@ -121,12 +120,12 @@ def basic_beam_size(original, phi_fixed=None):
         d_minor = np.sqrt(8 * (xx + yy - disc))
 
     if phi_fixed is None:
-        phi_ *= -1  # negative because image is inverted
+        phi_ *= -1  # negative because y=0 is at the top
         phi_ = wrap_phi(phi_)
     else:
         phi_ = phi_fixed
 
-    if d_minor > d_major:
+    if phi_fixed is None and d_minor > d_major:
         d_major, d_minor = d_minor, d_major
 
     return xc, yc, d_major, d_minor, phi_
