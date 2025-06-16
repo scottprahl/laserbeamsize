@@ -11,24 +11,24 @@ h, v = 400, 400  # Image dimensions
 def run_test(
     xc,
     yc,
-    dx,
-    dy,
+    d_major,
+    d_minor,
     phi,
-    expected_dx=None,
-    expected_dy=None,
-    expected_phi=None,
+    expect_major=None,
+    expect_minor=None,
+    expect_phi=None,
     max_value=255,
 ):
-    if expected_dx is None:
-        expected_dx = dx
-    if expected_dy is None:
-        expected_dy = dy
-    if expected_phi is None:
-        expected_phi = phi
+    if expect_major is None:
+        expect_major = d_major
+    if expect_minor is None:
+        expect_minor = d_minor
+    if expect_phi is None:
+        expect_phi = phi
 
-    test_img = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, max_value=max_value)
+    test_img = lbs.image_tools.create_test_image(h, v, xc, yc, d_major, d_minor, phi, max_value=max_value)
     result_xc, result_yc, result_dx, result_dy, result_phi = lbs.basic_beam_size(test_img)
-    erp = np.degrees(expected_phi)
+    erp = np.degrees(expect_phi)
     rp = np.degrees(result_phi)
 
     if interactive:
@@ -41,8 +41,12 @@ def run_test(
 
     assert np.isclose(result_xc, xc, rtol=0.03), f"Expected xc = {xc}, but got {result_xc}"
     assert np.isclose(result_yc, yc, rtol=0.03), f"Expected yc = {yc}, but got {result_yc}"
-    assert np.isclose(result_dx, expected_dx, rtol=0.03), f"Expected dx = {expected_dx}, but got {result_dx}"
-    assert np.isclose(result_dy, expected_dy, rtol=0.03), f"Expected dy = {expected_dy}, but got {result_dy}"
+    assert np.isclose(
+        result_dx, expect_major, rtol=0.03
+    ), f"Expected d_major = {expect_major}, but got {result_dx}"
+    assert np.isclose(
+        result_dy, expect_minor, rtol=0.03
+    ), f"Expected d_minor = {expect_minor}, but got {result_dy}"
     assert np.isclose(rp, erp, rtol=0.03), f"Expected phi around {erp}°, but got {rp}°"
 
 
@@ -65,18 +69,18 @@ def test_ellipse_120_degree_rotation():
         100,
         50,
         2 * np.pi / 3,
-        expected_dx=100,
-        expected_dy=50,
-        expected_phi=2 * np.pi / 3 - np.pi,
+        expect_major=100,
+        expect_minor=50,
+        expect_phi=2 * np.pi / 3 - np.pi,
     )
 
 
 def test_vertical_ellipse_no_rotation():
-    run_test(200, 200, 50, 100, 0, expected_dx=100, expected_dy=50, expected_phi=np.pi / 2)
+    run_test(200, 200, 50, 100, 0, expect_major=100, expect_minor=50, expect_phi=np.pi / 2)
 
 
 def test_horizontal_ellipse_off_center():
-    run_test(150, 300, 50, 100, np.pi / 6, expected_dx=100, expected_dy=50, expected_phi=-np.pi / 3)
+    run_test(150, 300, 50, 100, np.pi / 6, expect_major=100, expect_minor=50, expect_phi=-np.pi / 3)
 
 
 def test_horizontal_ellipse_4048():
