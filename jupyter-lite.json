@@ -1,8 +1,6 @@
 {
   "jupyter-lite-schema-version": 0,
   "jupyter-config-data": {
-    "appName": "JupyterLite",
-    "baseUrl": "/laserbeamsize/",
-    "defaultKernelName": "python"
+    "baseUrl": "/laserbeamsize/"
   }
 }
