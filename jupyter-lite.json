@@ -6,7 +6,21 @@
     "baseUrl": "/laserbeamsize/",
     "defaultKernelName": "python",
     "faviconUrl": "./lab/favicon.ico",
-    "federated_extensions": [],
+    "federated_extensions": [
+      {
+        "extension": "./extension",
+        "liteExtension": true,
+        "load": "static/remoteEntry.d6704cdc807d45819742.js",
+        "name": "@jupyterlite/pyodide-kernel-extension"
+      },
+      {
+        "extension": "./extension",
+        "liteExtension": false,
+        "load": "static/remoteEntry.5cbb9d2323598fbda535.js",
+        "name": "jupyterlab_pygments",
+        "style": "./style"
+      }
+    ],
     "fileTypes": {
       "css": {
         "extensions": [

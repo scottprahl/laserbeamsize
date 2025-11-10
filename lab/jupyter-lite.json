@@ -1,8 +1,9 @@
 {
-  "jupyter-lite-schema-version": 0,
   "jupyter-config-data": {
-    "appUrl": "/lab",
+    "appUrl": "./",
+    "baseUrl": "/laserbeamsize/",
     "settingsUrl": "../build/schemas",
     "themesUrl": "./build/themes"
-  }
+  },
+  "jupyter-lite-schema-version": 0
 }
