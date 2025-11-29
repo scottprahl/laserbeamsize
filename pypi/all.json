@@ -5,19 +5,19 @@
         {
           "comment_text": "",
           "digests": {
-            "md5": "176aa67e6135ba683193fc50f7bbe44a",
-            "sha256": "c57570dd7155a0cbf1872fd6d2d95acb2cc8e762163d59707a1b03b19309a20b"
+            "md5": "1837f90482400ab17725936e15a5d20a",
+            "sha256": "40944b4dce202e0ffb3618c6af3d22704519b0dda3fcaeb20d6a22b8957d6a11"
           },
           "downloads": -1,
           "filename": "laserbeamsize-2.2.0-py3-none-any.whl",
           "has_sig": false,
-          "md5_digest": "176aa67e6135ba683193fc50f7bbe44a",
+          "md5_digest": "1837f90482400ab17725936e15a5d20a",
           "packagetype": "bdist_wheel",
           "python_version": "py3",
           "requires_python": ">=3.9",
-          "size": 38722,
-          "upload_time": "2025-11-29T22:17:24.289268Z",
-          "upload_time_iso_8601": "2025-11-29T22:17:24.289268Z",
+          "size": 38714,
+          "upload_time": "2025-11-29T23:03:49.778062Z",
+          "upload_time_iso_8601": "2025-11-29T23:03:49.778062Z",
           "url": "./laserbeamsize-2.2.0-py3-none-any.whl",
           "yanked": false,
           "yanked_reason": null
