@@ -1,24 +1,24 @@
 {
   "laserbeamsize": {
     "releases": {
-      "2.2.0": [
+      "2.3.0": [
         {
           "comment_text": "",
           "digests": {
-            "md5": "1837f90482400ab17725936e15a5d20a",
-            "sha256": "40944b4dce202e0ffb3618c6af3d22704519b0dda3fcaeb20d6a22b8957d6a11"
+            "md5": "b72ae5ea83194519568049cb6f12a2fc",
+            "sha256": "f0bae596c9e36272d9691babc9746025b5f6860426af1bb7fb32d109412fec00"
           },
           "downloads": -1,
-          "filename": "laserbeamsize-2.2.0-py3-none-any.whl",
+          "filename": "laserbeamsize-2.3.0-py3-none-any.whl",
           "has_sig": false,
-          "md5_digest": "1837f90482400ab17725936e15a5d20a",
+          "md5_digest": "b72ae5ea83194519568049cb6f12a2fc",
           "packagetype": "bdist_wheel",
           "python_version": "py3",
           "requires_python": ">=3.9",
-          "size": 38714,
-          "upload_time": "2025-11-29T23:03:49.778062Z",
-          "upload_time_iso_8601": "2025-11-29T23:03:49.778062Z",
-          "url": "./laserbeamsize-2.2.0-py3-none-any.whl",
+          "size": 39268,
+          "upload_time": "2025-11-30T18:25:19.540430Z",
+          "upload_time_iso_8601": "2025-11-30T18:25:19.540430Z",
+          "url": "./laserbeamsize-2.3.0-py3-none-any.whl",
           "yanked": false,
           "yanked_reason": null
         }
