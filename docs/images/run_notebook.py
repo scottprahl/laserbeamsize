@@ -14,9 +14,7 @@ def run_notebook(notebook_path, timeout=600):
     ep = ExecutePreprocessor(timeout=timeout)
 
     # Execute the notebook
-    ep.preprocess(
-        nb, {"metadata": {"path": notebook_path.parent if hasattr(notebook_path, "parent") else "."}}
-    )
+    ep.preprocess(nb, {"metadata": {"path": notebook_path.parent if hasattr(notebook_path, "parent") else "."}})
 
     # Optionally save the executed notebook
     with open(notebook_path, "w", encoding="utf-8") as f:
