@@ -23,10 +23,10 @@ and other beam parameters from a sequence of images::
     help(laserbeamsize.m2_display)
 """
 
-__version__ = "2.3.0"
+__version__ = "2.3.1"
 __author__ = "Scott Prahl"
 __email__ = "scott.prahl@oit.edu"
-__copyright__ = "2017-25, Scott Prahl"
+__copyright__ = "2017-2026, Scott Prahl"
 __license__ = "MIT"
 __url__ = "https://github.com/scottprahl/laserbeamsize"
 

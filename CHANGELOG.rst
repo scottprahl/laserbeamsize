@@ -1,6 +1,16 @@
 Changelog
 =========
 
+2.3.1
+-----
+  * fix regression when units=None
+  * fix image display in docs
+  * update github workflows
+  * default python is 3.12
+  * all requirements are in pyproject.toml
+  * faster testing with pytest
+  * fix errors in .yaml files
+
 2.3.0
 -----
   * Jupyterlite updated to 0.64
