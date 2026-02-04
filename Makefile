@@ -103,15 +103,7 @@ dist: $(VENV)/.ready
 	
 .PHONY: test
 test: $(VENV)/.ready
-	-$(PYTEST) $(PYTEST_OPTS) tests/test_back.py
-	-$(PYTEST) $(PYTEST_OPTS) tests/test_basic_beam_size.py
-	-$(PYTEST) $(PYTEST_OPTS) tests/test_fixed_phi.py
-	-$(PYTEST) $(PYTEST_OPTS) tests/test_gaussian.py
-	-$(PYTEST) $(PYTEST_OPTS) tests/test_iso_noise.py
-	-$(PYTEST) $(PYTEST_OPTS) tests/test_masks.py
-	-$(PYTEST) $(PYTEST_OPTS) tests/test_no_noise.py
-	-$(PYTEST) $(PYTEST_OPTS) tests/test_noise.py
-	-$(PYTEST) $(PYTEST_OPTS) tests/test_tools.py
+	-$(PYTEST) $(PYTEST_OPTS) tests --ignore=tests/test_all_notebooks.py
 
 .PHONY: note-test
 note-test: $(VENV)/.ready
@@ -338,4 +330,3 @@ realclean: lite-clean clean
 	@/bin/rm -rf "docs/api"
 	@/bin/rm -rf "docs/_static"
 	@/bin/rm -rf "docs/_templates"
-
