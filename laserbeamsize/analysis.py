@@ -218,9 +218,7 @@ def beam_size(
     xc, yc, d_major, d_minor, phi_ = basic_beam_size(image_no_bkgnd, phi_fixed)
 
     if iso_noise:  # follow iso background guidelines (positive & negative bkgnd values)
-        image_no_bkgnd = subtract_iso_background(
-            image, corner_fraction=corner_fraction, nT=nT, iso_noise=True
-        )
+        image_no_bkgnd = subtract_iso_background(image, corner_fraction=corner_fraction, nT=nT, iso_noise=True)
 
     for _iteration in range(1, max_iter):
 

@@ -41,12 +41,8 @@ def run_test(
 
     assert np.isclose(result_xc, xc, rtol=0.03), f"Expected xc = {xc}, but got {result_xc}"
     assert np.isclose(result_yc, yc, rtol=0.03), f"Expected yc = {yc}, but got {result_yc}"
-    assert np.isclose(
-        result_dx, expect_major, rtol=0.03
-    ), f"Expected d_major = {expect_major}, but got {result_dx}"
-    assert np.isclose(
-        result_dy, expect_minor, rtol=0.03
-    ), f"Expected d_minor = {expect_minor}, but got {result_dy}"
+    assert np.isclose(result_dx, expect_major, rtol=0.03), f"Expected d_major = {expect_major}, but got {result_dx}"
+    assert np.isclose(result_dy, expect_minor, rtol=0.03), f"Expected d_minor = {expect_minor}, but got {result_dy}"
     assert np.isclose(rp, erp, rtol=0.03), f"Expected phi around {erp}°, but got {rp}°"
 
 

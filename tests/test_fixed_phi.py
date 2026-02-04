@@ -57,9 +57,7 @@ def test_fixed_45_examples():
 
 def test_fixed_30_examples():
     # -30°
-    beam2 = lbs.create_test_image(
-        h=600, v=600, xc_px=250, yc_px=350, d_major=150, d_minor=100, phi=-np.pi / 6
-    )
+    beam2 = lbs.create_test_image(h=600, v=600, xc_px=250, yc_px=350, d_major=150, d_minor=100, phi=-np.pi / 6)
     w = np.sqrt((150**2 + 100**2) / 2)
 
     cases2 = [

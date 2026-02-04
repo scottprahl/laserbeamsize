@@ -462,9 +462,7 @@ def plot_image_and_fit(
     # For display, use the same ISO-11146 background subtraction used by
     # plot_image_analysis (subplot 2,2,2). This drives the background toward
     # zero so that the colormap can put zero at gray.
-    working_image = subtract_iso_background(
-        image, corner_fraction=corner_fraction, nT=nT, iso_noise=iso_noise
-    )
+    working_image = subtract_iso_background(image, corner_fraction=corner_fraction, nT=nT, iso_noise=iso_noise)
 
     # Convert diameters to the requested units for the title
     d_major = d_major_px * scale
@@ -555,9 +553,7 @@ def plot_image_analysis(
     )
 
     # subtract background
-    working_image = subtract_iso_background(
-        image, corner_fraction=corner_fraction, nT=nT, iso_noise=iso_noise
-    )
+    working_image = subtract_iso_background(image, corner_fraction=corner_fraction, nT=nT, iso_noise=iso_noise)
     bkgnd, _ = iso_background(image, corner_fraction=corner_fraction, nT=nT)
 
     min_ = image.min()
@@ -625,9 +621,7 @@ def plot_image_analysis(
         r_minor_s = d_minor_px * scale / 2
         rect_minor_px = d_minor_px * diameters
         _, _, z_minor, s_minor_px = minor_axis_arrays(image, xc_px, yc_px, rect_minor_px, phi)
-        a_minor = (
-            np.sqrt(8 / np.pi) / d_minor_px * abs(np.sum(z_minor - bkgnd) * (s_minor_px[1] - s_minor_px[0]))
-        )
+        a_minor = np.sqrt(8 / np.pi) / d_minor_px * abs(np.sum(z_minor - bkgnd) * (s_minor_px[1] - s_minor_px[0]))
 
     baseline = float(a_major) * np.exp(-2 * (diameters / 2) ** 2) + bkgnd
     base_e2 = float(a_major) * np.exp(-2) + bkgnd
@@ -645,13 +639,9 @@ def plot_image_analysis(
     # double arrow and label
     plt.annotate("", (-r_major_s, base_e2), (r_major_s, base_e2), arrowprops={"arrowstyle": "<->"})
     if r_major_s < max(s_major_px) * scale / 2:
-        plt.text(
-            r_major_s, base_e2, "  $d_{major}$=%.0f %s" % (2 * r_major_s, units_str), va="center", ha="left"
-        )
+        plt.text(r_major_s, base_e2, "  $d_{major}$=%.0f %s" % (2 * r_major_s, units_str), va="center", ha="left")
     else:
-        plt.text(
-            0, 1.1 * base_e2, "$d_{major}$=%.0f %s" % (2 * r_major_s, units_str), va="bottom", ha="center"
-        )
+        plt.text(0, 1.1 * base_e2, "$d_{major}$=%.0f %s" % (2 * r_major_s, units_str), va="bottom", ha="center")
     plt.xlabel("Distance from Center [%s]" % units_str)
     plt.ylabel("Pixel Value")
     plt.title("Major Axis")
@@ -675,9 +665,7 @@ def plot_image_analysis(
                 ha="left",
             )
         else:
-            plt.text(
-                0, 1.1 * base_e2, "$d_{minor}$=%.0f %s" % (2 * r_minor_s, units_str), va="bottom", ha="center"
-            )
+            plt.text(0, 1.1 * base_e2, "$d_{minor}$=%.0f %s" % (2 * r_minor_s, units_str), va="bottom", ha="center")
 
         plt.text(0, bkgnd + a_minor, "  Gaussian Fit")
         plt.xlabel("Distance from Center [%s]" % units_str)
