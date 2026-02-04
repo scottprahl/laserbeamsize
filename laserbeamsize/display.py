@@ -591,7 +591,7 @@ def plot_image_analysis(
     # diameters in display units for a consistent title
     d_major = d_major_px * scale if d_major_px is not None else None
     d_minor = d_minor_px * scale if d_minor_px is not None else None
-    work_title = _format_beam_title(d_major, d_minor, units)
+    work_title = _format_beam_title(d_major, d_minor, units_str)
 
     _plot_image_with_beam_overlay(
         working_image,
