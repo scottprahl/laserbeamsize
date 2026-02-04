@@ -222,18 +222,18 @@ Citation
 
 If you use ``laserbeamsize`` in academic, instructional, or applied technical work, please cite:
 
-Prahl, S. (2025). *laserbeamsize: ISO 11146 Calculation of Laser Beam Center, Diameter, and M²* (Version 2.3.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.8346799
+Prahl, S. (2026). *laserbeamsize: ISO 11146 Calculation of Laser Beam Center, Diameter, and M²* (Version 2.3.1) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.8346799
 
 BibTeX
 ^^^^^^
 
 .. code-block:: bibtex
 
-   @software{laserbeamsize_prahl_2025,
+   @software{laserbeamsize_prahl_2026,
      author    = {Scott Prahl},
      title     = {laserbeamsize: ISO 11146 Calculation of Laser Beam Center, Diameter, and M²},
-     year      = {2025},
-     version   = {2.3.0},
+     year      = {2026},
+     version   = {2.3.1},
      doi       = {10.5281/zenodo.8346799},
      url       = {https://github.com/scottprahl/laserbeamsize},
      publisher = {Zenodo}
