@@ -258,10 +258,11 @@ lite-clean:
 .PHONY: realclean
 realclean: lite-clean clean
 	@echo "==> Deep cleaning: removing venv and deployment worktree"
-#	@git worktree remove "$(WORKTREE)" --force 2>/dev/null || true
 	@$(RMR) .cache
 	@$(RMR) .tmp
+	@$(RMR) .uv-cache
 	@$(RMR) "$(WORKTREE)"
 	@$(RMR) "$(VENV)"
 	@$(RMR) "docs/api"
 	@$(RMR) "docs/_templates"
+	@$(RM) "uv.lock"
