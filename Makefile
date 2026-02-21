@@ -22,7 +22,6 @@ OUT_DIR         := $(OUT_ROOT)/$(PACKAGE)
 STAGE_DIR       := $(ROOT)/.lite_src
 DOIT_DB         := $(ROOT)/.jupyterlite.doit.db
 LITE_CONFIG     := $(ROOT)/$(PACKAGE)/jupyter_lite_config.json
-LITE_CACHE_FILES := $(DOIT_DB) .doit.db .jupyterlite.doit.db.db
 
 # --- GitHub Pages deploy config ---
 PAGES_BRANCH    := gh-pages
@@ -154,7 +153,7 @@ lite: $(LITE_CONFIG)
 
 	@echo "==> Cleaning previous builds"
 	@$(RMR) "$(OUT_ROOT)"
-	@$(RM) $(LITE_CACHE_FILES)
+	@$(RM) $(DOIT_DB)
 	@echo "    ✓ Cleaned"
 
 	@echo "==> Staging notebooks & images from docs -> $(STAGE_DIR)"
@@ -235,7 +234,6 @@ clean:
 	@find . -name '.DS_Store' -type f -delete
 	@find . -name '.ipynb_checkpoints' -type d -prune -exec $(RMR) {} +
 	@find . -name '.pytest_cache' -type d -prune -exec $(RMR) {} +
-	@$(RMR) .cache
 	@$(RMR) .ruff_cache
 	@$(RMR) .yamllint
 	@$(RMR) $(PACKAGE).egg-info
@@ -254,6 +252,9 @@ lite-clean:
 	@$(RM) "$(DOIT_DB)"
 	@$(RMR) "_output"
 	@$(RMR) "_site"
+	@$(RMR) .cache
+	@$(RMR) $(PACKAGE).egg-info
+	@$(RMR) dist
 
 .PHONY: realclean
 realclean: lite-clean clean
