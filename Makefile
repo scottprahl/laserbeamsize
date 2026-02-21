@@ -1,14 +1,14 @@
 PACKAGE         := laserbeamsize
 GITHUB_USER     := scottprahl
 
-# -------- venv config --------
-PY_VERSION      ?= 3.12
+# -------- uv config --------
+PY_VERSION      ?= 3.14
 VENV            ?= .venv
-PY              := /opt/homebrew/opt/python@$(PY_VERSION)/bin/python$(PY_VERSION)
-PYTHON          := $(VENV)/bin/python
-SERVE_PY        := $(abspath $(PYTHON))
-PIP             := $(VENV)/bin/pip
+UV              ?= uv
 PYPROJECT       := pyproject.toml
+UV_EXTRAS       := --extra dev --extra docs --extra lite
+UV_SYNC_ARGS    := --python $(PY_VERSION) $(UV_EXTRAS)
+RUN             := $(UV) run $(UV_EXTRAS)
 
 BUILD_APPS      := lab
 DOCS_DIR        := docs
@@ -30,26 +30,19 @@ REMOTE          := origin
 HOST            := 127.0.0.1
 PORT            := 8000
 
-PYTEST          := $(VENV)/bin/pytest
-PYLINT          := $(VENV)/bin/pylint
-SPHINX          := $(VENV)/bin/sphinx-build
-RUFF            := $(VENV)/bin/ruff
-BLACK           := $(VENV)/bin/black
-CHECKMANIFEST   := $(VENV)/bin/check-manifest
-PYROMA          := $(PYTHON) -m pyroma
-RSTCHECK        := $(PYTHON) -m rstcheck
-YAMLLINT        := $(PYTHON) -m yamllint
-
 PYTEST_OPTS     :=
 SPHINX_OPTS     := -T -E -b html -d $(DOCS_DIR)/_build/doctrees -D language=en
-NOTEBOOK_RUN    := $(PYTEST) --verbose tests/all_test_notebooks.py
+PYLINT_TARGETS  := $(PACKAGE)/*.py tests/*.py .github/scripts/update_citation.py docs/conf.py
+YAML_TARGETS    := .github/workflows/citation.yaml .github/workflows/pypi.yaml .github/workflows/test.yaml .readthedocs.yaml
+RST_TARGETS     := README.rst CHANGELOG.rst $(DOCS_DIR)/index.rst $(DOCS_DIR)/changelog.rst $(wildcard $(DOCS_DIR)/jones-or-mueller.rst)
+RST_AUTOMODULE_TARGETS := $(wildcard $(DOCS_DIR)/$(PACKAGE).rst) $(DOCS_DIR)/analysis.rst $(DOCS_DIR)/background.rst $(DOCS_DIR)/display.rst $(DOCS_DIR)/image_tools.rst $(DOCS_DIR)/m2_display.rst $(DOCS_DIR)/m2_fit.rst
 
 .PHONY: help
 help:
 	@echo "Build Targets:"
 	@echo "  dist           - Build sdist+wheel locally"
 	@echo "  html           - Build Sphinx HTML documentation"
-	@echo "  venv           - Create/provision the virtual environment ($(VENV))"
+	@echo "  venv           - Sync project environment with uv ($(VENV))"
 	@echo "  lab            - Start jupyterlab"
 	@echo "  readme         - Generate images used in README.rst"
 	@echo ""
@@ -76,104 +69,58 @@ help:
 	@echo "  lite-clean     - Remove JupyterLite outputs"
 	@echo "  realclean      - clean + remove $(VENV)"
 
-# venv bootstrap
-$(VENV)/.ready: Makefile $(PYPROJECT)
-	@echo "==> Ensuring venv at $(VENV) using $(PY)"
-	@if [ ! -x "$(PY)" ]; then \
-		echo "❌ Homebrew Python $(PY_VERSION) not found at $(PY)"; \
-		echo "   Try: brew install python@$(PY_VERSION)"; \
-		exit 1; \
-	fi
-	@if [ ! -d "$(VENV)" ]; then \
-		"$(PY)" -m venv "$(VENV)"; \
-	fi
-	@$(PYTHON) -m pip -q install --upgrade pip wheel
-	@echo "==> Installing $(PACKAGE) + dev extras"
-	@$(PYTHON) -m pip install -q -e ".[dev,docs,lite]"
-	@touch "$(VENV)/.ready"
-	@echo "✅ venv ready"
-
 .PHONY: venv
-venv: $(VENV)/.ready
-	@:
+venv: $(PYPROJECT)
+	@echo "==> Syncing environment with uv"
+	@$(UV) sync $(UV_SYNC_ARGS)
+	@echo "✅ Environment synced"
 
 .PHONY: dist
-dist: $(VENV)/.ready
-	$(PYTHON) -m build
+dist:
+	$(RUN) python -m build
 	
 .PHONY: test
-test: $(VENV)/.ready
-	-$(PYTEST) $(PYTEST_OPTS) tests --ignore=tests/test_all_notebooks.py
+test:
+	-$(RUN) pytest $(PYTEST_OPTS) tests --ignore=tests/test_all_notebooks.py
 
 .PHONY: note-test
-note-test: $(VENV)/.ready
-	$(PYTEST) --verbose tests/test_all_notebooks.py
+note-test:
+	$(RUN) pytest --verbose tests/test_all_notebooks.py
 	@echo "✅ Notebook check complete"
 
 .PHONY: html
-html: $(VENV)/.ready
+html:
 	@mkdir -p "$(HTML_DIR)"
-	$(SPHINX) $(SPHINX_OPTS) "$(DOCS_DIR)" "$(HTML_DIR)"
+	$(RUN) sphinx-build $(SPHINX_OPTS) "$(DOCS_DIR)" "$(HTML_DIR)"
 	@command -v open >/dev/null 2>&1 && open "$(HTML_DIR)/index.html" || true
 
 .PHONY: lint
 lint: pylint-check
 
 .PHONY: pylint-check
-pylint-check: $(VENV)/.ready
-	-@$(PYLINT) $(PACKAGE)/__init__.py
-	-@$(PYLINT) $(PACKAGE)/analysis.py
-	-@$(PYLINT) $(PACKAGE)/background.py
-	-@$(PYLINT) $(PACKAGE)/display.py
-	-@$(PYLINT) $(PACKAGE)/gaussian.py
-	-@$(PYLINT) $(PACKAGE)/image_tools.py
-	-@$(PYLINT) $(PACKAGE)/m2_display.py
-	-@$(PYLINT) $(PACKAGE)/m2_fit.py
-	-@$(PYLINT) docs/conf.py
-	-@$(PYLINT) tests/human_test_for_phi_fixed.py
-	-@$(PYLINT) tests/test_all_notebooks.py
-	-@$(PYLINT) tests/test_back.py
-	-@$(PYLINT) tests/test_basic_beam_size.py
-	-@$(PYLINT) tests/test_fixed_phi.py
-	-@$(PYLINT) tests/test_gaussian.py
-	-@$(PYLINT) tests/test_iso_noise.py
-	-@$(PYLINT) tests/test_masks.py
-	-@$(PYLINT) tests/test_no_noise.py
-	-@$(PYLINT) tests/test_noise.py
-	-@$(PYLINT) tests/test_tools.py
-	-@$(PYLINT) .github/scripts/update_citation.py
+pylint-check:
+	-@$(RUN) pylint $(PYLINT_TARGETS)
 
 .PHONY: yaml-check
-yaml-check: $(VENV)/.ready
-	-@$(PYTHON) -m yamllint .github/workflows/citation.yaml
-	-@$(PYTHON) -m yamllint .github/workflows/pypi.yaml
-	-@$(PYTHON) -m yamllint .github/workflows/test.yaml
-	-@$(PYTHON) -m yamllint .readthedocs.yaml
+yaml-check:
+	-@$(RUN) yamllint $(YAML_TARGETS)
 
 .PHONY: rst-check
-rst-check: $(VENV)/.ready    ## Validate all RST files
-	-@$(RSTCHECK) README.rst
-	-@$(RSTCHECK) CHANGELOG.rst
-	-@$(RSTCHECK) $(DOCS_DIR)/index.rst
-	-@$(RSTCHECK) $(DOCS_DIR)/changelog.rst
-	-@$(RSTCHECK) --ignore-directives automodapi $(DOCS_DIR)/analysis.rst
-	-@$(RSTCHECK) --ignore-directives automodapi $(DOCS_DIR)/background.rst
-	-@$(RSTCHECK) --ignore-directives automodapi $(DOCS_DIR)/display.rst
-	-@$(RSTCHECK) --ignore-directives automodapi $(DOCS_DIR)/image_tools.rst
-	-@$(RSTCHECK) --ignore-directives automodapi $(DOCS_DIR)/m2_display.rst
-	-@$(RSTCHECK) --ignore-directives automodapi $(DOCS_DIR)/m2_fit.rst
+rst-check:    ## Validate all RST files
+	-@$(RUN) rstcheck $(RST_TARGETS)
+	-@$(RUN) rstcheck --ignore-directives automodapi $(RST_AUTOMODULE_TARGETS)
 
 .PHONY: ruff-check
-ruff-check: $(VENV)/.ready
-	$(RUFF) check
+ruff-check:
+	$(RUN) ruff check
 
 .PHONY: manifest-check
-manifest-check: $(VENV)/.ready
-	$(CHECKMANIFEST)
+manifest-check:
+	$(RUN) check-manifest
 
 .PHONY: pyroma-check
-pyroma-check: $(VENV)/.ready
-	$(PYROMA) -d .
+pyroma-check:
+	$(RUN) pyroma -d .
 
 .PHONY: rcheck
 rcheck:
@@ -193,14 +140,14 @@ rcheck:
 	@echo "✅ Release checks complete"
 
 .PHONY: readme
-readme: $(VENV)/.ready
+readme:
 	@echo "Creating readme images..."
-	@cd docs/images && ../../$(PYTHON) run_notebook.py readme_images.ipynb
+	@cd docs/images && $(RUN) python run_notebook.py readme_images.ipynb
 
 .PHONY: lite
-lite: $(VENV)/.ready $(LITE_CONFIG)
+lite: $(LITE_CONFIG)
 	@echo "==> Building package wheel for PyOdide"
-	@$(PYTHON) -m build
+	@$(RUN) python -m build
 
 	@echo "==> Checking for .gh-pages worktree"
 	@if [ -d "$(WORKTREE)" ]; then \
@@ -224,14 +171,14 @@ lite: $(VENV)/.ready $(LITE_CONFIG)
 	@/bin/rm -rf "$(STAGE_DIR)"; mkdir -p "$(STAGE_DIR)"
 	/bin/cp docs/*.ipynb "$(STAGE_DIR)"
 	echo "==> Clearing outputs from staged notebooks"
-	"$(PYTHON)" -m jupyter nbconvert --clear-output --inplace "$(STAGE_DIR)"/*.ipynb
+	$(RUN) python -m jupyter nbconvert --clear-output --inplace "$(STAGE_DIR)"/*.ipynb
 	@mkdir -p "$(STAGE_DIR)/images"
 	@/bin/cp docs/images/*.png "$(STAGE_DIR)/images/"
 	@/bin/cp docs/images/*.pgm "$(STAGE_DIR)/images/"
 	@/bin/cp docs/images/*.tif "$(STAGE_DIR)/images/"
 	@/bin/cp docs/images/*.npy "$(STAGE_DIR)/images/"
 	@echo "==> Building JupyterLite"
-	@"$(PYTHON)" -m jupyter lite build \
+	@$(RUN) python -m jupyter lite build \
 		--config="$(LITE_CONFIG)" \
 		--contents="$(STAGE_DIR)" \
 		--output-dir="$(OUT_DIR)"
@@ -242,12 +189,12 @@ lite: $(VENV)/.ready $(LITE_CONFIG)
 	@echo "✅ Build complete -> $(OUT_DIR)"
 
 .PHONY: lite-serve
-lite-serve: $(VENV)/.ready
+lite-serve:
 	@test -d "$(OUT_DIR)" || { echo "❌ run 'make lite' first"; exit 1; }
 	@echo "Serving at"
 	@echo "   http://$(HOST):$(PORT)/$(PACKAGE)/?disableCache=1"
 	@echo ""
-	"$(PYTHON)" -m http.server -d "$(OUT_ROOT)" --bind $(HOST) $(PORT)
+	$(RUN) python -m http.server -d "$(OUT_ROOT)" --bind $(HOST) $(PORT)
 
 .PHONY: lite-deploy
 lite-deploy: 
@@ -287,10 +234,8 @@ lite-deploy:
 
 .PHONY: lab
 lab:
-	@echo "==> Launching JupyterLab using venv ($(PYTHON))"
-	@echo "==> Make sure that you first run"
-	@echo "    source .venv/bin/activate"
-	"$(PYTHON)" -m jupyter lab --ServerApp.root_dir="$(CURDIR)"
+	@echo "==> Launching JupyterLab via uv"
+	$(RUN) python -m jupyter lab --ServerApp.root_dir="$(CURDIR)"
 
 .PHONY: clean
 clean:
