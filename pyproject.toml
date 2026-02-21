@@ -142,6 +142,7 @@ disable = [
     "consider-using-f-string",
     "too-many-statements",
     "duplicate-code",
+    "too-many-branches",
     "C0114",
     "C0116",
 ]

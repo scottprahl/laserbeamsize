@@ -22,6 +22,7 @@ OUT_DIR         := $(OUT_ROOT)/$(PACKAGE)
 STAGE_DIR       := $(ROOT)/.lite_src
 DOIT_DB         := $(ROOT)/.jupyterlite.doit.db
 LITE_CONFIG     := $(ROOT)/$(PACKAGE)/jupyter_lite_config.json
+LITE_CACHE_FILES := $(DOIT_DB) .doit.db .jupyterlite.doit.db.db
 
 # --- GitHub Pages deploy config ---
 PAGES_BRANCH    := gh-pages
@@ -151,34 +152,22 @@ lite: $(LITE_CONFIG)
 	@echo "==> Building package wheel for PyOdide"
 	@$(RUN) python -m build
 
-	@echo "==> Checking for .gh-pages worktree"
-	@if [ -d "$(WORKTREE)" ]; then \
-		echo "    Found .gh-pages worktree, removing..."; \
-		git worktree remove "$(WORKTREE)" --force 2>/dev/null || true; \
-		git worktree prune; \
-		$(RMR) "$(WORKTREE)"; \
-		echo "    ✓ Removed"; \
-	else \
-		echo "    No .gh-pages worktree found"; \
-	fi
-
 	@echo "==> Cleaning previous builds"
 	@$(RMR) "$(OUT_ROOT)"
-	@$(RM) "$(DOIT_DB)"
-	@$(RM) ".doit.db"
-	@$(RM) ".jupyterlite.doit.db.db"
+	@$(RM) $(LITE_CACHE_FILES)
 	@echo "    ✓ Cleaned"
 
-	@echo "==> Staging notebooks from docs -> $(STAGE_DIR)"
+	@echo "==> Staging notebooks & images from docs -> $(STAGE_DIR)"
 	@$(RMR) "$(STAGE_DIR)"; mkdir -p "$(STAGE_DIR)"
 	/bin/cp docs/*.ipynb "$(STAGE_DIR)"
 	echo "==> Clearing outputs from staged notebooks"
 	$(RUN) python -m jupyter nbconvert --clear-output --inplace "$(STAGE_DIR)"/*.ipynb
 	@mkdir -p "$(STAGE_DIR)/images"
-	@/bin/cp docs/images/*.png "$(STAGE_DIR)/images/"
-	@/bin/cp docs/images/*.pgm "$(STAGE_DIR)/images/"
-	@/bin/cp docs/images/*.tif "$(STAGE_DIR)/images/"
-	@/bin/cp docs/images/*.npy "$(STAGE_DIR)/images/"
+	@/bin/cp "$(DOCS_DIR)"/images/*.png "$(STAGE_DIR)/images/"
+	@/bin/cp "$(DOCS_DIR)"/images/*.pgm "$(STAGE_DIR)/images/"
+	@/bin/cp "$(DOCS_DIR)"/images/*.tif "$(STAGE_DIR)/images/"
+	@/bin/cp "$(DOCS_DIR)"/images/*.npy "$(STAGE_DIR)/images/"
+
 	@echo "==> Building JupyterLite"
 	@$(RUN) python -m jupyter lite build \
 		--config="$(LITE_CONFIG)" \
