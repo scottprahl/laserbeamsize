@@ -5,6 +5,7 @@ import laserbeamsize as lbs
 
 
 def test_plot_image_analysis_title_uses_pixels_by_default():
+    """Test plot image analysis title uses pixels by default."""
     h, v = 120, 140
     test_img = lbs.image_tools.create_test_image(h, v, 60, 70, 40, 30, 0.0)
 

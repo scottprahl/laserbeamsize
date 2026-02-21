@@ -19,6 +19,7 @@ def run_test(
     expect_phi=None,
     max_value=255,
 ):
+    """Helper for run test."""
     if expect_major is None:
         expect_major = d_major
     if expect_minor is None:
@@ -47,18 +48,22 @@ def run_test(
 
 
 def test_horizontal_ellipse():
+    """Test horizontal ellipse."""
     run_test(200, 200, 100, 50, 0)
 
 
 def test_vertical_ellipse_rotated():
+    """Test vertical ellipse rotated."""
     run_test(200, 200, 100, 50, np.pi / 6)
 
 
 def test_vertical_ellipse_negative_rotation():
+    """Test vertical ellipse negative rotation."""
     run_test(200, 200, 100, 50, -np.pi / 6)
 
 
 def test_ellipse_120_degree_rotation():
+    """Test ellipse 120 degree rotation."""
     run_test(
         200,
         200,
@@ -72,18 +77,22 @@ def test_ellipse_120_degree_rotation():
 
 
 def test_vertical_ellipse_no_rotation():
+    """Test vertical ellipse no rotation."""
     run_test(200, 200, 50, 100, 0, expect_major=100, expect_minor=50, expect_phi=np.pi / 2)
 
 
 def test_horizontal_ellipse_off_center():
+    """Test horizontal ellipse off center."""
     run_test(150, 300, 50, 100, np.pi / 6, expect_major=100, expect_minor=50, expect_phi=-np.pi / 3)
 
 
 def test_horizontal_ellipse_4048():
+    """Test horizontal ellipse 4048."""
     run_test(200, 200, 100, 50, 0, max_value=4047)
 
 
 def test_vertical_ellipse_rotated_4048():
+    """Test vertical ellipse rotated 4048."""
     run_test(200, 200, 100, 50, np.pi / 6, max_value=4047)
 
 

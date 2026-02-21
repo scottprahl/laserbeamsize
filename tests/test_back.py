@@ -9,6 +9,7 @@ import laserbeamsize as lbs
 
 # subtract_background_image
 def test_basic_subtraction():
+    """Test basic subtraction."""
     original = np.array([[10, 15, 20], [30, 35, 40]], dtype=float)
     background = np.array([[5, 5, 5], [5, 5, 5]], dtype=float)
     expected = np.array([[5, 10, 15], [25, 30, 35]], dtype=float)
@@ -18,6 +19,7 @@ def test_basic_subtraction():
 
 
 def test_negative_subtraction():
+    """Test negative subtraction."""
     original = np.array([[5, 10, 15], [10, 15, 20]], dtype=float)
     background = np.array([[10, 15, 20], [15, 20, 25]], dtype=float)
     expected = np.array([[-5, -5, -5], [-5, -5, -5]], dtype=float)
@@ -27,6 +29,7 @@ def test_negative_subtraction():
 
 
 def test_subtraction_type_float():
+    """Test subtraction type float."""
     original = np.array([[10, 15, 20], [30, 35, 40]], dtype=np.uint8)
     background = np.array([[5, 5, 5], [5, 5, 5]], dtype=np.uint8)
 
@@ -36,6 +39,7 @@ def test_subtraction_type_float():
 
 # subtract_constant
 def test_basic_subtract_constant():
+    """Test basic subtract constant."""
     original = np.array([[10, 15, 20], [30, 35, 40]], dtype=float)
     background = 5
     expected = np.array([[5, 10, 15], [25, 30, 35]], dtype=float)
@@ -45,6 +49,7 @@ def test_basic_subtract_constant():
 
 
 def test_negative_subtract_constant_iso_false():
+    """Test negative subtract constant iso false."""
     original = np.array([[5, 10, 15], [10, 15, 20]], dtype=float)
     background = 10
     expected = np.array([[0, 0, 5], [0, 5, 10]], dtype=float)
@@ -54,6 +59,7 @@ def test_negative_subtract_constant_iso_false():
 
 
 def test_negative_subtract_constant_iso_true():
+    """Test negative subtract constant iso true."""
     original = np.array([[5, 10, 15], [10, 15, 20]], dtype=float)
     background = 10
     expected = np.array([[-5, 0, 5], [0, 5, 10]], dtype=float)
@@ -63,6 +69,7 @@ def test_negative_subtract_constant_iso_true():
 
 
 def test_subtract_constant_type_float():
+    """Test subtract constant type float."""
     original = np.array([[10, 15, 20], [30, 35, 40]], dtype=np.uint8)
     background = 5
 
@@ -72,6 +79,7 @@ def test_subtract_constant_type_float():
 
 # corner_background
 def test_corner_known_mean_stdev():
+    """Test corner known mean stdev."""
     image = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]])
     corner_mean, corner_stdev = lbs.corner_background(image, 0.25)
     # considering the corners: 1, 4, 13, 16
@@ -82,6 +90,7 @@ def test_corner_known_mean_stdev():
 
 
 def test_corner_zero_corner_fraction():
+    """Test corner zero corner fraction."""
     image = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     corner_mean, corner_stdev = lbs.corner_background(image, 0)
     assert corner_mean == 0
@@ -89,6 +98,7 @@ def test_corner_zero_corner_fraction():
 
 
 def test_corner_varying_corner_fraction():
+    """Test corner varying corner fraction."""
     image = np.ones((100, 100))  # uniform image
     corner_mean, corner_stdev = lbs.corner_background(image, 0.05)
     assert corner_mean == 1
@@ -96,6 +106,7 @@ def test_corner_varying_corner_fraction():
 
 
 def test_corner_uniform_image():
+    """Test corner uniform image."""
     image = np.ones((100, 100))
     corner_mean, corner_stdev = lbs.corner_background(image, 0.05)
     assert corner_mean == 1
@@ -103,6 +114,7 @@ def test_corner_uniform_image():
 
 
 def test_corner_image_data_types():
+    """Test corner image data types."""
     image_float = np.ones((100, 100), dtype=float)
     image_int = np.ones((100, 100), dtype=int)
     corner_mean_float, corner_stdev_float = lbs.corner_background(image_float, 0.05)
@@ -112,6 +124,7 @@ def test_corner_image_data_types():
 
 
 def test_corner_test_image():
+    """Test corner test image."""
     h, v, xc, yc, dx, dy, phi = 400, 400, 200, 200, 50, 100, 0
     image = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi)
     corner_mean, corner_stdev = lbs.corner_background(image)
@@ -120,6 +133,7 @@ def test_corner_test_image():
 
 
 def test_corner_test_image_with_noise():
+    """Test corner test image with noise."""
     h, v, xc, yc, dx, dy, phi = 400, 400, 200, 200, 50, 100, 0
     noise = 20
     image = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, noise=noise)
@@ -130,6 +144,7 @@ def test_corner_test_image_with_noise():
 
 # iso_background
 def test_iso_known_mean_stdev():
+    """Test iso known mean stdev."""
     image = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]])
     corner_mean, corner_stdev = lbs.iso_background(image, 0.25)
     # considering the corners: 1, 4, 13, 16
@@ -140,6 +155,7 @@ def test_iso_known_mean_stdev():
 
 
 def test_iso_zero_corner_fraction():
+    """Test iso zero corner fraction."""
     image = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     try:
         lbs.iso_background(image, 0)
@@ -154,6 +170,7 @@ def test_iso_zero_corner_fraction():
 
 
 def test_iso_test_noise_only_image():
+    """Test iso test noise only image."""
     noise = 20
     image = np.random.poisson(noise, size=(400, 400))
     corner_mean, corner_stdev = lbs.iso_background(image)
@@ -162,6 +179,7 @@ def test_iso_test_noise_only_image():
 
 
 def test_iso_test_image_with_noise():
+    """Test iso test image with noise."""
     h, v, xc, yc, dx, dy, phi = 400, 400, 200, 200, 50, 100, 0
     noise = 20
     image = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, noise=noise)
@@ -171,6 +189,7 @@ def test_iso_test_image_with_noise():
 
 
 def test_iso_varying_corner_fraction():
+    """Test iso varying corner fraction."""
     h, v, xc, yc, dx, dy, phi = 400, 400, 200, 200, 50, 100, 0
     noise = 20
     image = lbs.image_tools.create_test_image(h, v, xc, yc, dx, dy, phi, noise=noise)
@@ -180,6 +199,7 @@ def test_iso_varying_corner_fraction():
 
 
 def test_iso_uniform_image():
+    """Test iso uniform image."""
     image = np.ones((100, 100))
     corner_mean, corner_stdev = lbs.iso_background(image)
     assert corner_mean == 1
@@ -187,6 +207,7 @@ def test_iso_uniform_image():
 
 
 def test_iso_image_data_types():
+    """Test iso image data types."""
     image_float = np.ones((100, 100), dtype=float)
     image_int = np.ones((100, 100), dtype=int)
     corner_mean_float, corner_stdev_float = lbs.iso_background(image_float, 0.05)

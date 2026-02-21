@@ -1,3 +1,5 @@
+"""Tests for mask-generation helpers."""
+
 import numpy as np
 import laserbeamsize as lbs
 
@@ -7,16 +9,19 @@ image = np.zeros((100, 100))
 
 # elliptical_mask()
 def test_elliptical_mask():
+    """Test elliptical mask."""
     mask = lbs.elliptical_mask(image, 50, 50, 40, 20, np.pi / 4)
     assert mask.shape == image.shape, "Mask shape mismatch"
 
 
 def test_elliptical_mask_same_shape():
+    """Test elliptical mask same shape."""
     mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
     assert mask.shape == image.shape, "Output mask shape mismatch with input image shape."
 
 
 def test_elliptical_mask_unrotated():
+    """Test elliptical mask unrotated."""
     mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
     assert not np.any(mask[:20, :])
     assert not np.any(mask[81:, :])
@@ -27,24 +32,28 @@ def test_elliptical_mask_unrotated():
 
 
 def test_elliptical_mask_rotated():
+    """Test elliptical mask rotated."""
     mask = lbs.elliptical_mask(image, 50, 50, 40, 60, np.pi / 4)  # 45-degree rotation
     unrotated_mask = lbs.elliptical_mask(image, 50, 50, 40, 60, 0)
     assert not np.array_equal(mask, unrotated_mask), "Rotated mask should not be the same as the unrotated one."
 
 
 def test_elliptical_mask_edge_cases():
+    """Test elliptical mask edge cases."""
     mask = lbs.elliptical_mask(image, 150, 150, 200, 200, 0)
     assert mask.shape == image.shape, "Output mask shape mismatch with input image shape for edge cases."
 
 
 # corner_mask()
 def test_corner_mask():
+    """Test corner mask."""
     mask = lbs.corner_mask(image)
     assert mask.shape == image.shape, "Mask shape mismatch"
     # You can check corners of the mask here.
 
 
 def test_corner_mask_default_fraction():
+    """Test corner mask default fraction."""
     mask = lbs.corner_mask(image)
     expected_true_pixels = 4 * (int(0.035 * 100)) ** 2  # for a 100x100 image
     msg = f"Expected {expected_true_pixels} True pixels, but got {np.sum(mask)}."
@@ -52,6 +61,7 @@ def test_corner_mask_default_fraction():
 
 
 def test_corner_mask_custom_fraction():
+    """Test corner mask custom fraction."""
     custom_fraction = 0.05  # 5%
     mask = lbs.corner_mask(image, corner_fraction=custom_fraction)
     expected_true_pixels = 4 * (custom_fraction * 100) ** 2
@@ -59,12 +69,14 @@ def test_corner_mask_custom_fraction():
 
 
 def test_corner_mask_large_image():
+    """Test corner mask large image."""
     large_image = np.zeros((1000, 1000))
     mask = lbs.corner_mask(large_image)
     assert mask.shape == large_image.shape, "Mask shape mismatch with large image"
 
 
 def test_mask_regions_are_correct():
+    """Test mask regions are correct."""
     mask = lbs.corner_mask(image)
     n, m = int(100 * 0.035), int(100 * 0.035)  # for a 100x100 image with default fraction
     # Ensure center of the mask is False
@@ -78,12 +90,14 @@ def test_mask_regions_are_correct():
 
 # perimeter_mask()
 def test_perimeter_mask():
+    """Test perimeter mask."""
     mask = lbs.perimeter_mask(image)
     assert mask.shape == image.shape, "Mask shape mismatch"
     # You can check the perimeter of the mask here.
 
 
 def test_perimeter_mask_basic():
+    """Test perimeter mask basic."""
     result = lbs.perimeter_mask(image)
     assert np.all(result[:3, :])
     assert np.all(result[-3:, :])
@@ -93,6 +107,7 @@ def test_perimeter_mask_basic():
 
 
 def test_perimeter_mask_fraction():
+    """Test perimeter mask fraction."""
     result = lbs.perimeter_mask(image, corner_fraction=0.1)
     assert np.all(result[:9, :])
     assert np.all(result[-9:, :])
@@ -102,6 +117,7 @@ def test_perimeter_mask_fraction():
 
 
 def test_perimeter_mask_odd_dimension():
+    """Test perimeter mask odd dimension."""
     image2 = np.zeros((101, 101), dtype=bool)
     result = lbs.perimeter_mask(image2)
     assert np.all(result[:3, :])
@@ -112,6 +128,7 @@ def test_perimeter_mask_odd_dimension():
 
 
 def test_perimeter_mask_non_square():
+    """Test perimeter mask non square."""
     image2 = np.zeros((150, 50), dtype=bool)
     result = lbs.perimeter_mask(image2)
     assert np.all(result[:5, :])  # 0.035*150 ~ 5.25 which rounds to 6
@@ -123,11 +140,13 @@ def test_perimeter_mask_non_square():
 
 # rotated_rect_mask_slow()
 def test_rotated_rect_mask_slow():
+    """Test rotated rect mask slow."""
     mask = lbs.background.rotated_rect_mask_slow(image, 50, 50, 40, 20, np.pi / 4)
     assert mask.shape == image.shape, "Mask shape mismatch"
 
 
 def test_rotated_rect_mask():
+    """Test rotated rect mask."""
     mask = lbs.rotated_rect_mask(image, 50, 50, 40, 20, np.pi / 4)
     assert mask.shape == image.shape, "Mask shape mismatch"
 

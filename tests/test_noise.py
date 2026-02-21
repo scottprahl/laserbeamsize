@@ -8,7 +8,7 @@ interactive = False
 
 
 def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_value=255, tol=0.05):
-
+    """Helper for run test."""
     test_img = lbs.image_tools.create_test_image(
         h, v, xc, yc, dx, dy, phi, noise=noise, ntype=ntype, max_value=max_value
     )
@@ -34,69 +34,82 @@ def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_value=255,
 
 # constant
 def test_constant_noise_0():
+    """Test constant noise 0."""
     noise = 0
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="constant")
 
 
 def test_constant_noise_20():
+    """Test constant noise 20."""
     noise = 20
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="constant")
 
 
 def test_constant_noise_50():
+    """Test constant noise 50."""
     noise = 50
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="constant")
 
 
 def test_constant_noise_50a():
+    """Test constant noise 50a."""
     noise = 50
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="constant", max_value=4047)
 
 
 # uniform
 def test_uniform_noise_10():
+    """Test uniform noise 10."""
     noise = 10
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="uniform", tol=0.15)
 
 
 def test_uniform_noise_20a():
+    """Test uniform noise 20a."""
     noise = 20
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="uniform", max_value=4047)
 
 
 def test_uniform_noise_50a():
+    """Test uniform noise 50a."""
     noise = 50
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="uniform", max_value=4047)
 
 
 # poisson
 def test_poisson_noise_20():
+    """Test poisson noise 20."""
     noise = 20
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="poisson", tol=0.15)
 
 
 def test_poisson_noise_20a():
+    """Test poisson noise 20a."""
     noise = 20
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="poisson", max_value=4047)
 
 
 def test_poisson_noise_50a():
+    """Test poisson noise 50a."""
     noise = 50
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="poisson", max_value=4047)
 
 
 # gaussian
 def test_gaussian_noise_20():
+    """Test gaussian noise 20."""
     noise = 20
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="gaussian", tol=0.15)
 
 
 def test_gaussian_noise_20a():
+    """Test gaussian noise 20a."""
     noise = 20
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="gaussian", max_value=4047)
 
 
 def test_gaussian_noise_50a():
+    """Test gaussian noise 50a."""
     noise = 50
     run_test(400, 400, 200, 200, 100, 50, 0, noise, ntype="gaussian", max_value=4047)
 

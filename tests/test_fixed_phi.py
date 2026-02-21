@@ -1,24 +1,30 @@
+"""Tests for beam-size computations with fixed phi."""
+
 import numpy as np
 import laserbeamsize as lbs
 
 
 def create_image(phi=np.pi / 6):
+    """Helper for create image."""
     return lbs.image_tools.create_test_image(400, 400, 200, 200, 80, 40, phi)
 
 
 def test_basic_beam_size_phi_returned():
+    """Test basic beam size phi returned."""
     image = create_image()
     result = lbs.basic_beam_size(image, phi_fixed=0)
     assert np.isclose(result[4], 0)
 
 
 def test_beam_size_phi_returned():
+    """Test beam size phi returned."""
     image = create_image()
     result = lbs.beam_size(image, phi_fixed=-np.pi / 3)
     assert np.isclose(result[4], -np.pi / 3)
 
 
 def _run_case(image, phi_arg, expected_xc, expected_yc, expect_major, expect_minor, expected_phi):
+    """Helper for run case."""
     result = lbs.beam_size(image, phi_fixed=phi_arg)
     #     if phi_arg is None:
     #         print("phi fixed is none")
@@ -41,6 +47,7 @@ def _run_case(image, phi_arg, expected_xc, expected_yc, expect_major, expect_min
 
 def test_fixed_45_examples():
     # 45°
+    """Test fixed 45 examples."""
     beam1 = lbs.create_test_image(h=600, v=600, xc_px=300, yc_px=300, d_major=150, d_minor=100, phi=np.pi / 4)
     w = np.sqrt((150**2 + 100**2) / 2)
 
@@ -57,6 +64,7 @@ def test_fixed_45_examples():
 
 def test_fixed_30_examples():
     # -30°
+    """Test fixed 30 examples."""
     beam2 = lbs.create_test_image(h=600, v=600, xc_px=250, yc_px=350, d_major=150, d_minor=100, phi=-np.pi / 6)
     w = np.sqrt((150**2 + 100**2) / 2)
 

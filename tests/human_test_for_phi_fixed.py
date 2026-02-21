@@ -1,3 +1,5 @@
+"""Manual checks for fixed-phi beam-size behavior."""
+
 import numpy as np
 import laserbeamsize as lbs
 
