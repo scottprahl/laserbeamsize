@@ -9,6 +9,8 @@ PYPROJECT       := pyproject.toml
 UV_EXTRAS       := --extra dev --extra docs --extra lite
 UV_SYNC_ARGS    := --python $(PY_VERSION) $(UV_EXTRAS)
 RUN             := $(UV) run $(UV_EXTRAS)
+RM              ?= rm -f
+RMR             ?= rm -rf
 
 BUILD_APPS      := lab
 DOCS_DIR        := docs
@@ -154,21 +156,21 @@ lite: $(LITE_CONFIG)
 		echo "    Found .gh-pages worktree, removing..."; \
 		git worktree remove "$(WORKTREE)" --force 2>/dev/null || true; \
 		git worktree prune; \
-		rm -rf "$(WORKTREE)"; \
+		$(RMR) "$(WORKTREE)"; \
 		echo "    ✓ Removed"; \
 	else \
 		echo "    No .gh-pages worktree found"; \
 	fi
 
 	@echo "==> Cleaning previous builds"
-	@/bin/rm -rf "$(OUT_ROOT)"
-	@/bin/rm -rf "$(DOIT_DB)"
-	@/bin/rm -rf ".doit.db"
-	@/bin/rm -rf ".jupyterlite.doit.db.db"
+	@$(RMR) "$(OUT_ROOT)"
+	@$(RM) "$(DOIT_DB)"
+	@$(RM) ".doit.db"
+	@$(RM) ".jupyterlite.doit.db.db"
 	@echo "    ✓ Cleaned"
 
 	@echo "==> Staging notebooks from docs -> $(STAGE_DIR)"
-	@/bin/rm -rf "$(STAGE_DIR)"; mkdir -p "$(STAGE_DIR)"
+	@$(RMR) "$(STAGE_DIR)"; mkdir -p "$(STAGE_DIR)"
 	/bin/cp docs/*.ipynb "$(STAGE_DIR)"
 	echo "==> Clearing outputs from staged notebooks"
 	$(RUN) python -m jupyter nbconvert --clear-output --inplace "$(STAGE_DIR)"/*.ipynb
@@ -212,7 +214,7 @@ lite-deploy:
 	@echo "==> Setup deployment worktree"
 	@git worktree remove "$(WORKTREE)" --force 2>/dev/null || true
 	@git worktree prune || true
-	@rm -rf "$(WORKTREE)"
+	@$(RMR) "$(WORKTREE)"
 	@git worktree add "$(WORKTREE)" "$(PAGES_BRANCH)"
 	@git -C "$(WORKTREE)" pull "$(REMOTE)" "$(PAGES_BRANCH)" 2>/dev/null || true
 
@@ -240,37 +242,37 @@ lab:
 .PHONY: clean
 clean:
 	@echo "==> Cleaning build artifacts"	
-	@find . -name '__pycache__' -type d -exec rm -rf {} +
+	@find . -name '__pycache__' -type d -exec $(RMR) {} +
 	@find . -name '.DS_Store' -type f -delete
-	@find . -name '.ipynb_checkpoints' -type d -prune -exec rm -rf {} +
-	@find . -name '.pytest_cache' -type d -prune -exec rm -rf {} +
-	@/bin/rm -rf .cache
-	@/bin/rm -rf .ruff_cache
-	@/bin/rm -rf .yamllint
-	@/bin/rm -rf $(PACKAGE).egg-info
-	@/bin/rm -rf docs/api
-	@/bin/rm -rf docs/_build
-	@/bin/rm -rf tests/charts
-	@/bin/rm -rf dist
+	@find . -name '.ipynb_checkpoints' -type d -prune -exec $(RMR) {} +
+	@find . -name '.pytest_cache' -type d -prune -exec $(RMR) {} +
+	@$(RMR) .cache
+	@$(RMR) .ruff_cache
+	@$(RMR) .yamllint
+	@$(RMR) $(PACKAGE).egg-info
+	@$(RMR) docs/api
+	@$(RMR) docs/_build
+	@$(RMR) tests/charts
+	@$(RMR) dist
 
 
 .PHONY: lite-clean
 lite-clean:
 	@echo "==> Cleaning JupyterLite build artifacts"
-	@/bin/rm -rf "$(STAGE_DIR)"
-	@/bin/rm -rf "$(OUT_ROOT)"
-	@/bin/rm -rf ".lite_src"
-	@/bin/rm -rf "$(DOIT_DB)"
-	@/bin/rm -rf "_output"
-	@/bin/rm -rf "_site"
+	@$(RMR) "$(STAGE_DIR)"
+	@$(RMR) "$(OUT_ROOT)"
+	@$(RMR) ".lite_src"
+	@$(RM) "$(DOIT_DB)"
+	@$(RMR) "_output"
+	@$(RMR) "_site"
 
 .PHONY: realclean
 realclean: lite-clean clean
 	@echo "==> Deep cleaning: removing venv and deployment worktree"
 #	@git worktree remove "$(WORKTREE)" --force 2>/dev/null || true
-	@/bin/rm -rf .cache
-	@/bin/rm -rf .tmp
-	@/bin/rm -rf "$(WORKTREE)"
-	@/bin/rm -rf "$(VENV)"
-	@/bin/rm -rf "docs/api"
-	@/bin/rm -rf "docs/_templates"
+	@$(RMR) .cache
+	@$(RMR) .tmp
+	@$(RMR) "$(WORKTREE)"
+	@$(RMR) "$(VENV)"
+	@$(RMR) "docs/api"
+	@$(RMR) "docs/_templates"
