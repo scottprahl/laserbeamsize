@@ -1,27 +1,21 @@
 PACKAGE         := laserbeamsize
 GITHUB_USER     := scottprahl
 
-# -------- uv config --------
 PY_VERSION      ?= 3.14
-VENV            ?= .venv
 UV              ?= uv
-PYPROJECT       := pyproject.toml
-UV_EXTRAS       := --extra dev --extra docs --extra lite
-UV_SYNC_ARGS    := --python $(PY_VERSION) $(UV_EXTRAS)
-RUN             := $(UV) run $(UV_EXTRAS)
+RUN             := $(UV) run --extra dev
+RUN_DOCS        := $(UV) run --extra docs
+RUN_LITE        := $(UV) run --extra lite
 RM              ?= rm -f
 RMR             ?= rm -rf
 
-BUILD_APPS      := lab
 DOCS_DIR        := docs
 HTML_DIR        := $(DOCS_DIR)/_build/html
-
-ROOT            := $(abspath .)
-OUT_ROOT        := $(ROOT)/_site
+OUT_ROOT        := _site
 OUT_DIR         := $(OUT_ROOT)/$(PACKAGE)
-STAGE_DIR       := $(ROOT)/.lite_src
-DOIT_DB         := $(ROOT)/.jupyterlite.doit.db
-LITE_CONFIG     := $(ROOT)/$(PACKAGE)/jupyter_lite_config.json
+STAGE_DIR       := .lite_src
+DOIT_DB         := .jupyterlite.doit.db
+LITE_CONFIG     := $(PACKAGE)/jupyter_lite_config.json
 
 # --- GitHub Pages deploy config ---
 PAGES_BRANCH    := gh-pages
@@ -44,9 +38,9 @@ help:
 	@echo "Build Targets:"
 	@echo "  dist           - Build sdist+wheel locally"
 	@echo "  html           - Build Sphinx HTML documentation"
-	@echo "  venv           - Sync project environment with uv ($(VENV))"
 	@echo "  lab            - Start jupyterlab"
 	@echo "  readme         - Generate images used in README.rst"
+	@echo "  venv           - Install dependencies with uv"
 	@echo ""
 	@echo "Test Targets:"
 	@echo "  test           - Run pytest on python files"
@@ -72,10 +66,8 @@ help:
 	@echo "  realclean      - clean + remove $(VENV)"
 
 .PHONY: venv
-venv: $(PYPROJECT)
-	@echo "==> Syncing environment with uv"
-	@$(UV) sync $(UV_SYNC_ARGS)
-	@echo "✅ Environment synced"
+venv:
+	@$(UV) sync --python $(PY_VERSION) --extra dev --extra docs --extra lite
 
 .PHONY: dist
 dist:
@@ -88,12 +80,11 @@ test:
 .PHONY: note-test
 note-test:
 	$(RUN) pytest --verbose tests/test_all_notebooks.py
-	@echo "✅ Notebook check complete"
 
 .PHONY: html
 html:
 	@mkdir -p "$(HTML_DIR)"
-	$(RUN) sphinx-build $(SPHINX_OPTS) "$(DOCS_DIR)" "$(HTML_DIR)"
+	$(RUN_DOCS) sphinx-build $(SPHINX_OPTS) "$(DOCS_DIR)" "$(HTML_DIR)"
 	@command -v open >/dev/null 2>&1 && open "$(HTML_DIR)/index.html" || true
 
 .PHONY: lint
@@ -147,19 +138,10 @@ readme:
 	@cd docs/images && $(RUN) python run_notebook.py readme_images.ipynb
 
 .PHONY: lite
-lite: $(LITE_CONFIG)
-	@echo "==> Building package wheel for PyOdide"
-	@$(RUN) python -m build
-
-	@echo "==> Cleaning previous builds"
-	@$(RMR) "$(OUT_ROOT)"
-	@$(RM) $(DOIT_DB)
-	@echo "    ✓ Cleaned"
-
+lite: lite-clean $(LITE_CONFIG) dist
 	@echo "==> Staging notebooks & images from docs -> $(STAGE_DIR)"
 	@$(RMR) "$(STAGE_DIR)"; mkdir -p "$(STAGE_DIR)"
 	/bin/cp docs/*.ipynb "$(STAGE_DIR)"
-	echo "==> Clearing outputs from staged notebooks"
 	$(RUN) python -m jupyter nbconvert --clear-output --inplace "$(STAGE_DIR)"/*.ipynb
 	@mkdir -p "$(STAGE_DIR)/images"
 	@/bin/cp "$(DOCS_DIR)"/images/*.png "$(STAGE_DIR)/images/"
@@ -168,15 +150,11 @@ lite: $(LITE_CONFIG)
 	@/bin/cp "$(DOCS_DIR)"/images/*.npy "$(STAGE_DIR)/images/"
 
 	@echo "==> Building JupyterLite"
-	@$(RUN) python -m jupyter lite build \
+	@$(RUN_LITE) python -m jupyter lite build \
 		--config="$(LITE_CONFIG)" \
 		--contents="$(STAGE_DIR)" \
 		--output-dir="$(OUT_DIR)"
-
-	@echo "==> Adding .nojekyll for GitHub Pages"
-	@touch "$(OUT_DIR)/.nojekyll"
-	
-	@echo "✅ Build complete -> $(OUT_DIR)"
+	@touch "$(OUT_DIR)/.nojekyll"  # Adding .nojekyll for GitHub Pages
 
 .PHONY: lite-serve
 lite-serve:
@@ -224,46 +202,34 @@ lite-deploy:
 
 .PHONY: lab
 lab:
-	@echo "==> Launching JupyterLab via uv"
+	@echo "==> Launching JupyterLab with uv-managed environment"
 	$(RUN) python -m jupyter lab --ServerApp.root_dir="$(CURDIR)"
-
-.PHONY: clean
-clean:
-	@echo "==> Cleaning build artifacts"	
-	@find . -name '__pycache__' -type d -exec $(RMR) {} +
-	@find . -name '.DS_Store' -type f -delete
-	@find . -name '.ipynb_checkpoints' -type d -prune -exec $(RMR) {} +
-	@find . -name '.pytest_cache' -type d -prune -exec $(RMR) {} +
-	@$(RMR) .ruff_cache
-	@$(RMR) .yamllint
-	@$(RMR) $(PACKAGE).egg-info
-	@$(RMR) docs/api
-	@$(RMR) docs/_build
-	@$(RMR) tests/charts
-	@$(RMR) dist
-
 
 .PHONY: lite-clean
 lite-clean:
 	@echo "==> Cleaning JupyterLite build artifacts"
 	@$(RMR) "$(STAGE_DIR)"
 	@$(RMR) "$(OUT_ROOT)"
-	@$(RMR) ".lite_src"
-	@$(RM) "$(DOIT_DB)"
-	@$(RMR) "_output"
-	@$(RMR) "_site"
-	@$(RMR) .cache
-	@$(RMR) $(PACKAGE).egg-info
-	@$(RMR) dist
+	@$(RMR) "$(DOIT_DB)"
+	@$(RMR) .cache dist $(PACKAGE).egg-info
+
+.PHONY: clean
+clean: lite-clean
+	@echo "==> Cleaning build artifacts"	
+	@find . -name '__pycache__' -type d -exec $(RMR) {} +
+	@find . -name '.DS_Store' -type f -delete
+	@find . -name '.ipynb_checkpoints' -type d -prune -exec $(RMR) {} +
+	@find . -name '.pytest_cache' -type d -prune -exec $(RMR) {} +
+	@$(RMR) .ruff_cache
+	@$(RMR) docs/api
+	@$(RMR) docs/_build
+
 
 .PHONY: realclean
-realclean: lite-clean clean
+realclean: clean
 	@echo "==> Deep cleaning: removing venv and deployment worktree"
-	@$(RMR) .cache
-	@$(RMR) .tmp
-	@$(RMR) .uv-cache
-	@$(RMR) "$(WORKTREE)"
-	@$(RMR) "$(VENV)"
-	@$(RMR) "docs/api"
-	@$(RMR) "docs/_templates"
-	@$(RM) "uv.lock"
+	@git worktree remove "$(WORKTREE)" --force 2>/dev/null || true
+	@git worktree prune || true
+	$(RMR) "$(WORKTREE)"
+	$(RMR) .venv
+	@$(RM) uv.lock
