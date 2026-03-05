@@ -402,85 +402,125 @@ def M2_report(z, d_major, lambda0, d_minor=None, f=None, strict=False, z0=None, 
         s = _M2_report(z, d_major, lambda0, f=f, strict=strict, z0=z0, d0=d0)
         return s
 
-    params, errors, _ = M2_fit(z, d_major, lambda0, strict=strict, z0=z0, d0=d0)
-    d0x, z0x, Thetax, M2x, zRx = params
-    d0x_std, z0x_std, Thetax_std, M2x_std, zRx_std = errors
+    px, ex, _ = M2_fit(z, d_major, lambda0, strict=strict, z0=z0, d0=d0)
+    py, ey, _ = M2_fit(z, d_minor, lambda0, strict=strict, z0=z0, d0=d0)
 
-    params, errors, _ = M2_fit(z, d_minor, lambda0, strict=strict, z0=z0, d0=d0)
-    d0y, z0y, Thetay, M2y, zRy = params
-    d0y_std, z0y_std, Thetay_std, M2y_std, zRy_std = errors
+    def _stats(params_x, errors_x, params_y, errors_y):
+        d0x_, z0x_, Thetax_, M2x_, zRx_ = params_x
+        d0x_std_, z0x_std_, Thetax_std_, M2x_std_, zRx_std_ = errors_x
+        d0y_, z0y_, Thetay_, M2y_, zRy_ = params_y
+        d0y_std_, z0y_std_, Thetay_std_, M2y_std_, zRy_std_ = errors_y
 
-    z0 = (z0x + z0y) / 2
-    z0_std = np.sqrt(z0x_std**2 + z0y_std**2)
+        z0_ = (z0x_ + z0y_) / 2
+        z0_std_ = np.sqrt(z0x_std_**2 + z0y_std_**2)
+        d0_ = (d0x_ + d0y_) / 2
+        d0_std_ = np.sqrt(d0x_std_**2 + d0y_std_**2)
+        zR_ = (zRx_ + zRy_) / 2
+        zR_std_ = np.sqrt(zRx_std_**2 + zRy_std_**2)
+        Theta_ = (Thetax_ + Thetay_) / 2
+        Theta_std_ = np.sqrt(Thetax_std_**2 + Thetay_std_**2)
+        M2_ = np.sqrt(M2x_ * M2y_)
+        M2_std_ = np.sqrt(M2x_std_**2 + M2y_std_**2)
 
-    d0 = (d0x + d0y) / 2
-    d0_std = np.sqrt(d0x_std**2 + d0y_std**2)
+        BPP_, BPP_std_ = beam_parameter_product(Theta_, d0_, Theta_std_, d0_std_)
+        BPPx_, BPPx_std_ = beam_parameter_product(Thetax_, d0x_, Thetax_std_, d0x_std_)
+        BPPy_, BPPy_std_ = beam_parameter_product(Thetay_, d0y_, Thetay_std_, d0y_std_)
 
-    zR = (zRx + zRy) / 2
-    zR_std = np.sqrt(zRx_std**2 + zRy_std**2)
+        return {
+            "d0": d0_,
+            "z0": z0_,
+            "Theta": Theta_,
+            "M2": M2_,
+            "zR": zR_,
+            "d0_std": d0_std_,
+            "z0_std": z0_std_,
+            "Theta_std": Theta_std_,
+            "M2_std": M2_std_,
+            "zR_std": zR_std_,
+            "d0x": d0x_,
+            "z0x": z0x_,
+            "Thetax": Thetax_,
+            "M2x": M2x_,
+            "zRx": zRx_,
+            "d0x_std": d0x_std_,
+            "z0x_std": z0x_std_,
+            "Thetax_std": Thetax_std_,
+            "M2x_std": M2x_std_,
+            "zRx_std": zRx_std_,
+            "d0y": d0y_,
+            "z0y": z0y_,
+            "Thetay": Thetay_,
+            "M2y": M2y_,
+            "zRy": zRy_,
+            "d0y_std": d0y_std_,
+            "z0y_std": z0y_std_,
+            "Thetay_std": Thetay_std_,
+            "M2y_std": M2y_std_,
+            "zRy_std": zRy_std_,
+            "BPP": BPP_,
+            "BPP_std": BPP_std_,
+            "BPPx": BPPx_,
+            "BPPx_std": BPPx_std_,
+            "BPPy": BPPy_,
+            "BPPy_std": BPPy_std_,
+        }
 
-    Theta = (Thetax + Thetay) / 2
-    Theta_std = np.sqrt(Thetax_std**2 + Thetay_std**2)
+    def _format_stats(tag, svals):
+        s = ""
+        s += "Beam Propagation Ratio%s\n" % tag
+        s += "        M2 = %.2f ± %.2f\n" % (svals["M2"], svals["M2_std"])
+        s += "       M2x = %.2f ± %.2f\n" % (svals["M2x"], svals["M2x_std"])
+        s += "       M2y = %.2f ± %.2f\n" % (svals["M2y"], svals["M2y_std"])
 
-    M2 = np.sqrt(M2x * M2y)
-    M2_std = np.sqrt(M2x_std**2 + M2y_std**2)
+        s += "Beam waist diameter%s\n" % tag
+        s += "        d0 = %.0f ± %.0f µm\n" % (svals["d0"] * 1e6, svals["d0_std"] * 1e6)
+        s += "       d0x = %.0f ± %.0f µm\n" % (svals["d0x"] * 1e6, svals["d0x_std"] * 1e6)
+        s += "       d0y = %.0f ± %.0f µm\n" % (svals["d0y"] * 1e6, svals["d0y_std"] * 1e6)
 
-    BPP, BPP_std = beam_parameter_product(Theta, d0, Theta_std, d0_std)
-    BPPx, BPPx_std = beam_parameter_product(Thetax, d0x, Thetax_std, d0x_std)
-    BPPy, BPPy_std = beam_parameter_product(Thetay, d0y, Thetay_std, d0y_std)
+        s += "Beam waist location%s\n" % tag
+        s += "        z0 = %.0f ± %.0f mm\n" % (svals["z0"] * 1e3, svals["z0_std"] * 1e3)
+        s += "       z0x = %.0f ± %.0f mm\n" % (svals["z0x"] * 1e3, svals["z0x_std"] * 1e3)
+        s += "       z0y = %.0f ± %.0f mm\n" % (svals["z0y"] * 1e3, svals["z0y_std"] * 1e3)
+
+        s += "Rayleigh Length%s\n" % tag
+        s += "        zR = %.0f ± %.0f mm\n" % (svals["zR"] * 1e3, svals["zR_std"] * 1e3)
+        s += "       zRx = %.0f ± %.0f mm\n" % (svals["zRx"] * 1e3, svals["zRx_std"] * 1e3)
+        s += "       zRy = %.0f ± %.0f mm\n" % (svals["zRy"] * 1e3, svals["zRy_std"] * 1e3)
+
+        s += "Divergence Angle%s\n" % tag
+        s += "     theta = %.2f ± %.2f milliradians\n" % (svals["Theta"] * 1e3, svals["Theta_std"] * 1e3)
+        s += "   theta_x = %.2f ± %.2f milliradians\n" % (
+            svals["Thetax"] * 1e3,
+            svals["Thetax_std"] * 1e3,
+        )
+        s += "   theta_y = %.2f ± %.2f milliradians\n" % (
+            svals["Thetay"] * 1e3,
+            svals["Thetay_std"] * 1e3,
+        )
+
+        s += "Beam parameter product%s\n" % tag
+        s += "       BPP = %.2f ± %.2f mm * mrad\n" % (svals["BPP"] * 1e6, svals["BPP_std"] * 1e6)
+        s += "     BPP_x = %.2f ± %.2f mm * mrad\n" % (svals["BPPx"] * 1e6, svals["BPPx_std"] * 1e6)
+        s += "     BPP_y = %.2f ± %.2f mm * mrad\n" % (svals["BPPy"] * 1e6, svals["BPPy_std"] * 1e6)
+        return s
 
     tag = ""
     if f is not None:
         tag = " of the focused beam"
 
-    s = "Beam propagation parameters derived from hyperbolic fit\n"
-    s += "Beam Propagation Ratio%s\n" % tag
-    s += "        M2 = %.2f ± %.2f\n" % (M2, M2_std)
-    s += "       M2x = %.2f ± %.2f\n" % (M2x, M2x_std)
-    s += "       M2y = %.2f ± %.2f\n" % (M2y, M2y_std)
-
-    s += "Beam waist diameter%s\n" % tag
-    s += "        d0 = %.0f ± %.0f µm\n" % (d0 * 1e6, d0_std * 1e6)
-    s += "       d0x = %.0f ± %.0f µm\n" % (d0x * 1e6, d0x_std * 1e6)
-    s += "       d0y = %.0f ± %.0f µm\n" % (d0y * 1e6, d0y_std * 1e6)
-
-    s += "Beam waist location%s\n" % tag
-    s += "        z0 = %.0f ± %.0f mm\n" % (z0 * 1e3, z0_std * 1e3)
-    s += "       z0x = %.0f ± %.0f mm\n" % (z0x * 1e3, z0x_std * 1e3)
-    s += "       z0y = %.0f ± %.0f mm\n" % (z0y * 1e3, z0y_std * 1e3)
-
-    s += "Rayleigh Length%s\n" % tag
-    s += "        zR = %.0f ± %.0f mm\n" % (zR * 1e3, zR_std * 1e3)
-    s += "       zRx = %.0f ± %.0f mm\n" % (zRx * 1e3, zRx_std * 1e3)
-    s += "       zRy = %.0f ± %.0f mm\n" % (zRy * 1e3, zRy_std * 1e3)
-
-    s += "Divergence Angle%s\n" % tag
-    s += "     theta = %.2f ± %.2f milliradians\n" % (Theta * 1e3, Theta_std * 1e3)
-    s += "   theta_x = %.2f ± %.2f milliradians\n" % (Thetax * 1e3, Thetax_std * 1e3)
-    s += "   theta_y = %.2f ± %.2f milliradians\n" % (Thetay * 1e3, Thetay_std * 1e3)
-
-    s += "Beam parameter product%s\n" % tag
-    s += "       BPP = %.2f ± %.2f mm * mrad\n" % (BPP * 1e6, BPP_std * 1e6)
-    s += "     BPP_x = %.2f ± %.2f mm * mrad\n" % (BPPx * 1e6, BPPx_std * 1e6)
-    s += "     BPP_y = %.2f ± %.2f mm * mrad\n" % (BPPy * 1e6, BPPy_std * 1e6)
+    focused = _stats(px, ex, py, ey)
+    s = "=" * 60 + "\n"
+    s += "Beam propagation parameters derived from hyperbolic fit\n"
+    s += "=" * 60 + "\n"
+    s += _format_stats(tag, focused)
     if f is None:
         return s
 
-    # needs to be completed
-    x2 = z0x - f
-    y2 = z0y - f
-    r2 = z0 - f
-
-    Vx = f / np.sqrt(zRx**2 + x2**2)
-    Vy = f / np.sqrt(zRy**2 + y2**2)
-    V = f / np.sqrt(zR**2 + r2**2)
-
-    d0x *= Vx
-    d0y *= Vy
-    d0 *= V
-
-    z0x = Vx**2 * x2 + f
-    z0y = Vy**2 * y2 + f
-    z0 = V**2 * r2 + f
-
+    # ISO 11146-1:2005, clause 9 equations (30)-(35), applied separately
+    # to both principal axes of the focused (artificial waist) beam.
+    opx, oex = artificial_to_original(px, ex, f)
+    opy, oey = artificial_to_original(py, ey, f)
+    original = _stats(opx, oex, opy, oey)
+    s += "\n" + "=" * 60 + "\n"
+    s += _format_stats(" of the laser beam", original)
     return s

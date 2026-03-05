@@ -13,6 +13,7 @@ docs/.ipynb_checkpoints
 docs/_build/
 docs/api/
 docs/Untitled*
+docs/_static/ISO*
 laserbeamsize.egg-info/
 laserbeamsize/__pycache__/
 problems/
