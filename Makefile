@@ -29,6 +29,7 @@ PORT            := 8000
 PYTEST_OPTS     :=
 SPHINX_OPTS     := -T -E -b html -d $(DOCS_DIR)/_build/doctrees -D language=en
 PYLINT_TARGETS  := $(PACKAGE)/*.py tests/*.py .github/scripts/update_citation.py docs/conf.py
+MYPY_TARGETS    := $(PACKAGE) tests
 YAML_TARGETS    := .github/workflows/citation.yaml .github/workflows/pypi.yaml .github/workflows/test.yaml .readthedocs.yaml
 RST_TARGETS     := README.rst CHANGELOG.rst $(DOCS_DIR)/index.rst $(DOCS_DIR)/changelog.rst $(wildcard $(DOCS_DIR)/jones-or-mueller.rst)
 RST_AUTOMODULE_TARGETS := $(wildcard $(DOCS_DIR)/$(PACKAGE).rst) $(DOCS_DIR)/analysis.rst $(DOCS_DIR)/background.rst $(DOCS_DIR)/display.rst $(DOCS_DIR)/image_tools.rst $(DOCS_DIR)/m2_display.rst $(DOCS_DIR)/m2_fit.rst
@@ -48,6 +49,7 @@ help:
 	@echo ""
 	@echo "Packaging Targets:"
 	@echo "  rcheck         - Distribution release checks"
+	@echo "  mypy-check     - Type-check package and tests"
 	@echo "  manifest-check - Validate MANIFEST"
 	@echo "  pylint-check   - Same as lint above"
 	@echo "  pyroma-check   - Validate overall packaging"
@@ -90,6 +92,10 @@ html:
 .PHONY: lint
 lint: pylint-check
 
+.PHONY: mypy-check
+mypy-check:
+	$(RUN) mypy $(MYPY_TARGETS)
+
 .PHONY: pylint-check
 pylint-check:
 	-@$(RUN) pylint $(PYLINT_TARGETS)
@@ -120,6 +126,7 @@ rcheck:
 	@echo "Running all release checks..."
 	@$(MAKE) realclean
 	@$(MAKE) ruff-check
+	@$(MAKE) mypy-check
 	@$(MAKE) pylint-check
 	@$(MAKE) yaml-check
 	@$(MAKE) rst-check
