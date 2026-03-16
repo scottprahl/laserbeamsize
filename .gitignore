@@ -1,5 +1,6 @@
 _site/
 .cache/
+.CLAUDE.md
 .DS_Store
 .ipynb_checkpoints/
 .jupyterlite.doit.db
@@ -19,3 +20,4 @@ laserbeamsize/__pycache__/
 problems/
 tests/__pycache__/
 todo
+uv.lock

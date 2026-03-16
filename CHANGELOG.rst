@@ -1,6 +1,21 @@
 Changelog
 =========
 
+2.3.3 (2026-03-15)
+------------------
+  * fix copy-paste bug: ``plot_beam_diagram()`` used ``d_major`` for minor-rectangle dimension
+  * fix copy-paste bug: ``plot_image_analysis()`` minor-axis label compared major-axis variables
+  * fix ``beam_size()`` crash when ``d_minor`` becomes ``None`` during iterative refinement
+  * fix NaN propagation in ``basic_beam_fit()`` when measured diameter is smaller than fitted waist
+  * fix divide-by-zero in ``beam_parameter_product()`` and M² error propagation when waist or divergence is zero
+  * fix hardcoded figure number in ``m2_display`` that caused matplotlib warnings on repeated calls
+  * fix variable shadowing of plane-fit coefficient ``b`` in ``subtract_tilted_background()``
+  * replace ``print()`` with ``warnings.warn()`` in ``M2_fit()`` for strict-mode messages
+  * replace Python loops with numpy in ``max_index_in_focal_zone()`` and ``min_index_in_outer_zone()``
+  * remove dead code: ``basic_beam_size_naive()``, ``rotated_rect_mask_slow()``, ``_mean_filter()``, ``_std_filter()``, ``image_background2()``
+  * remove unused ``scipy.ndimage`` import from ``background.py``
+  * add comprehensive tests for all fixed issues; pylint score 10.00/10
+
 2.3.2 (2026-03-05)
 ------------------
   * complete `M2_report()` support for focal length 
