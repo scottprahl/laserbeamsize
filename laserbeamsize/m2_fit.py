@@ -323,8 +323,13 @@ def M2_fit(
             break
         zone[idx] = 0
 
+    # recalculate counts after trimming the outer zone so the focal trim is
+    # based on the remaining imbalance, not the original point totals.
+    n_focal = np.sum(zone == 1)
+    n_outer = np.sum(zone == 2)
+
     # mark extra points in focal zone farthest from focus as unused
-    extra = n_outer - n_focal
+    extra = n_focal - n_outer
     if n_outer == 4:
         extra = n_focal - 6
     for _ in range(extra):

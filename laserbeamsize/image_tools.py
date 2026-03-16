@@ -346,9 +346,7 @@ def rotated_rect_arrays(
     return np.array([x_rot, y_rot])
 
 
-def axes_arrays(
-    xc_px: float, yc_px: float, d_major: float, d_minor: float | None, phi: float
-) -> tuple[
+def axes_arrays(xc_px: float, yc_px: float, d_major: float, d_minor: float | None, phi: float) -> tuple[
     npt.NDArray[np.floating],
     npt.NDArray[np.floating],
     npt.NDArray[np.floating] | None,

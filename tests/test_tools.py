@@ -336,17 +336,13 @@ def test_crop_image_to_integration_rect_raises_not_returns_none():
 def test_create_test_image_docstring_no_typo():
     """create_test_image docstring must not contain the typo 'magnitued'."""
     doc = create_test_image.__doc__ or ""
-    assert "magnitued" not in doc, (
-        "create_test_image docstring has typo 'magnitued' — should be 'magnitude'"
-    )
+    assert "magnitued" not in doc, "create_test_image docstring has typo 'magnitued' — should be 'magnitude'"
 
 
 def test_create_test_image_docstring_lists_ntype_values():
     """create_test_image docstring must document valid ntype values."""
     doc = create_test_image.__doc__ or ""
-    assert "poisson" in doc, (
-        "create_test_image docstring does not list valid ntype values (e.g. 'poisson')"
-    )
+    assert "poisson" in doc, "create_test_image docstring does not list valid ntype values (e.g. 'poisson')"
 
 
 # Run the tests

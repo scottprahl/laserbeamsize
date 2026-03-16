@@ -116,19 +116,28 @@ def test_m2_report_with_focus_and_minor_uses_iso_artificial_to_original():
 def test_m2_fit_strict_none_index_does_not_crash():
     """M2_fit zone-trimming must not crash with TypeError when a zone index is None."""
     # Many focal-zone points, few outer points — exhausts the outer zone during trimming
-    z = np.array([
-        -0.0001, -0.00005, 0.0, 0.00005,
-        -0.0002, 0.0001, 0.0002, -0.00015,
-        -1.0, -0.8, 0.8, 1.0,
-    ])
-    d0_val, theta = 100e-6, 15e-3
-    d = np.sqrt(d0_val**2 + (theta * z) ** 2)
+    z = np.array(
+        [
+            0.00085,
+            0.00092,
+            0.00102,
+            0.00110,
+            0.00075,
+            0.00115,
+            0.00128,
+            0.00082,
+            -0.899,
+            -0.699,
+            0.851,
+            1.101,
+        ]
+    )
+    d0_val, theta, z0_val = 100e-6, 15e-3, 1e-3
+    d = np.sqrt(d0_val**2 + (theta * (z - z0_val)) ** 2)
     try:
         lbs.M2_fit(z, d, 632.8e-9, strict=True)
     except TypeError as exc:
-        raise AssertionError(
-            f"M2_fit raised TypeError due to None zone index: {exc}"
-        ) from exc
+        raise AssertionError(f"M2_fit raised TypeError due to None zone index: {exc}") from exc
 
 
 def test_m2_fit_focal_zone_trimming_uses_extra_not_raw_difference():
@@ -142,3 +151,18 @@ def test_m2_fit_focal_zone_trimming_uses_extra_not_raw_difference():
         f"Focal-zone trimming loop uses '{loop_line}' instead of 'range(extra)'; "
         "the n_outer==4 special case adjustment is silently ignored"
     )
+
+
+def test_m2_fit_strict_preserves_focal_zone_points_after_outer_trim():
+    """Strict trimming should keep focal-zone points when extra outer points are removed."""
+    z = np.array([-34, -29, -24, -20, -4, -1, 3, 6, 21, 26, 31, 36], dtype=float) * 1e-3
+    d0_val, theta, z0_val = 100e-6, 10e-3, 1e-3
+    d = np.sqrt(d0_val**2 + (theta * (z - z0_val)) ** 2)
+
+    _, _, used = lbs.M2_fit(z, d, 632.8e-9, strict=True)
+
+    focal = np.abs(z - z0_val) < 10e-3
+    outer = np.abs(z - z0_val) >= 20e-3
+    assert np.sum(used) == 10
+    assert np.sum(used & focal) == 4
+    assert np.sum(used & outer) == 6

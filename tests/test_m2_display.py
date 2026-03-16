@@ -66,3 +66,31 @@ def test_m2_diameter_plot_completes_without_error():
     plt.figure()
     lbs.M2_diameter_plot(z, d, 632.8e-9)
     plt.close("all")
+
+
+def test_m2_diameter_plot_minor_residual_spans_use_minor_fit_limits():
+    """Minor residual ISO spans must be based on the minor-axis fit, not the major-axis fit."""
+    z = np.linspace(-5e-3, 5e-3, 11)
+    d_major = np.sqrt((120e-6) ** 2 + (18e-3 * (z - 0.8e-3)) ** 2)
+    d_minor = np.sqrt((80e-6) ** 2 + (10e-3 * (z + 1.5e-3)) ** 2)
+
+    plt.figure()
+    lbs.M2_diameter_plot(z, d_major, 1064e-9, d_minor=d_minor)
+
+    fig = plt.gcf()
+    minor_residual_ax = fig.axes[3]
+    params, _, _ = lbs.M2_fit(z, d_minor, 1064e-9)
+    z0y = params[1]
+    zR = params[4]
+    zmin = min(np.min(z), z0y - 4 * zR)
+    zmax = max(np.max(z), z0y + 4 * zR)
+
+    left_span = minor_residual_ax.patches[1]
+    right_span = minor_residual_ax.patches[2]
+
+    assert np.isclose(left_span.get_x(), (z0y - 2 * zR) * 1e3)
+    assert np.isclose(left_span.get_width(), (zmin - (z0y - 2 * zR)) * 1e3)
+    assert np.isclose(right_span.get_x(), (z0y + 2 * zR) * 1e3)
+    assert np.isclose(right_span.get_width(), (zmax - (z0y + 2 * zR)) * 1e3)
+
+    plt.close("all")

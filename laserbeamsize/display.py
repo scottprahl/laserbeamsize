@@ -161,6 +161,7 @@ def set_zero_to_lightgray(cmap_name: str, min_val: float, max_val: float) -> mco
     idx = 0
     if min_val < 0 <= max_val:
         idx = int(256 * abs(min_val) / (max_val - min_val))
+    idx = int(np.clip(idx, 0, len(colors) - 1))
 
     colors[idx] = [0.827, 0.827, 0.827, 1.0]
 

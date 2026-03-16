@@ -3,6 +3,7 @@
 # pylint: disable=wrong-import-position,protected-access
 import re
 import inspect
+import numpy as np
 import matplotlib
 
 matplotlib.use("Agg")
@@ -64,7 +65,6 @@ def test_format_beam_title_z_docstring_says_meters():
 
 def test_format_beam_title_numpy_nan_does_not_raise():
     """_format_beam_title must handle numpy NaN (np.float64) without raising."""
-    import numpy as np  # pylint: disable=import-outside-toplevel
     nan64 = np.float64("nan")
     result = disp._format_beam_title(nan64, nan64, "mm")
     assert "fail" in result, f"Expected 'fail' in title for NaN inputs, got: {result!r}"
@@ -82,12 +82,11 @@ def test_init_docstring_does_not_reference_m2_module():
 def test_prepare_beam_analysis_docstring_matches_return_count():
     """_prepare_beam_analysis docstring must list exactly 6 return values."""
     doc = disp._prepare_beam_analysis.__doc__ or ""
-    match = re.search(r'tuple:\s*\(([^)]+)\)', doc)
+    match = re.search(r"tuple:\s*\(([^)]+)\)", doc)
     assert match is not None, "_prepare_beam_analysis docstring has no 'tuple: (...)' return description"
-    items = [x.strip() for x in match.group(1).split(',')]
+    items = [x.strip() for x in match.group(1).split(",")]
     assert len(items) == 6, (
-        f"_prepare_beam_analysis docstring lists {len(items)} return values "
-        f"but the function returns 6: {items}"
+        f"_prepare_beam_analysis docstring lists {len(items)} return values " f"but the function returns 6: {items}"
     )
 
 
@@ -96,15 +95,20 @@ def test_plot_image_analysis_minor_xlim_uses_minor_array():
     src = inspect.getsource(disp.plot_image_analysis)
     # After 'Minor Axis' title the xlim call must reference s_minor_px
     after_minor_title = src.rsplit("Minor Axis", maxsplit=1)[-1]
-    assert "s_major_px" not in after_minor_title.split("xlim")[1].split("\n")[0], (
-        "Minor-axis subplot xlim still uses s_major_px instead of s_minor_px"
-    )
+    assert (
+        "s_major_px" not in after_minor_title.split("xlim")[1].split("\n")[0]
+    ), "Minor-axis subplot xlim still uses s_major_px instead of s_minor_px"
 
 
 def test_set_zero_to_lightgray_no_commented_out_color():
     """set_zero_to_lightgray must not contain a commented-out alternative color."""
     src = inspect.getsource(disp.set_zero_to_lightgray)
     assert "[0.7, 0.7, 0.7, 1.0]" not in src, (
-        "set_zero_to_lightgray still has a commented-out alternative color [0.7, 0.7, 0.7, 1.0]; "
-        "remove it"
+        "set_zero_to_lightgray still has a commented-out alternative color [0.7, 0.7, 0.7, 1.0]; " "remove it"
     )
+
+
+def test_set_zero_to_lightgray_handles_zero_at_top_of_range():
+    """set_zero_to_lightgray must not raise when zero is the top of the data range."""
+    cmap = disp.set_zero_to_lightgray("viridis", -1.0, 0.0)
+    assert np.allclose(cmap.colors[-1], [0.827, 0.827, 0.827, 1.0])

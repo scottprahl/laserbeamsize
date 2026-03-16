@@ -36,7 +36,6 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 import numpy as np
 import numpy.typing as npt
 
-
 __all__ = (
     "corner_mask",
     "perimeter_mask",

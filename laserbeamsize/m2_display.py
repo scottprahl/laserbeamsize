@@ -228,6 +228,8 @@ def M2_diameter_plot(
     # minor axis plot
     fig.add_subplot(gs[0, 1])
     residualsy, z0y, zR, used = _fit_plot(z, d_minor, lambda0, strict=strict, z0=z0, d0=d0)
+    zmin = min(np.min(z), z0y - 4 * zR)
+    zmax = max(np.max(z), z0y + 4 * zR)
     unused = np.logical_not(used)
     plt.title("Minor Axis Diameters")
     plt.ylim(0, ymax)

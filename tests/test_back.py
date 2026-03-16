@@ -251,8 +251,7 @@ def test_rotated_rect_mask_docstring_no_mask_diameters():
     """rotated_rect_mask docstring must not reference a mask_diameters parameter that doesn't exist."""
     doc = bg.rotated_rect_mask.__doc__ or ""
     assert "mask_diameters" not in doc, (
-        "rotated_rect_mask docstring still references 'mask_diameters', "
-        "which is not a parameter of this function"
+        "rotated_rect_mask docstring still references 'mask_diameters', " "which is not a parameter of this function"
     )
 
 
@@ -269,9 +268,9 @@ def test_corner_background_docstring_lists_both_return_values():
 def test_corner_background_zero_fraction_documented():
     """corner_background docstring must mention the corner_fraction=0 special-case behaviour."""
     doc = bg.corner_background.__doc__ or ""
-    assert "corner_fraction=0" in doc or "corner_fraction == 0" in doc, (
-        "corner_background docstring does not document the corner_fraction=0 special case"
-    )
+    assert (
+        "corner_fraction=0" in doc or "corner_fraction == 0" in doc
+    ), "corner_background docstring does not document the corner_fraction=0 special case"
 
 
 def test_elliptical_mask_raises_on_zero_diameter():
