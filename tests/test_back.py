@@ -6,6 +6,7 @@
 import inspect
 
 import numpy as np
+import pytest
 import laserbeamsize as lbs
 import laserbeamsize.background as bg
 
@@ -256,8 +257,27 @@ def test_rotated_rect_mask_docstring_no_mask_diameters():
 
 
 def test_corner_background_docstring_lists_both_return_values():
-    """corner_background docstring must document both return values: mean and stdev."""
+    """corner_background Returns section must list both corner_mean and corner_stdev."""
     doc = bg.corner_background.__doc__ or ""
-    assert "stdev" in doc or "std" in doc, (
-        "corner_background docstring only lists corner_mean but the function returns (mean, stdev)"
+    returns_block = doc.rsplit("Returns:", maxsplit=1)[-1]
+    assert "corner_stdev" in returns_block, (
+        "corner_background Returns section does not list corner_stdev; "
+        "the function returns (mean, stdev) but only corner_mean is documented"
     )
+
+
+def test_corner_background_zero_fraction_documented():
+    """corner_background docstring must mention the corner_fraction=0 special-case behaviour."""
+    doc = bg.corner_background.__doc__ or ""
+    assert "corner_fraction=0" in doc or "corner_fraction == 0" in doc, (
+        "corner_background docstring does not document the corner_fraction=0 special case"
+    )
+
+
+def test_elliptical_mask_raises_on_zero_diameter():
+    """elliptical_mask must raise ValueError when d_major or d_minor is zero."""
+    image = np.zeros((50, 50))
+    with pytest.raises(ValueError):
+        lbs.elliptical_mask(image, 25, 25, 0, 10, 0)
+    with pytest.raises(ValueError):
+        lbs.elliptical_mask(image, 25, 25, 10, 0, 0)

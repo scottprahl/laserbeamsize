@@ -95,7 +95,10 @@ def rotate_points(x, y, x0, y0, phi):
         y: y-values of point or array of points to be rotated
         x0: horizontal center of rotation
         y0: vertical center of rotation
-        phi: angle to rotate (+ is ccw) in radians
+        phi: angle to rotate (+ is ccw as seen on screen) in radians.
+            Because image coordinates have y increasing downward, the
+            implementation uses -phi internally so that a positive angle
+            produces a counter-clockwise rotation as viewed on screen.
 
     Returns:
         x, y: locations of rotated points

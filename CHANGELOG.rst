@@ -21,6 +21,9 @@ Changelog
   * fix ``rotated_rect_mask()`` docstring: removed non-existent ``mask_diameters`` parameter
   * fix ``_prepare_beam_analysis()`` docstring: return tuple listed 7 items but function returns 6
   * fix ``create_test_image()`` docstring: corrected "magnitued" typo and documented valid ``ntype`` values
+  * fix ``elliptical_mask()`` silent all-False mask for zero diameter: now raises ``ValueError``
+  * fix ``corner_background()`` docstring: Returns section now lists both ``corner_mean`` and ``corner_stdev``, and documents the ``corner_fraction=0`` short-circuit behaviour
+  * clarify ``rotate_points()`` docstring: explains why ``-phi`` is used internally to produce CCW-on-screen rotation in y-down image coordinates
   * replace ``print()`` with ``warnings.warn()`` in ``M2_fit()`` for strict-mode messages
   * replace Python loops with numpy in ``max_index_in_focal_zone()`` and ``min_index_in_outer_zone()``
   * remove dead code: ``basic_beam_size_naive()``, ``rotated_rect_mask_slow()``, ``_mean_filter()``, ``_std_filter()``, ``image_background2()``

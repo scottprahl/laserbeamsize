@@ -137,6 +137,8 @@ def elliptical_mask(image, xc, yc, d_major, d_minor, phi):
     cosphi = np.cos(phi)
     rx = d_major / 2
     ry = d_minor / 2
+    if rx == 0 or ry == 0:
+        raise ValueError("d_major and d_minor must be non-zero for elliptical_mask()")
     xx = x - xc
     yy = y - yc
     r2 = (xx * cosphi - yy * sinphi) ** 2 / rx**2 + (xx * sinphi + yy * cosphi) ** 2 / ry**2
@@ -390,11 +392,14 @@ def corner_background(image, corner_fraction=0.035):
 
     ISO 11146-3 recommends values from 2-5% for `corner_fraction`.
 
+    If corner_fraction=0, returns (0, 0) immediately without examining the image.
+
     Args:
         image : the image to work with
         corner_fraction: the fractional size of corner rectangles
     Returns:
         corner_mean: average pixel value in corners
+        corner_stdev: standard deviation of pixel values in corners
     """
     if corner_fraction == 0:
         return 0, 0
