@@ -23,6 +23,7 @@ Finding the beam waist size, location, and M² for a beam is straightforward::
 """
 
 import numpy as np
+import numpy.typing as npt
 import matplotlib.gridspec
 import matplotlib.pyplot as plt
 
@@ -32,7 +33,14 @@ from .gaussian import beam_radius, magnification, image_distance, z_rayleigh
 __all__ = ("M2_diameter_plot", "M2_radius_plot", "M2_focus_plot")
 
 
-def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
+def _fit_plot(
+    z: npt.NDArray[np.floating],
+    d: npt.NDArray[np.floating],
+    lambda0: float,
+    strict: bool = False,
+    z0: float | None = None,
+    d0: float | None = None,
+) -> tuple[npt.NDArray[np.floating], float, float, npt.NDArray[np.bool_]]:
     """
     Plot beam diameters and ISO 11146 fit.
 
@@ -103,7 +111,14 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     return residuals, z0, zR, used
 
 
-def _M2_diameter_plot(z, d, lambda0, strict=False, z0=None, d0=None):
+def _M2_diameter_plot(
+    z: npt.NDArray[np.floating],
+    d: npt.NDArray[np.floating],
+    lambda0: float,
+    strict: bool = False,
+    z0: float | None = None,
+    d0: float | None = None,
+) -> None:
     """
     Plot the fitted beam and the residuals.
 
@@ -143,7 +158,15 @@ def _M2_diameter_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     plt.axvspan((z0 + 2 * zR) * 1e3, (zmax) * 1e3, color="cyan", alpha=0.3)
 
 
-def M2_diameter_plot(z, d_major, lambda0, d_minor=None, strict=False, z0=None, d0=None):
+def M2_diameter_plot(
+    z: npt.NDArray[np.floating],
+    d_major: npt.NDArray[np.floating],
+    lambda0: float,
+    d_minor: npt.NDArray[np.floating] | None = None,
+    strict: bool = False,
+    z0: float | None = None,
+    d0: float | None = None,
+) -> None:
     """
     Plot the major and minor beam fits and residuals.
 
@@ -226,7 +249,14 @@ def M2_diameter_plot(z, d_major, lambda0, d_minor=None, strict=False, z0=None, d
     plt.ylim(ymin, ymax)
 
 
-def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
+def M2_radius_plot(
+    z: npt.NDArray[np.floating],
+    d: npt.NDArray[np.floating],
+    lambda0: float,
+    strict: bool = False,
+    z0: float | None = None,
+    d0: float | None = None,
+) -> None:
     """
     Plot radii, beam fits, and asymptotes.
 
@@ -363,7 +393,7 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
         ax1.legend(loc="center left")
 
 
-def M2_focus_plot(w0, lambda0, f, z0, M2=1):
+def M2_focus_plot(w0: float, lambda0: float, f: float, z0: float, M2: float = 1) -> None:
     """
     Plot a beam from its waist through a lens to its focus.
 

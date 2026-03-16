@@ -5,9 +5,11 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 """
 
 import numpy as np
+import numpy.typing as npt
 from numpy import ma
 import scipy.ndimage
 import matplotlib.pyplot as plt
+import matplotlib.colors
 from matplotlib.colors import LinearSegmentedColormap
 
 __all__ = (
@@ -25,7 +27,7 @@ __all__ = (
 )
 
 
-def line(r0, c0, r1, c1):
+def line(r0: int, c0: int, r1: int, c1: int) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Returns coordinates of line between two points.
 
@@ -86,7 +88,9 @@ def line(r0, c0, r1, c1):
     return np.array(rr), np.array(cc)
 
 
-def rotate_points(x, y, x0, y0, phi):
+def rotate_points(
+    x: npt.NDArray[np.floating], y: npt.NDArray[np.floating], x0: float, y0: float, phi: float
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Rotate x and y around designated center (x0, y0).
 
@@ -118,7 +122,9 @@ def rotate_points(x, y, x0, y0, phi):
     return xf, yf
 
 
-def values_along_line(image, x0, y0, x1, y1):
+def values_along_line(
+    image: np.ndarray, x0: float, y0: float, x1: float, y1: float
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Return x, y, z, and distance values along discrete pixels from (x0, y0) to (x1, y1).
 
@@ -175,7 +181,9 @@ def values_along_line(image, x0, y0, x1, y1):
     return cc.astype(float), rr.astype(float), np.asarray(z, dtype=float), d
 
 
-def _image_arrays(image, xc_px, yc_px, line_length_px, phi):
+def _image_arrays(
+    image: np.ndarray, xc_px: float, yc_px: float, line_length_px: float, phi: float
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Return x, y, z, and distance values along the minor axis.
 
@@ -203,7 +211,9 @@ def _image_arrays(image, xc_px, yc_px, line_length_px, phi):
     return values_along_line(image, x_start, y_start, x_end, y_end)
 
 
-def major_axis_arrays(image, xc_px, yc_px, line_length_px, phi):
+def major_axis_arrays(
+    image: np.ndarray, xc_px: float, yc_px: float, line_length_px: float, phi: float
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Return x, y, z, and distance values of an image along the major axis.
 
@@ -223,7 +233,9 @@ def major_axis_arrays(image, xc_px, yc_px, line_length_px, phi):
     return _image_arrays(image, xc_px, yc_px, line_length_px, phi)
 
 
-def minor_axis_arrays(image, xc_px, yc_px, line_length_px, phi):
+def minor_axis_arrays(
+    image: np.ndarray, xc_px: float, yc_px: float, line_length_px: float, phi: float
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Return x, y, z, and distance values along the minor axis.
 
@@ -243,7 +255,7 @@ def minor_axis_arrays(image, xc_px, yc_px, line_length_px, phi):
     return _image_arrays(image, xc_px, yc_px, line_length_px, phi + np.pi / 2)
 
 
-def rotate_image(original, x0, y0, phi):
+def rotate_image(original: np.ndarray, x0: float, y0: float, phi: float) -> np.ndarray:
     """
     Create image rotated about specified centerpoint.
 
@@ -302,7 +314,9 @@ def rotate_image(original, x0, y0, phi):
     return s
 
 
-def rotated_rect_arrays(xc_px, yc_px, d_major, d_minor, phi):
+def rotated_rect_arrays(
+    xc_px: float, yc_px: float, d_major: float, d_minor: float, phi: float
+) -> npt.NDArray[np.floating]:
     """
     Return x, y points for rotated rectangle with specified center.
 
@@ -328,7 +342,14 @@ def rotated_rect_arrays(xc_px, yc_px, d_major, d_minor, phi):
     return np.array([x_rot, y_rot])
 
 
-def axes_arrays(xc_px, yc_px, d_major, d_minor, phi):
+def axes_arrays(
+    xc_px: float, yc_px: float, d_major: float, d_minor: float | None, phi: float
+) -> tuple[
+    npt.NDArray[np.floating],
+    npt.NDArray[np.floating],
+    npt.NDArray[np.floating] | None,
+    npt.NDArray[np.floating] | None,
+]:
     """
     Return x, y arrays needed to draw axes of ellipse.
 
@@ -360,7 +381,9 @@ def axes_arrays(xc_px, yc_px, d_major, d_minor, phi):
     return x_rot1, y_rot1, x_rot2, y_rot2
 
 
-def ellipse_arrays(xc_px, yc_px, d_major, d_minor, phi, npoints=200):
+def ellipse_arrays(
+    xc_px: float, yc_px: float, d_major: float, d_minor: float, phi: float, npoints: int = 200
+) -> npt.NDArray[np.floating]:
     """
     Return x, y arrays to draw a rotated ellipse.
 
@@ -383,7 +406,18 @@ def ellipse_arrays(xc_px, yc_px, d_major, d_minor, phi, npoints=200):
     return np.array([xp, yp])
 
 
-def create_test_image(h, v, xc_px, yc_px, d_major, d_minor, phi, noise=0, ntype="poisson", max_value=255):
+def create_test_image(
+    h: int,
+    v: int,
+    xc_px: float,
+    yc_px: float,
+    d_major: float,
+    d_minor: float,
+    phi: float,
+    noise: float = 0,
+    ntype: str = "poisson",
+    max_value: int = 255,
+) -> npt.NDArray[np.floating]:
     """
     Create a 2D test image with an elliptical beam and possible noise.
 
@@ -459,7 +493,9 @@ def create_test_image(h, v, xc_px, yc_px, d_major, d_minor, phi, noise=0, ntype=
     return image1
 
 
-def crop_image_to_rect2(image, xc_px, yc_px, xmin, xmax, ymin, ymax):
+def crop_image_to_rect2(
+    image: np.ndarray, xc_px: float, yc_px: float, xmin: float, xmax: float, ymin: float, ymax: float
+) -> tuple[np.ndarray, float, float]:
     """
     Return image cropped to specified rectangle.
 
@@ -486,7 +522,9 @@ def crop_image_to_rect2(image, xc_px, yc_px, xmin, xmax, ymin, ymax):
     return image[ymin:ymax, xmin:xmax], new_xc, new_yc
 
 
-def crop_image_to_rect(image, xc_px, yc_px, xmin, xmax, ymin, ymax):
+def crop_image_to_rect(
+    image: np.ndarray, xc_px: float, yc_px: float, xmin: float, xmax: float, ymin: float, ymax: float
+) -> tuple[np.ndarray | None, float | None, float | None]:
     """
     Return image cropped to specified rectangle.
 
@@ -567,7 +605,15 @@ def crop_image_to_rect(image, xc_px, yc_px, xmin, xmax, ymin, ymax):
     return cropped, new_xc, new_yc
 
 
-def crop_image_to_integration_rect(image, xc_px, yc_px, d_major, d_minor, phi, mask_diameters=3):
+def crop_image_to_integration_rect(
+    image: np.ndarray,
+    xc_px: float,
+    yc_px: float,
+    d_major: float,
+    d_minor: float | None,
+    phi: float,
+    mask_diameters: float = 3,
+) -> tuple[np.ndarray, float, float]:
     """
     Return image cropped to integration rectangle.
 
@@ -605,7 +651,7 @@ def crop_image_to_integration_rect(image, xc_px, yc_px, d_major, d_minor, phi, m
     return cropped, new_xc, new_yc
 
 
-def create_cmap(vmin, vmax, band_percentage=4):
+def create_cmap(vmin: float, vmax: float, band_percentage: float = 4) -> LinearSegmentedColormap:
     """
     Create a colormap with a specific range, mapping vmin to 0 and vmax to 1.
 
@@ -628,7 +674,7 @@ def create_cmap(vmin, vmax, band_percentage=4):
     return LinearSegmentedColormap.from_list("plus_minus", list(zip(positions, colors)), N=255)
 
 
-def create_plus_minus_cmap(data):
+def create_plus_minus_cmap(data: npt.NDArray[np.floating]) -> matplotlib.colors.Colormap:
     """Create a color map with reds for positive and blues for negative values."""
     vmax = np.max(data)
     vmin = np.min(data)

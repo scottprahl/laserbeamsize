@@ -34,6 +34,7 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 """
 
 import numpy as np
+import numpy.typing as npt
 
 
 __all__ = (
@@ -52,7 +53,7 @@ __all__ = (
 )
 
 
-def _get_unmasked_bounding_box(image):
+def _get_unmasked_bounding_box(image: np.ndarray) -> tuple[int, int, int, int, int, int] | None:
     """
     Get the bounding box of the unmasked region in a masked image.
 
@@ -94,7 +95,7 @@ def _get_unmasked_bounding_box(image):
     return row_min, row_max, col_min, col_max, v_inner, h_inner
 
 
-def _apply_image_mask(mask, image):
+def _apply_image_mask(mask: npt.NDArray[np.bool_], image: np.ndarray) -> npt.NDArray[np.bool_]:
     """
     Apply existing image mask to exclude already-masked pixels.
 
@@ -110,7 +111,9 @@ def _apply_image_mask(mask, image):
     return mask
 
 
-def elliptical_mask(image, xc, yc, d_major, d_minor, phi):
+def elliptical_mask(
+    image: np.ndarray, xc: float, yc: float, d_major: float, d_minor: float, phi: float
+) -> npt.NDArray[np.bool_]:
     """
     Create a boolean mask for a rotated elliptical disk.
 
@@ -147,7 +150,7 @@ def elliptical_mask(image, xc, yc, d_major, d_minor, phi):
     return _apply_image_mask(the_mask, image)
 
 
-def corner_mask(image, corner_fraction=0.035):
+def corner_mask(image: np.ndarray, corner_fraction: float = 0.035) -> npt.NDArray[np.bool_]:
     """
     Create boolean mask for image with corners marked as True.
 
@@ -191,7 +194,7 @@ def corner_mask(image, corner_fraction=0.035):
     return _apply_image_mask(the_mask, image)
 
 
-def perimeter_mask(image, corner_fraction=0.035):
+def perimeter_mask(image: np.ndarray, corner_fraction: float = 0.035) -> npt.NDArray[np.bool_]:
     """
     Create boolean mask for image with a perimeter marked as True.
 
@@ -232,7 +235,9 @@ def perimeter_mask(image, corner_fraction=0.035):
     return _apply_image_mask(the_mask, image)
 
 
-def rotated_rect_mask(image, xc, yc, d_major, d_minor, phi):
+def rotated_rect_mask(
+    image: np.ndarray, xc: float, yc: float, d_major: float, d_minor: float, phi: float
+) -> npt.NDArray[np.floating]:
     """
     Create a boolean mask of a rotated rectangle within an image using NumPy.
 
@@ -284,7 +289,7 @@ def rotated_rect_mask(image, xc, yc, d_major, d_minor, phi):
     return _apply_image_mask(mask, image)
 
 
-def iso_background_mask(image, corner_fraction=0.035, nT=3):
+def iso_background_mask(image: np.ndarray, corner_fraction: float = 0.035, nT: float = 3) -> npt.NDArray[np.bool_]:
     """
     Return a mask indicating the background pixels in an image.
 
@@ -313,7 +318,7 @@ def iso_background_mask(image, corner_fraction=0.035, nT=3):
     return _apply_image_mask(background_mask, image)
 
 
-def subtract_background_image(original, background):
+def subtract_background_image(original: np.ndarray, background: np.ndarray) -> np.ndarray:
     """
     Subtract a background image from the image with beam.
 
@@ -357,7 +362,7 @@ def subtract_background_image(original, background):
     return subtracted
 
 
-def subtract_constant(original, background, iso_noise=True):
+def subtract_constant(original: np.ndarray, background: float, iso_noise: bool = True) -> np.ndarray:
     """
     Return image with a constant value subtracted.
 
@@ -382,7 +387,7 @@ def subtract_constant(original, background, iso_noise=True):
     return subtracted
 
 
-def corner_background(image, corner_fraction=0.035):
+def corner_background(image: np.ndarray, corner_fraction: float = 0.035) -> tuple[float, float]:
     """
     Return the mean and stdev of background in corners of image.
 
@@ -410,7 +415,7 @@ def corner_background(image, corner_fraction=0.035):
     return mean, stdev
 
 
-def iso_background(image, corner_fraction=0.035, nT=3):
+def iso_background(image: np.ndarray, corner_fraction: float = 0.035, nT: float = 3) -> tuple[float, float]:
     """
     Return the background for unilluminated pixels in an image.
 
@@ -449,7 +454,9 @@ def iso_background(image, corner_fraction=0.035, nT=3):
     return mean, stdev
 
 
-def subtract_iso_background(image, corner_fraction=0.035, nT=3, iso_noise=True):
+def subtract_iso_background(
+    image: np.ndarray, corner_fraction: float = 0.035, nT: float = 3, iso_noise: bool = True
+) -> np.ndarray:
     """
     Return image with ISO 11146 background subtracted.
 
@@ -489,7 +496,9 @@ def subtract_iso_background(image, corner_fraction=0.035, nT=3, iso_noise=True):
     return subtracted
 
 
-def subtract_corner_background(image, corner_fraction=0.035, nT=3, iso_noise=True):
+def subtract_corner_background(
+    image: np.ndarray, corner_fraction: float = 0.035, nT: float = 3, iso_noise: bool = True
+) -> np.ndarray:
     """
     Return image with background subtracted.
 
@@ -529,7 +538,7 @@ def subtract_corner_background(image, corner_fraction=0.035, nT=3, iso_noise=Tru
     return subtracted
 
 
-def subtract_tilted_background(image, corner_fraction=0.035):
+def subtract_tilted_background(image: np.ndarray, corner_fraction: float = 0.035) -> np.ndarray:
     """
     Return image with tilted planar background subtracted.
 

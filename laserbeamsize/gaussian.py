@@ -50,6 +50,7 @@ Example:
 """
 
 import numpy as np
+import numpy.typing as npt
 
 __all__ = (
     "z_rayleigh",
@@ -65,7 +66,7 @@ __all__ = (
 )
 
 
-def z_rayleigh(w0, lambda0, M2=1):
+def z_rayleigh(w0: float, lambda0: float, M2: float = 1) -> float:
     """
     Return the Rayleigh distance for a Gaussian beam.
 
@@ -106,7 +107,7 @@ def z_rayleigh(w0, lambda0, M2=1):
     return np.pi * w0**2 / lambda0 / M2
 
 
-def beam_radius(w0, lambda0, z, z0=0, M2=1):
+def beam_radius(w0: float, lambda0: float, z: float, z0: float = 0, M2: float = 1) -> float:
     """
     Return the beam radius at an axial location of a Gaussian beam.
 
@@ -124,7 +125,7 @@ def beam_radius(w0, lambda0, z, z0=0, M2=1):
     return w0 * np.sqrt(1 + zz**2)
 
 
-def magnification(w0, lambda0, s, f, M2=1):
+def magnification(w0: float, lambda0: float, s: float, f: float, M2: float = 1) -> float:
     """
     Return the magnification of a Gaussian beam.
 
@@ -148,7 +149,7 @@ def magnification(w0, lambda0, s, f, M2=1):
     return f / np.sqrt((s + f) ** 2 + zR2)
 
 
-def curvature(w0, lambda0, z, z0=0, M2=1):
+def curvature(w0: float, lambda0: float, z: float, z0: float = 0, M2: float = 1) -> float:
     """
     Calculate the radius of curvature of a Gaussian beam at a given axial position.
 
@@ -190,7 +191,7 @@ def curvature(w0, lambda0, z, z0=0, M2=1):
     return (z - z0) + zR2 / (z - z0)
 
 
-def divergence(w0, lambda0, M2=1):
+def divergence(w0: float, lambda0: float, M2: float = 1) -> float:
     """
     Calculate the full angle of divergence of a Gaussian beam.
 
@@ -220,7 +221,7 @@ def divergence(w0, lambda0, M2=1):
     return 2 * w0 / z_rayleigh(w0, lambda0, M2)
 
 
-def gouy_phase(w0, lambda0, z, z0=0):
+def gouy_phase(w0: float, lambda0: float, z: float, z0: float = 0) -> float:
     """
     Calculate the Gouy phase shift of a Gaussian beam at a specific axial position.
 
@@ -245,7 +246,7 @@ def gouy_phase(w0, lambda0, z, z0=0):
     return -np.arctan2(z - z0, zR)
 
 
-def focused_diameter(f, lambda0, d, M2=1):
+def focused_diameter(f: float, lambda0: float, d: float, M2: float = 1) -> float:
     """
     Calculate the diameter of a diffraction-limited focused beam.
 
@@ -266,7 +267,7 @@ def focused_diameter(f, lambda0, d, M2=1):
     return 4 * M2 * lambda0 * f / (np.pi * d)
 
 
-def beam_parameter_product(Theta, d0, Theta_std=0, d0_std=0):
+def beam_parameter_product(Theta: float, d0: float, Theta_std: float = 0, d0_std: float = 0) -> tuple[float, float]:
     """
     Find the beam parameter product (BPP).
 
@@ -291,7 +292,7 @@ def beam_parameter_product(Theta, d0, Theta_std=0, d0_std=0):
     return BPP, BPP_std
 
 
-def image_distance(w0, lambda0, s, f, M2=1):
+def image_distance(w0: float, lambda0: float, s: float, f: float, M2: float = 1) -> float:
     """
     Return the location of the new beam waist after passing through a lens.
 
@@ -321,7 +322,12 @@ def image_distance(w0, lambda0, s, f, M2=1):
     return f * (s * f + s * s + zR2) / ((f + s) ** 2 + zR2)
 
 
-def artificial_to_original(params, errors, f, hiatus=0):
+def artificial_to_original(
+    params: npt.NDArray[np.floating],
+    errors: npt.NDArray[np.floating],
+    f: float,
+    hiatus: float = 0,
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Convert artificial beam parameters to original beam parameters.
 

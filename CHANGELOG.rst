@@ -28,6 +28,7 @@ Changelog
   * replace Python loops with numpy in ``max_index_in_focal_zone()`` and ``min_index_in_outer_zone()``
   * remove dead code: ``basic_beam_size_naive()``, ``rotated_rect_mask_slow()``, ``_mean_filter()``, ``_std_filter()``, ``image_background2()``
   * remove unused ``scipy.ndimage`` import from ``background.py``
+  * add PEP 484 type annotations to all public and private functions across all source modules
   * add comprehensive tests for all fixed issues; pylint score 10.00/10
 
 2.3.2 (2026-03-05)

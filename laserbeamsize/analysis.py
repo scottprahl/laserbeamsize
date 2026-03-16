@@ -33,7 +33,7 @@ __all__ = (
 )
 
 
-def wrap_phi(phi):
+def wrap_phi(phi: float) -> float:
     """Wrap phi to range (-π/2, π/2]."""
     phi = phi % np.pi  # map to [0, π)
     if phi > np.pi / 2:
@@ -41,7 +41,9 @@ def wrap_phi(phi):
     return phi
 
 
-def basic_beam_size(original, phi_fixed=None):
+def basic_beam_size(
+    original: np.ndarray, phi_fixed: float | None = None
+) -> tuple[float, float, float, float | None, float]:
     """
     Determine the beam center, diameters, and tilt using ISO 11146 standard.
 
@@ -130,7 +132,14 @@ def basic_beam_size(original, phi_fixed=None):
     return xc, yc, d_major, d_minor, phi_
 
 
-def _validate_inputs(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_iter=25, phi_fixed=None):
+def _validate_inputs(
+    image: np.ndarray,
+    mask_diameters: float = 3,
+    corner_fraction: float = 0.035,
+    nT: float = 3,
+    max_iter: int = 25,
+    phi_fixed: float | None = None,
+) -> None:
     """
     Ensure arguments to validate inputs are sane.
 
@@ -156,14 +165,14 @@ def _validate_inputs(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_i
 
 
 def beam_size(
-    image,
-    mask_diameters=3,
-    corner_fraction=0.035,
-    nT=3,
-    max_iter=25,
-    phi_fixed=None,
-    iso_noise=True,
-):
+    image: np.ndarray,
+    mask_diameters: float = 3,
+    corner_fraction: float = 0.035,
+    nT: float = 3,
+    max_iter: int = 25,
+    phi_fixed: float | None = None,
+    iso_noise: bool = True,
+) -> tuple[float, float, float, float | None, float]:
     """
     Determine beam parameters in an image with noise.
 

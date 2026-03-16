@@ -33,6 +33,8 @@ A mosaic of images might be created by::
 """
 
 import numpy as np
+import numpy.typing as npt
+import matplotlib.image
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
@@ -50,7 +52,7 @@ __all__ = (
 )
 
 
-def beam_ellipticity(d_major, d_minor):
+def beam_ellipticity(d_major: float, d_minor: float) -> tuple[float, float]:
     """
     Calculate the ellipticity of the beam.
 
@@ -81,7 +83,7 @@ def beam_ellipticity(d_major, d_minor):
     return ellipticity, d_circular
 
 
-def plot_beam_diagram():
+def plot_beam_diagram() -> None:
     """Draw a simple astigmatic beam ellipse with labels."""
     phi = np.radians(30)
     xc, yc, d_major, d_minor = 0, 0, 50, 25
@@ -142,7 +144,7 @@ def plot_beam_diagram():
     plt.axis("off")
 
 
-def plot_visible_dotted_line(xpts, ypts):
+def plot_visible_dotted_line(xpts: npt.NDArray[np.floating], ypts: npt.NDArray[np.floating]) -> None:
     """Draw a dotted line that is is visible against images."""
     # White solid line underneath
     plt.plot(xpts, ypts, color="white", linewidth=1, solid_capstyle="round")
@@ -150,7 +152,7 @@ def plot_visible_dotted_line(xpts, ypts):
     plt.plot(xpts, ypts, color="black", linewidth=1, linestyle=(0, (3, 2)), solid_capstyle="round")
 
 
-def set_zero_to_lightgray(cmap_name, min_val, max_val):
+def set_zero_to_lightgray(cmap_name: str, min_val: float, max_val: float) -> mcolors.ListedColormap:
     """Create a colormap where zero maps to gray."""
     cmap = plt.get_cmap(cmap_name)
     colors = cmap(np.linspace(0, 1, 256))
@@ -165,7 +167,7 @@ def set_zero_to_lightgray(cmap_name, min_val, max_val):
     return mcolors.ListedColormap(colors)
 
 
-def _format_beam_title(d_major, d_minor, units, z=None):
+def _format_beam_title(d_major: float | None, d_minor: float | None, units: str, z: float | None = None) -> str:
     """
     Return a standardized title string describing the beam diameters.
 
@@ -200,7 +202,9 @@ def _format_beam_title(d_major, d_minor, units, z=None):
     return f"z={z * 1e3:.0f}mm, {s}"
 
 
-def _prepare_beam_analysis(image, corner_fraction, nT, iso_noise, **kwargs):
+def _prepare_beam_analysis(
+    image: np.ndarray, corner_fraction: float, nT: float, iso_noise: bool, **kwargs
+) -> tuple[float, float, float, float, float | None, float]:
     """
     Common setup for beam analysis: extract beam_size parameters and calculate beam properties.
 
@@ -229,7 +233,7 @@ def _prepare_beam_analysis(image, corner_fraction, nT, iso_noise, **kwargs):
     return diameters, xc_px, yc_px, d_major_px, d_minor_px, phi
 
 
-def _setup_scale_and_labels(pixel_size, units):
+def _setup_scale_and_labels(pixel_size: float | None, units: str) -> tuple[float, str, str]:
     """
     Determine scaling factor and axis labels.
 
@@ -251,7 +255,17 @@ def _setup_scale_and_labels(pixel_size, units):
     return scale, label, unit_str
 
 
-def _crop_image_if_needed(o_image, xc_px, yc_px, d_major_px, d_minor_px, phi, crop, scale, diameters):
+def _crop_image_if_needed(
+    o_image: np.ndarray,
+    xc_px: float,
+    yc_px: float,
+    d_major_px: float,
+    d_minor_px: float | None,
+    phi: float,
+    crop: bool | list,
+    scale: float,
+    diameters: float,
+) -> tuple[np.ndarray, float, float]:
     """
     Crop the image according to the crop parameter.
 
@@ -282,7 +296,9 @@ def _crop_image_if_needed(o_image, xc_px, yc_px, d_major_px, d_minor_px, phi, cr
     return o_image, xc_px, yc_px
 
 
-def _draw_beam_overlays(xc_px, yc_px, d_major_px, d_minor_px, phi, diameters, scale):
+def _draw_beam_overlays(
+    xc_px: float, yc_px: float, d_major_px: float, d_minor_px: float | None, phi: float, diameters: float, scale: float
+) -> None:
     """
     Draw ellipse, axes, and integration rectangle on current plot.
 
@@ -319,21 +335,21 @@ def _draw_beam_overlays(xc_px, yc_px, d_major_px, d_minor_px, phi, diameters, sc
 
 
 def _plot_image_with_beam_overlay(
-    image,
-    xc_px,
-    yc_px,
-    d_major_px,
-    d_minor_px,
-    phi,
-    diameters,
-    scale,
-    label,
-    cmap,
-    vmin=None,
-    vmax=None,
-    title=None,
-    colorbar=True,
-):
+    image: np.ndarray,
+    xc_px: float,
+    yc_px: float,
+    d_major_px: float,
+    d_minor_px: float | None,
+    phi: float,
+    diameters: float,
+    scale: float,
+    label: str,
+    cmap: str,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    title: str | None = None,
+    colorbar: bool = True,
+) -> matplotlib.image.AxesImage:
     """
     Core function to plot an image with beam overlays.
 
@@ -394,19 +410,19 @@ def _plot_image_with_beam_overlay(
 
 
 def plot_image_and_fit(
-    o_image,
-    pixel_size=None,
-    vmin=None,
-    vmax=None,
-    units="µm",
-    crop=False,
-    colorbar=False,
-    cmap="gist_ncar",
-    corner_fraction=0.035,
-    nT=3,
-    iso_noise=True,
+    o_image: np.ndarray,
+    pixel_size: float | None = None,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    units: str = "µm",
+    crop: bool | list = False,
+    colorbar: bool = False,
+    cmap: str = "gist_ncar",
+    corner_fraction: float = 0.035,
+    nT: float = 3,
+    iso_noise: bool = True,
     **kwargs,
-):
+) -> tuple[float, float, float, float | None, float]:
     """
     Plot the image, fitted ellipse, integration area, and major/minor axes.
 
@@ -497,17 +513,17 @@ def plot_image_and_fit(
 
 
 def plot_image_analysis(
-    o_image,
-    title="Original",
-    pixel_size=None,
-    units="µm",
-    crop=False,
-    cmap="gist_ncar",
-    corner_fraction=0.035,
-    nT=3,
-    iso_noise=True,
+    o_image: np.ndarray,
+    title: str = "Original",
+    pixel_size: float | None = None,
+    units: str = "µm",
+    crop: bool | list = False,
+    cmap: str = "gist_ncar",
+    corner_fraction: float = 0.035,
+    nT: float = 3,
+    iso_noise: bool = True,
     **kwargs,
-):
+) -> None:
     """
     Create a visual report for image fitting.
 
@@ -682,20 +698,20 @@ def plot_image_analysis(
 
 
 def plot_image_montage(
-    images,
-    z=None,
-    cols=3,
-    pixel_size=None,
-    vmax=None,
-    vmin=None,
-    units="µm",
-    crop=False,
-    cmap="gist_ncar",
-    corner_fraction=0.035,
-    nT=3,
-    iso_noise=True,
+    images: list[np.ndarray],
+    z: npt.NDArray[np.floating] | None = None,
+    cols: int = 3,
+    pixel_size: float | None = None,
+    vmax: float | None = None,
+    vmin: float | None = None,
+    units: str = "µm",
+    crop: bool | list = False,
+    cmap: str = "gist_ncar",
+    corner_fraction: float = 0.035,
+    nT: float = 3,
+    iso_noise: bool = True,
     **kwargs,
-):
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Create a beam size montage for a set of images.
 

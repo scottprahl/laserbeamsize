@@ -37,6 +37,7 @@ To facilitate interpretation of the results, there is also a `M2_report` functio
 
 import warnings
 import numpy as np
+import numpy.typing as npt
 import scipy.optimize
 
 from .gaussian import beam_parameter_product, artificial_to_original
@@ -47,7 +48,7 @@ __all__ = (
 )
 
 
-def _beam_fit_fn_1(z, d0, z0, Theta):
+def _beam_fit_fn_1(z: npt.NDArray[np.floating], d0: float, z0: float, Theta: float) -> npt.NDArray[np.floating]:
     """
     Fitting function d0, z0, and Theta.
 
@@ -63,7 +64,7 @@ def _beam_fit_fn_1(z, d0, z0, Theta):
     return np.sqrt(d0**2 + (Theta * (z - z0)) ** 2)
 
 
-def _beam_fit_fn_2(z, d0, Theta):
+def _beam_fit_fn_2(z: npt.NDArray[np.floating], d0: float, Theta: float) -> npt.NDArray[np.floating]:
     """
     Fitting function for d0 and Theta.
 
@@ -80,7 +81,7 @@ def _beam_fit_fn_2(z, d0, Theta):
     return np.sqrt(d0**2 + (Theta * z) ** 2)
 
 
-def _beam_fit_fn_3(z, z0, Theta):
+def _beam_fit_fn_3(z: npt.NDArray[np.floating], z0: float, Theta: float) -> npt.NDArray[np.floating]:
     """
     Fitting function for z0 and Theta.
 
@@ -97,7 +98,7 @@ def _beam_fit_fn_3(z, z0, Theta):
     return np.abs(Theta * (z - z0))
 
 
-def _beam_fit_fn_4(z, Theta):
+def _beam_fit_fn_4(z: npt.NDArray[np.floating], Theta: float) -> npt.NDArray[np.floating]:
     """
     Fitting function for Theta.
 
@@ -113,7 +114,13 @@ def _beam_fit_fn_4(z, Theta):
     return np.abs(Theta * z)
 
 
-def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
+def basic_beam_fit(
+    z: npt.NDArray[np.floating],
+    d: npt.NDArray[np.floating],
+    lambda0: float,
+    z0: float | None = None,
+    d0: float | None = None,
+) -> tuple[list[float], list[float]]:
     """
     Return the hyperbolic fit to the supplied diameters.
 
@@ -203,7 +210,7 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
     return params, errors
 
 
-def max_index_in_focal_zone(z, zone):
+def max_index_in_focal_zone(z: npt.NDArray[np.floating], zone: npt.NDArray[np.floating]) -> int | None:
     """Return index farthest from focus in inner zone."""
     focal = np.where(zone == 1)[0]
     if len(focal) == 0:
@@ -211,7 +218,7 @@ def max_index_in_focal_zone(z, zone):
     return focal[np.argmax(z[focal])]
 
 
-def min_index_in_outer_zone(z, zone):
+def min_index_in_outer_zone(z: npt.NDArray[np.floating], zone: npt.NDArray[np.floating]) -> int | None:
     """Return index of measurement closest to focus in outer zone."""
     outer = np.where(zone == 2)[0]
     if len(outer) == 0:
@@ -219,7 +226,14 @@ def min_index_in_outer_zone(z, zone):
     return outer[np.argmin(z[outer])]
 
 
-def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
+def M2_fit(
+    z: npt.NDArray[np.floating],
+    d: npt.NDArray[np.floating],
+    lambda0: float,
+    strict: bool = False,
+    z0: float | None = None,
+    d0: float | None = None,
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating], npt.NDArray[np.bool_]]:
     """
     Return the hyperbolic fit to the supplied diameters.
 
@@ -327,7 +341,7 @@ def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
     return params, errors, used
 
 
-def M2_string(params, errors):
+def M2_string(params: npt.NDArray[np.floating], errors: npt.NDArray[np.floating]) -> str:
     """
     Return string describing a single set of beam measurements.
 
@@ -357,7 +371,15 @@ def M2_string(params, errors):
     return s
 
 
-def _M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
+def _M2_report(
+    z: npt.NDArray[np.floating],
+    d: npt.NDArray[np.floating],
+    lambda0: float,
+    f: float | None = None,
+    strict: bool = False,
+    z0: float | None = None,
+    d0: float | None = None,
+) -> str:
     """
     Return string describing a single set of beam measurements.
 
@@ -388,7 +410,16 @@ def _M2_report(z, d, lambda0, f=None, strict=False, z0=None, d0=None):
     return s
 
 
-def M2_report(z, d_major, lambda0, d_minor=None, f=None, strict=False, z0=None, d0=None):
+def M2_report(
+    z: npt.NDArray[np.floating],
+    d_major: npt.NDArray[np.floating],
+    lambda0: float,
+    d_minor: npt.NDArray[np.floating] | None = None,
+    f: float | None = None,
+    strict: bool = False,
+    z0: float | None = None,
+    d0: float | None = None,
+) -> str:
     """
     Return string describing a one or more sets of beam measurements.
 
