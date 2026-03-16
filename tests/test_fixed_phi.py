@@ -45,6 +45,11 @@ def _run_case(image, phi_arg, expected_xc, expected_yc, expect_major, expect_min
         assert np.isclose(result[4], phi_arg)
 
 
+def _equivalent_diameter(major, minor):
+    """Return the equivalent circular diameter for a forced 45-degree offset fit."""
+    return np.sqrt((major**2 + minor**2) / 2)
+
+
 def test_fixed_45_examples():
     # 45°
     """Test fixed 45 examples."""
@@ -60,6 +65,33 @@ def test_fixed_45_examples():
     ]
     for phi_arg, xc, yc, d_major, d_minor, phi in cases1:
         _run_case(beam1, phi_arg, xc, yc, d_major, d_minor, phi)
+
+
+def test_fixed_phi_45_degree_offsets_produce_equivalent_diameter():
+    """Forcing a fit 45 degrees away from the principal axes should produce equal diameters."""
+    cases = [
+        {
+            "beam": lbs.create_test_image(h=600, v=600, xc_px=250, yc_px=250, d_major=150, d_minor=100, phi=np.pi / 4),
+            "phi_true": np.pi / 4,
+        },
+        {
+            "beam": lbs.create_test_image(h=600, v=600, xc_px=250, yc_px=350, d_major=150, d_minor=100, phi=-np.pi / 6),
+            "phi_true": -np.pi / 6,
+        },
+    ]
+
+    for case in cases:
+        _, _, aligned_major, aligned_minor, _ = lbs.beam_size(case["beam"], phi_fixed=case["phi_true"])
+        expected = _equivalent_diameter(aligned_major, aligned_minor)
+
+        for phi_arg in (case["phi_true"] + np.pi / 4, case["phi_true"] - np.pi / 4):
+            _, _, fitted_major, fitted_minor, fitted_phi = lbs.beam_size(case["beam"], phi_fixed=phi_arg)
+
+            assert fitted_minor is not None
+            assert np.isclose(fitted_phi, phi_arg)
+            assert np.isclose(fitted_major, fitted_minor, rtol=1e-4)
+            assert np.isclose(fitted_major, expected, rtol=1e-4)
+            assert np.isclose(fitted_minor, expected, rtol=1e-4)
 
 
 def test_fixed_30_examples():
