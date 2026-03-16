@@ -253,3 +253,11 @@ def test_rotated_rect_mask_docstring_no_mask_diameters():
         "rotated_rect_mask docstring still references 'mask_diameters', "
         "which is not a parameter of this function"
     )
+
+
+def test_corner_background_docstring_lists_both_return_values():
+    """corner_background docstring must document both return values: mean and stdev."""
+    doc = bg.corner_background.__doc__ or ""
+    assert "stdev" in doc or "std" in doc, (
+        "corner_background docstring only lists corner_mean but the function returns (mean, stdev)"
+    )

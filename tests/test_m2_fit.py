@@ -129,3 +129,16 @@ def test_m2_fit_strict_none_index_does_not_crash():
         raise AssertionError(
             f"M2_fit raised TypeError due to None zone index: {exc}"
         ) from exc
+
+
+def test_m2_fit_focal_zone_trimming_uses_extra_not_raw_difference():
+    """M2_fit focal-zone trimming loop must use extra (with n_outer==4 adjustment), not range(n_focal-n_outer)."""
+    src = inspect.getsource(m2.M2_fit)
+    # The second trimming loop must iterate over range(extra), not range(n_focal - n_outer)
+    # Split on the comment that starts the focal-zone block
+    focal_block = src.rsplit("mark extra points in focal zone", maxsplit=1)[-1]
+    loop_line = [ln.strip() for ln in focal_block.splitlines() if ln.strip().startswith("for _")][0]
+    assert "range(extra)" in loop_line, (
+        f"Focal-zone trimming loop uses '{loop_line}' instead of 'range(extra)'; "
+        "the n_outer==4 special case adjustment is silently ignored"
+    )

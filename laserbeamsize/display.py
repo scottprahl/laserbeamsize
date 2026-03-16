@@ -297,10 +297,10 @@ def _draw_beam_overlays(xc_px, yc_px, d_major_px, d_minor_px, phi, diameters, sc
     """
     # Calculate rectangle dimensions (in pixels)
     rect_minor_px = None
-    rect_major_px = d_major_px * diameters - 0.5
+    rect_major_px = d_major_px * diameters - 0.5  # -0.5 centres the rect on the pixel grid
 
     if d_minor_px is not None:
-        rect_minor_px = d_minor_px * diameters - 0.5
+        rect_minor_px = d_minor_px * diameters - 0.5  # -0.5 centres the rect on the pixel grid
 
         # Draw ellipse around beam
         xp_px, yp_px = ellipse_arrays(xc_px, yc_px, d_major_px, d_minor_px, phi)
@@ -671,7 +671,7 @@ def plot_image_analysis(
         plt.ylabel("Pixel Value")
         plt.title("Minor Axis")
         plt.ylim(z_min, z_max)
-        plt.xlim(min(s_major_px) * scale, max(s_major_px) * scale)
+        plt.xlim(min(s_minor_px) * scale, max(s_minor_px) * scale)
 
     else:
         plt.subplot(2, 2, 4)

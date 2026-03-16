@@ -313,7 +313,7 @@ def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
     extra = n_outer - n_focal
     if n_outer == 4:
         extra = n_focal - 6
-    for _ in range(n_focal - n_outer):
+    for _ in range(extra):
         idx = max_index_in_focal_zone(abs(z - z0), zone)
         if idx is None:
             break

@@ -91,6 +91,16 @@ def test_prepare_beam_analysis_docstring_matches_return_count():
     )
 
 
+def test_plot_image_analysis_minor_xlim_uses_minor_array():
+    """Minor-axis subplot xlim must use s_minor_px, not s_major_px."""
+    src = inspect.getsource(disp.plot_image_analysis)
+    # After 'Minor Axis' title the xlim call must reference s_minor_px
+    after_minor_title = src.rsplit("Minor Axis", maxsplit=1)[-1]
+    assert "s_major_px" not in after_minor_title.split("xlim")[1].split("\n")[0], (
+        "Minor-axis subplot xlim still uses s_major_px instead of s_minor_px"
+    )
+
+
 def test_set_zero_to_lightgray_no_commented_out_color():
     """set_zero_to_lightgray must not contain a commented-out alternative color."""
     src = inspect.getsource(disp.set_zero_to_lightgray)

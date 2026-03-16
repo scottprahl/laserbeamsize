@@ -66,7 +66,7 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     plt.fill_between(z_fit * 1e3, d_fit_lo * 1e6, d_fit_hi * 1e6, color="red", alpha=0.5)
 
     # show perfect gaussian caustic when unphysical M2 arises
-    if M2 < 1:
+    if M2 < 1 and d0 > 0:
         Theta00 = 4 * lambda0 / (np.pi * d0)
         d_00 = np.sqrt(d0**2 + (Theta00 * (z_fit - z0)) ** 2)
         plt.plot(z_fit * 1e3, d_00 * 1e6, ":k", lw=2, label="M²=1")
@@ -347,7 +347,7 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     ax1.fill_between(zz, -lo, -hi, color="red", alpha=0.5)
 
     # show perfect gaussian caustic when unphysical M2 arises
-    if M2 < 1:
+    if M2 < 1 and d0 > 0:
         Theta00 = 4 * lambda0 / (np.pi * d0)
         r_00 = np.sqrt(d0**2 + (Theta00 * zz * 1e-3) ** 2) / 2 * 1e6
         plt.plot(zz, r_00, ":k", lw=2, label="M²=1")

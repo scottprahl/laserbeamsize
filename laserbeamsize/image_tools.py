@@ -396,8 +396,9 @@ def create_test_image(h, v, xc_px, yc_px, d_major, d_minor, phi, noise=0, ntype=
         d_major: major axis (i.e, major diameter)
         d_minor: minor axis (i.e, minor diameter)
         phi: angle between major axis and horizontal axis [radians]
-        noise: (optional) magnitued of normally distributed pixel noise to add
-        ntype: (optional) type of noise to use
+        noise: (optional) magnitude of pixel noise to add
+        ntype: (optional) type of noise — one of "poisson" (default), "gaussian"/"normal",
+            "flat"/"uniform", or "constant"
         max_value: (optional) all values in image fall between 0 and `max_value`
 
     Returns:

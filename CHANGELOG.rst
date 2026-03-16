@@ -14,9 +14,13 @@ Changelog
   * fix ``_fmt()`` NaN check to handle ``np.floating`` types, not just Python ``float``
   * fix ``M2_fit()`` zone-trimming loops to guard against ``None`` index when a zone is exhausted
   * fix ``beam_parameter_product()`` zero-check to use ``np.isclose()`` instead of exact equality
+  * fix ``plot_image_analysis()`` minor-axis subplot x-limits used ``s_major_px`` instead of ``s_minor_px``
+  * fix ``M2_fit()`` focal-zone trimming loop ignored the ``n_outer==4`` special-case adjustment
+  * fix divide-by-zero in ``M2_radius_plot()`` and ``_fit_plot()`` when ``d0==0`` and ``M2<1``
   * fix stale ``laserbeamsize.m2`` reference in package docstring (module was split into ``m2_fit`` and ``m2_display``)
   * fix ``rotated_rect_mask()`` docstring: removed non-existent ``mask_diameters`` parameter
   * fix ``_prepare_beam_analysis()`` docstring: return tuple listed 7 items but function returns 6
+  * fix ``create_test_image()`` docstring: corrected "magnitued" typo and documented valid ``ntype`` values
   * replace ``print()`` with ``warnings.warn()`` in ``M2_fit()`` for strict-mode messages
   * replace Python loops with numpy in ``max_index_in_focal_zone()`` and ``min_index_in_outer_zone()``
   * remove dead code: ``basic_beam_size_naive()``, ``rotated_rect_mask_slow()``, ``_mean_filter()``, ``_std_filter()``, ``image_background2()``
