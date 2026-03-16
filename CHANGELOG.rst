@@ -3,12 +3,11 @@ Changelog
 
 2.4.1 (2026-03-16)
 ------------------
-  * fix M2_fit() strict-mode trimming so extra outer-zone points no longer cause all focal-zone points to be discarded
+  * fix M2_fit() strict-mode trimming so focal-zone points are not discarded
   * fix set_zero_to_lightgray() IndexError when zero lies at the top of the display range
   * fix M2_diameter_plot() minor-axis residual ISO spans to use the minor-axis fit limits
-  * fix pylint warnings in test_display.py caused by a redundant local numpy import
-  * fix mypy annotations in human_test_for_phi_fixed.py by asserting d_minor is present in the manual test helper
-  * eliminate spurious OptimizeWarning from strict-mode M² regression tests by using non-degenerate synthetic datasets
+  * fix mypy annotations in human_test_for_phi_fixed.py 
+  * eliminate spurious OptimizeWarning from strict-mode M² regression tests
 
 2.4.0 (2026-03-15)
 ------------------
