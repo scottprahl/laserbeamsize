@@ -1,4 +1,3 @@
-# pylint: disable=unbalanced-tuple-unpacking
 """
 A module for finding M² values for a laser beam.
 
@@ -36,6 +35,7 @@ To facilitate interpretation of the results, there is also a `M2_report` functio
 
 """
 
+import warnings
 import numpy as np
 import scipy.optimize
 
@@ -160,7 +160,7 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
             i = np.argmax(abs(z - z0_guess))
             theta_guess = abs(d[i] / (z[i] - z0_guess))
             p0 = [z0_guess, theta_guess]
-            dd = np.sqrt(d**2 - d0**2)
+            dd = np.sqrt(np.maximum(d**2 - d0**2, 0))
             nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_3, z, dd, p0=p0)
             z0, Theta = nlfit
             z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
@@ -176,7 +176,7 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
             z0_std = 0
         else:
             p0 = [theta_guess]
-            dd = np.sqrt(d**2 - d0**2)
+            dd = np.sqrt(np.maximum(d**2 - d0**2, 0))
             nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_4, z - z0, dd, p0=p0)
             Theta = nlfit[0]
             Theta_std = np.sqrt(nlpcov[0, 0])
@@ -185,13 +185,18 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
 
     # divergence and Rayleigh range of Gaussian beam
     Theta0 = 4 * lambda0 / (np.pi * d0)
-    zR = np.pi * d0**2 / (4 * lambda0)
-
     M2 = Theta / Theta0
-    zR = np.pi * d0**2 / (4 * lambda0 * M2)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        zR = np.pi * d0**2 / (4 * lambda0 * M2) if M2 != 0 else np.inf
+    if not np.isfinite(zR):
+        zR = np.inf
 
-    M2_std = M2 * np.sqrt((Theta_std / Theta) ** 2 + (d0_std / d0) ** 2)
-    zR_std = zR * np.sqrt((M2_std / M2) ** 2 + (2 * d0_std / d0) ** 2)
+    M2_std = 0
+    zR_std = 0
+    if Theta != 0 and d0 != 0:
+        M2_std = M2 * np.sqrt((Theta_std / Theta) ** 2 + (d0_std / d0) ** 2)
+    if M2 != 0 and d0 != 0 and np.isfinite(zR):
+        zR_std = zR * np.sqrt((M2_std / M2) ** 2 + (2 * d0_std / d0) ** 2)
 
     params = [d0, z0, Theta, M2, zR]
     errors = [d0_std, z0_std, Theta_std, M2_std, zR_std]
@@ -200,26 +205,18 @@ def basic_beam_fit(z, d, lambda0, z0=None, d0=None):
 
 def max_index_in_focal_zone(z, zone):
     """Return index farthest from focus in inner zone."""
-    _max = -1e32
-    imax = None
-    for i, zz in enumerate(z):
-        if zone[i] == 1:
-            if _max < zz:
-                _max = zz
-                imax = i
-    return imax
+    focal = np.where(zone == 1)[0]
+    if len(focal) == 0:
+        return None
+    return focal[np.argmax(z[focal])]
 
 
 def min_index_in_outer_zone(z, zone):
     """Return index of measurement closest to focus in outer zone."""
-    _min = 1e32
-    imin = None
-    for i, zz in enumerate(z):
-        if zone[i] == 2:
-            if zz < _min:
-                _min = zz
-                imin = i
-    return imin
+    outer = np.where(zone == 2)[0]
+    if len(outer) == 0:
+        return None
+    return outer[np.argmin(z[outer])]
 
 
 def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
@@ -293,9 +290,13 @@ def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
     n_outer = np.sum(zone == 2)
 
     if n_focal + n_outer < 10 or n_focal < 4 or n_outer < 4:
-        print("Invalid distribution of measurements for ISO 11146")
-        print("%d points within 1 Rayleigh distance" % n_focal)
-        print("%d points greater than 2 Rayleigh distances" % n_outer)
+        warnings.warn(
+            "Invalid distribution of measurements for ISO 11146: "
+            "%d points within 1 Rayleigh distance, "
+            "%d points greater than 2 Rayleigh distances" % (n_focal, n_outer),
+            UserWarning,
+            stacklevel=2,
+        )
         return params, errors, used
 
     # mark extra points in outer zone closest to focus as unused

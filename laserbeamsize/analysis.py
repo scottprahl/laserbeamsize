@@ -35,13 +35,9 @@ __all__ = (
 
 def wrap_phi(phi):
     """Wrap phi to range (-π/2, π/2]."""
-    phi = (phi + np.pi) % (2 * np.pi) - np.pi
-
-    if phi <= -np.pi / 2:
-        phi += np.pi
-    elif phi > np.pi / 2:
-        phi -= np.pi
-
+    phi = phi % np.pi  # map to [0, π)
+    if phi > np.pi / 2:
+        phi -= np.pi  # shift upper half to (-π/2, 0]
     return phi
 
 
@@ -155,7 +151,7 @@ def _validate_inputs(image, mask_diameters=3, corner_fraction=0.035, nT=3, max_i
     if max_iter < 0 or not isinstance(max_iter, int):
         raise ValueError("max_iter must be a non-negative integer.")
 
-    if phi_fixed is not None and abs(phi_fixed) > 2.1 * np.pi:
+    if phi_fixed is not None and abs(phi_fixed) > np.pi:
         raise ValueError("the angle phi should be in radians!")
 
 
@@ -243,58 +239,10 @@ def beam_size(
         else:
             xc, yc, d_major, d_minor, phi_ = basic_beam_size(masked_image, phi_)
 
+        if d_minor is None:
+            return xc, yc, d_major, d_minor, phi_
+
         if abs(xc - xc2) < 1 and abs(yc - yc2) < 1 and abs(d_major - dx2) < 1 and abs(d_minor - dy2) < 1:
             break
 
     return xc, yc, d_major, d_minor, phi_
-
-
-def basic_beam_size_naive(image):
-    """
-    Slow but simple implementation of ISO 11146 beam standard.
-
-    This is identical to `basic_beam_size()` and is the obvious way to
-    program the calculation of the necessary moments.  It is slow.
-
-    Args:
-        image: 2D array of image with beam spot in it
-
-    Returns:
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        d_major: major axis (i.e, major diameter)
-        d_minor: minor axis (i.e, minor diameter)
-        phi: angle between major axis and horizontal axis [radians]
-    """
-    v, h = image.shape
-
-    # locate the center just like ndimage.center_of_mass(image)
-    p = 0.0
-    xc = 0.0
-    yc = 0.0
-    for i in range(v):
-        for j in range(h):
-            p += float(image[i, j])
-            xc += float(image[i, j]) * j
-            yc += float(image[i, j]) * i
-    xc /= p
-    yc /= p
-
-    # calculate variances
-    xx = 0.0
-    yy = 0.0
-    xy = 0.0
-    for i in range(v):
-        for j in range(h):
-            xx += image[i, j] * (j - xc) ** 2
-            xy += image[i, j] * (j - xc) * (i - yc)
-            yy += image[i, j] * (i - yc) ** 2
-    xx /= p
-    xy /= p
-    yy /= p
-
-    d_major = np.sqrt(8) * np.sqrt(xx + yy + np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
-    d_minor = np.sqrt(8) * np.sqrt(xx + yy - np.sign(xx - yy) * np.sqrt((xx - yy) ** 2 + 4 * xy**2))
-    phi = 0.5 * np.arctan2(2 * xy, xx - yy)
-
-    return xc, yc, d_major, d_minor, phi

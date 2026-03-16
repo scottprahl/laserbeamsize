@@ -34,9 +34,7 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 """
 
 import numpy as np
-import scipy.ndimage
 
-from .image_tools import rotate_image
 
 __all__ = (
     "corner_mask",
@@ -147,33 +145,6 @@ def elliptical_mask(image, xc, yc, d_major, d_minor, phi):
     return _apply_image_mask(the_mask, image)
 
 
-# def corner_mask(image, corner_fraction=0.035):
-#     """
-#     Create boolean mask for image with corners marked as True.
-#
-#     Each of the four corners is a fixed percentage of the entire image.
-#
-#     ISO 11146-3 recommends values from 2-5% for `corner_fraction`
-#     the default is 0.035=3.5% of the iamge.
-#
-#     Args:
-#         image : the image to work with
-#         corner_fraction: the fractional size of corner rectangles
-#     Returns:
-#         masked_image: 2D array with True values in four corners
-#     """
-#     v, h = image.shape
-#     n = int(v * corner_fraction)
-#     m = int(h * corner_fraction)
-#
-#     the_mask = np.full_like(image, False, dtype=bool)
-#     the_mask[:n, :m] = True
-#     the_mask[:n, -m:] = True
-#     the_mask[-n:, :m] = True
-#     the_mask[-n:, -m:] = True
-#     return the_mask
-
-
 def corner_mask(image, corner_fraction=0.035):
     """
     Create boolean mask for image with corners marked as True.
@@ -259,51 +230,6 @@ def perimeter_mask(image, corner_fraction=0.035):
     return _apply_image_mask(the_mask, image)
 
 
-def rotated_rect_mask_slow(image, xc, yc, d_major, d_minor, phi, mask_diameters=3):
-    """
-    Create ISO 11146 rectangular mask for specified beam.
-
-    ISO 11146-2 §7.2 states that integration should be carried out over
-    "a rectangular integration area which is centred to the beam centroid,
-    defined by the spatial first order moments, orientated parallel to
-    the principal axes of the power density distribution, and sized
-    three times the beam widths".
-
-    This routine creates a mask with `true` values for each pixel in
-    the image that should be part of the integration.
-
-    The rectangular mask is `mask_diameters' times the pixel diameters
-    of the ellipse.
-
-    The rectangular mask is rotated about (xc, yc) so that it is aligned
-    with the elliptical spot.
-
-    Args:
-        image: the image to work with
-        xc: horizontal center of beam
-        yc: vertical center of beam
-        d_major: semi-major ellipse diameter
-        d_minor: semi-minor ellipse diameter
-        phi: angle between horizontal and major axes [radians]
-        mask_diameters: number of diameters to include
-
-    Returns:
-        masked_image: 2D array with True values inside rectangle
-    """
-    raw_mask = np.full_like(image, 0, dtype=float)
-    v, h = image.shape
-    rx = mask_diameters * d_major / 2
-    ry = mask_diameters * d_minor / 2
-    vlo = max(0, int(yc - ry))
-    vhi = min(v, int(yc + ry))
-    hlo = max(0, int(xc - rx))
-    hhi = min(h, int(xc + rx))
-
-    raw_mask[vlo:vhi, hlo:hhi] = 1
-    rot_mask = rotate_image(raw_mask, xc, yc, phi) >= 0.5
-    return rot_mask
-
-
 def rotated_rect_mask(image, xc, yc, d_major, d_minor, phi):
     """
     Create a boolean mask of a rotated rectangle within an image using NumPy.
@@ -322,7 +248,7 @@ def rotated_rect_mask(image, xc, yc, d_major, d_minor, phi):
     The rectangular mask is `mask_diameters` times the pixel diameters
     of the ellipse.
 
-    The rectangular mask is rotated about (xc, yc) and then drawn using PIL
+    The rectangular mask is rotated about (xc, yc) using NumPy.
 
     If the image is already masked, only unmasked pixels within the
     rectangle will be marked as True.
@@ -521,49 +447,6 @@ def iso_background(image, corner_fraction=0.035, nT=3):
     return mean, stdev
 
 
-def _mean_filter(values):
-    return np.mean(values)
-
-
-def _std_filter(values):
-    return np.std(values)
-
-
-def image_background2(image, fraction=0.035, nT=3):
-    """
-    Return the background of an image.
-
-    The trick here is identifying unilluminated pixels.  This is done by using
-    using convolution to find the local average and standard deviation value for
-    each pixel.  The local values are done over an n by m rectangle.
-
-    ISO 11146-3 recommends using (n,m) values that are 2-5% of the image
-
-    un-illuminated (background) pixels are all values that fall below the
-
-    Args:
-        image : the image to work with
-        fraction: the fractional size of corner rectangles
-        nT: how many standard deviations to subtract
-
-    Returns:
-        background: average background value across image
-    """
-    # average over a n x m moving kernel
-    n, m = (fraction * np.array(image.shape)).astype(int)
-    ave = scipy.ndimage.generic_filter(image, _mean_filter, size=(n, m))
-    std = scipy.ndimage.generic_filter(image, _std_filter, size=(n, m))
-
-    # defined ISO/TR 11146-3:2004, equation 61
-    threshold = ave + nT * std / np.sqrt((n + 1) * (m + 1))
-
-    # we only average the pixels that fall below the illumination threshold
-    unilluminated = image[image < threshold]
-
-    background = int(np.mean(unilluminated))
-    return background
-
-
 def subtract_iso_background(image, corner_fraction=0.035, nT=3, iso_noise=True):
     """
     Return image with ISO 11146 background subtracted.
@@ -671,9 +554,9 @@ def subtract_tilted_background(image, corner_fraction=0.035):
     coords = np.stack((yy[mask], xx[mask], np.ones(np.size(perimeter_values))), 1)
 
     # fit a plane to all corner points
-    b = np.array(perimeter_values).T
+    rhs = np.array(perimeter_values).T
     A = np.array(coords)
-    a, b, c = np.linalg.inv(A.T @ A) @ A.T @ b
+    a, b, c = np.linalg.inv(A.T @ A) @ A.T @ rhs
 
     # calculate the fitted background plane
     z = a * yy + b * xx + c

@@ -138,11 +138,9 @@ def test_perimeter_mask_non_square():
     assert np.all(~result[6:-6, 2:-2])
 
 
-# rotated_rect_mask_slow()
-def test_rotated_rect_mask_slow():
-    """Test rotated rect mask slow."""
-    mask = lbs.background.rotated_rect_mask_slow(image, 50, 50, 40, 20, np.pi / 4)
-    assert mask.shape == image.shape, "Mask shape mismatch"
+def test_rotated_rect_mask_slow_removed():
+    """rotated_rect_mask_slow is dead code and must not exist."""
+    assert not hasattr(lbs.background, "rotated_rect_mask_slow")
 
 
 def test_rotated_rect_mask():
@@ -205,6 +203,6 @@ if __name__ == "__main__":
     test_perimeter_mask_odd_dimension()
     test_perimeter_mask_non_square()
 
-    test_rotated_rect_mask_slow()
+    test_rotated_rect_mask_slow_removed()
     test_rotated_rect_mask()
     print("All tests passed!")

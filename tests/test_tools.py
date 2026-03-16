@@ -1,6 +1,7 @@
 """Tests for functions in image_tools.py."""
 
 import numpy as np
+import pytest
 
 from laserbeamsize.image_tools import (
     rotate_image,
@@ -8,7 +9,9 @@ from laserbeamsize.image_tools import (
     values_along_line,
     major_axis_arrays,
     minor_axis_arrays,
+    axes_arrays,
     create_test_image,
+    crop_image_to_integration_rect,
 )
 
 
@@ -275,6 +278,59 @@ def test_dtype_returned():
 
     img = create_test_image(10, 10, 5, 5, 5, 5, 0, max_value=65534)
     assert img.dtype == np.uint16, f"Expected dtype uint16 but got {img.dtype}"
+
+
+def test_axes_arrays_with_d_minor_returns_four_numeric_arrays():
+    """axes_arrays with valid d_minor must return 4 finite numeric arrays."""
+    result = axes_arrays(50, 50, 100, 60, 0)
+    xp1, yp1, xp2, yp2 = result
+    assert np.all(np.isfinite(xp1))
+    assert np.all(np.isfinite(yp1))
+    assert np.all(np.isfinite(xp2))
+    assert np.all(np.isfinite(yp2))
+
+
+def test_axes_arrays_with_none_d_minor_returns_none_for_minor_axis():
+    """axes_arrays with d_minor=None must return None (not array) for minor axis."""
+    xp1, yp1, xp2, yp2 = axes_arrays(50, 50, 100, None, 0)
+    assert xp2 is None
+    assert yp2 is None
+    assert np.all(np.isfinite(xp1))
+    assert np.all(np.isfinite(yp1))
+
+
+def test_axes_arrays_with_none_d_minor_not_ndarray():
+    """axes_arrays with d_minor=None must not return an ndarray with embedded None values."""
+    result = axes_arrays(50, 50, 100, None, 0)
+    # Result must be unpackable into 4 Python objects, not a numpy array of objects
+    _, _, xp2, _ = result
+    assert not isinstance(xp2, np.ndarray), "xp2 should be None, not an ndarray containing None"
+
+
+def test_crop_image_to_integration_rect_normal():
+    """crop_image_to_integration_rect returns a valid cropped image for a normal beam."""
+    image = create_test_image(200, 200, 100, 100, 60, 40, 0)
+    cropped, new_xc, _ = crop_image_to_integration_rect(image, 100, 100, 60, 40, 0)
+    assert cropped is not None
+    assert new_xc is not None
+    assert cropped.shape[0] > 0
+    assert cropped.shape[1] > 0
+
+
+def test_crop_image_to_integration_rect_none_d_minor_returns_original():
+    """crop_image_to_integration_rect with d_minor=None returns the original image unchanged."""
+    image = create_test_image(200, 200, 100, 100, 60, 40, 0)
+    cropped, new_xc, _ = crop_image_to_integration_rect(image, 100, 100, 60, None, 0)
+    assert np.array_equal(cropped, image)
+    assert new_xc == 100
+
+
+def test_crop_image_to_integration_rect_raises_not_returns_none():
+    """crop_image_to_integration_rect must raise ValueError, not silently return None."""
+    image = create_test_image(200, 200, 100, 100, 60, 40, 0)
+    # A crop request with diameters so small the result is <3 pixels should raise
+    with pytest.raises(ValueError):
+        crop_image_to_integration_rect(image, 100, 100, 1, 1, 0, mask_diameters=1)
 
 
 # Run the tests

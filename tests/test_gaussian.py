@@ -1,7 +1,10 @@
 """Tests for Gaussian-beam helper calculations."""
 
+import inspect
+
 import numpy as np
 import laserbeamsize as lbs
+import laserbeamsize.gaussian as g
 
 
 # Rayleigh distance
@@ -335,3 +338,31 @@ def test_image_distance_varied_wavelength():
     w0, lambda0, s, f, M2 = 0.001, 2e-6, -0.05, 0.05, 1
     result = lbs.image_distance(w0, lambda0, s, f, M2)
     assert np.isclose(result, 0.05)
+
+
+def test_beam_parameter_product_zero_theta_returns_zero():
+    """beam_parameter_product with Theta=0 should return zero BPP, not raise ZeroDivisionError."""
+    BPP, BPP_std = lbs.beam_parameter_product(0, 0.002, 0, 0)
+    assert np.isclose(BPP, 0)
+    assert np.isclose(BPP_std, 0)
+
+
+def test_beam_parameter_product_zero_d0_returns_zero():
+    """beam_parameter_product with d0=0 should return zero BPP, not raise ZeroDivisionError."""
+    BPP, BPP_std = lbs.beam_parameter_product(0.01, 0, 0, 0)
+    assert np.isclose(BPP, 0)
+    assert np.isclose(BPP_std, 0)
+
+
+def test_artificial_to_original_no_placeholder():
+    """artificial_to_original must not contain a placeholder comment."""
+    src = inspect.getsource(g.artificial_to_original)
+    assert "rest of your code" not in src, "artificial_to_original still has placeholder comment"
+
+
+def test_divergence_docstring_notes_small_angle():
+    """divergence() docstring should note the small-angle approximation used."""
+    doc = g.divergence.__doc__ or ""
+    assert (
+        "small" in doc.lower() or "approximat" in doc.lower()
+    ), "divergence() docstring should mention the small-angle approximation"

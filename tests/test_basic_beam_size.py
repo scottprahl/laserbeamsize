@@ -2,7 +2,10 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pytest
 import laserbeamsize as lbs
+import laserbeamsize.analysis as ana
+from laserbeamsize.analysis import wrap_phi, _validate_inputs
 
 interactive = False
 h, v = 400, 400  # Image dimensions
@@ -94,6 +97,53 @@ def test_horizontal_ellipse_4048():
 def test_vertical_ellipse_rotated_4048():
     """Test vertical ellipse rotated 4048."""
     run_test(200, 200, 100, 50, np.pi / 6, max_value=4047)
+
+
+def test_phi_fixed_validation_accepts_angle_within_pi():
+    """_validate_inputs should accept phi_fixed within (-π, π]."""
+    image = np.ones((10, 10))
+    _validate_inputs(image, phi_fixed=np.pi / 4)
+    _validate_inputs(image, phi_fixed=-np.pi / 2)
+
+
+def test_phi_fixed_validation_rejects_angle_beyond_pi():
+    """_validate_inputs should reject phi_fixed > π (likely entered in degrees)."""
+    image = np.ones((10, 10))
+    with pytest.raises(ValueError, match="radians"):
+        _validate_inputs(image, phi_fixed=3.5)  # 3.5 rad > π
+
+
+def test_wrap_phi_at_half_pi():
+    """wrap_phi should return π/2 for π/2 input."""
+    assert np.isclose(wrap_phi(np.pi / 2), np.pi / 2)
+
+
+def test_wrap_phi_at_minus_half_pi_maps_to_plus_half_pi():
+    """wrap_phi should map -π/2 to π/2 (both represent same ellipse orientation)."""
+    assert np.isclose(wrap_phi(-np.pi / 2), np.pi / 2)
+
+
+def test_wrap_phi_stays_in_range():
+    """wrap_phi should always produce values in (-π/2, π/2]."""
+    for phi_deg in range(-360, 360, 5):
+        phi = np.radians(phi_deg)
+        result = wrap_phi(phi)
+        assert -np.pi / 2 < result <= np.pi / 2, f"wrap_phi({phi:.3f}) = {result:.3f} out of (-π/2, π/2]"
+
+
+def test_basic_beam_size_naive_removed():
+    """basic_beam_size_naive should be removed as dead code."""
+    assert not hasattr(ana, "basic_beam_size_naive"), "basic_beam_size_naive should be removed (dead code)"
+
+
+def test_beam_size_d_minor_none_does_not_crash_convergence():
+    """beam_size should not crash when d_minor becomes None during iteration."""
+    # A degenerate image (all-zero except a line) can yield d_minor=None
+    image = np.zeros((50, 50), dtype=np.uint8)
+    image[25, :] = 100  # horizontal line — d_minor collapses
+    # Should complete without TypeError from abs(None - value)
+    _, _, d_major, _, _ = lbs.beam_size(image)
+    assert d_major >= 0
 
 
 # Running the tests

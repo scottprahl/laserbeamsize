@@ -212,6 +212,10 @@ def divergence(w0, lambda0, M2=1):
 
     Returns:
         theta: divergence of beam [radians]
+
+    Note:
+        Uses the small-angle approximation: theta ≈ 2*w0/zR instead of the
+        exact form 2*arctan(w0/zR). Valid when w0 << zR (i.e., low divergence).
     """
     return 2 * w0 / z_rayleigh(w0, lambda0, M2)
 
@@ -280,7 +284,10 @@ def beam_parameter_product(Theta, d0, Theta_std=0, d0_std=0):
         BPP_std: standard deviation of beam parameter product [m * radian]
     """
     BPP = Theta * d0 / 4
-    BPP_std = BPP * np.sqrt((Theta_std / Theta) ** 2 + (d0_std / d0) ** 2)
+    if Theta == 0 or d0 == 0:
+        BPP_std = 0
+    else:
+        BPP_std = BPP * np.sqrt((Theta_std / Theta) ** 2 + (d0_std / d0) ** 2)
     return BPP, BPP_std
 
 
@@ -328,8 +335,6 @@ def artificial_to_original(params, errors, f, hiatus=0):
     lens, and to correct the original beam waist position by the hiatus, which
     is the distance between the principal planes of the lens.
 
-    This function currently returns errors that might not be accurate.
-
     Args:
         params: A list or array containing artificial beam parameters in the following order:
             - d0: beam waist diameter [m]
@@ -351,7 +356,6 @@ def artificial_to_original(params, errors, f, hiatus=0):
             - params: A list of the original beam parameters without the lens.
             - errors: A list of the standard deviations of the original parameters.
     """
-    # ... (rest of your code)
     art_d0, art_z0, art_Theta, M2, art_zR = params
     art_d0_std, art_z0_std, art_Theta_std, M2_std, art_zR_std = errors
 

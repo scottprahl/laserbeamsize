@@ -98,7 +98,7 @@ def plot_beam_diagram():
     scale = 1
     diameters = 3
     rect_major = d_major * diameters
-    rect_minor = d_major * diameters
+    rect_minor = d_minor * diameters
     xp, yp = rotated_rect_arrays(xc, yc, rect_major, rect_minor, phi) * scale
     plt.plot(xp, yp, ":b", lw=2)
 
@@ -656,7 +656,7 @@ def plot_image_analysis(
         plt.plot(s_minor_px * scale, z_values, "k")
         # double arrow and label
         plt.annotate("", (-r_minor_s, base_e2), (r_minor_s, base_e2), arrowprops={"arrowstyle": "<->"})
-        if r_major_s < max(s_major_px) * scale / 2:
+        if r_minor_s < max(s_minor_px) * scale / 2:
             plt.text(
                 r_minor_s,
                 base_e2,

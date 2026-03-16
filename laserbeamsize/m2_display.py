@@ -96,7 +96,7 @@ def _fit_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     #    plt.axhline(d0 * 1e6, color='black', lw=1)
     #    plt.axhspan((d0 + d0_std) * 1e6, (d0 - d0_std) * 1e6, color='red', alpha=0.1)
     plt.title(r"$d^2(z) = d_0^2 + \Theta^2 (z - z_0)^2$")
-    if sum(z[unused]) > 0:
+    if np.any(unused):
         plt.legend(loc="upper right")
 
     residuals = d - np.sqrt(d0**2 + (Theta * (z - z0)) ** 2)
@@ -118,7 +118,7 @@ def _M2_diameter_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     Returns:
         nothing
     """
-    fig = plt.figure(1, figsize=(12, 8))
+    fig = plt.figure(figsize=(12, 8))
     gs = matplotlib.gridspec.GridSpec(2, 1, height_ratios=[6, 2])
 
     fig.add_subplot(gs[0])
@@ -176,7 +176,7 @@ def M2_diameter_plot(z, d_major, lambda0, d_minor=None, strict=False, z0=None, d
     ymax = 1.1 * max(np.max(d_major), np.max(d_minor)) * 1e6
 
     # Create figure window to plot data
-    fig = plt.figure(1, figsize=(12, 8))
+    fig = plt.figure(figsize=(12, 8))
     gs = matplotlib.gridspec.GridSpec(2, 2, height_ratios=[6, 2])
 
     # major axis plot
@@ -256,7 +256,7 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     d0, z0, Theta, M2, zR = params
     d0_std, _, Theta_std, M2_std, _ = errors
 
-    plt.figure(1, figsize=(12, 8))
+    plt.figure(figsize=(12, 8))
 
     # fitted line
     zmin = min(np.min(z - z0), -4 * zR) * 1.05 + z0
@@ -270,15 +270,16 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     d_fit_lo = np.sqrt((d0 - d0_std) ** 2 + ((Theta - Theta_std) * (z_fit - z0)) ** 2)
     d_fit_hi = np.sqrt((d0 + d0_std) ** 2 + ((Theta + Theta_std) * (z_fit - z0)) ** 2)
 
-    # asymptotes
-    r_left = -(z0 - zmin) * np.tan(Theta / 2) * 1e6
-    r_right = (zmax - z0) * np.tan(Theta / 2) * 1e6
+    # asymptotes — Theta is the full divergence angle; half-angle gives the radius slope
+    half_angle = Theta / 2
+    r_left = -(z0 - zmin) * np.tan(half_angle) * 1e6
+    r_right = (zmax - z0) * np.tan(half_angle) * 1e6
     plt.plot([(zmin - z0) * 1e3, (zmax - z0) * 1e3], [r_left, r_right], "--b")
     plt.plot([(zmin - z0) * 1e3, (zmax - z0) * 1e3], [-r_left, -r_right], "--b")
 
     # xticks along top axis
     ticks = [(i * zR) * 1e3 for i in range(int((zmin - z0) / zR), int((zmax - z0) / zR) + 1)]
-    ticklabels1 = ["%.0f" % (z + z0 * 1e3) for z in ticks]
+    ticklabels1 = ["%.0f" % (tick_mm + z0 * 1e3) for tick_mm in ticks]
     ticklabels2 = []
     for i in range(int((zmin - z0) / zR), int((zmax - z0) / zR) + 1):
         if i == 0:
@@ -358,7 +359,7 @@ def M2_radius_plot(z, d, lambda0, strict=False, z0=None, d0=None):
     ax1.plot((z[used] - z0) * 1e3, -d[used] * 1e6 / 2, "ok")
     ax1.plot((z[unused] - z0) * 1e3, d[unused] * 1e6 / 2, "ok", mfc="none", label="unused")
     ax1.plot((z[unused] - z0) * 1e3, -d[unused] * 1e6 / 2, "ok", mfc="none")
-    if sum(z[unused]) > 0:
+    if np.any(unused):
         ax1.legend(loc="center left")
 
 

@@ -1,7 +1,13 @@
 """Tests for M2 fitting/report generation."""
 
+import inspect
+import io
+import sys
+import warnings
 import numpy as np
 import laserbeamsize as lbs
+import laserbeamsize.m2_fit as m2
+from laserbeamsize.m2_fit import basic_beam_fit, max_index_in_focal_zone, min_index_in_outer_zone
 
 
 def _synthetic_beam_data():
@@ -25,6 +31,63 @@ def test_m2_report_with_focus_and_minor_has_two_sections():
     assert "Beam Propagation Ratio of the laser beam" in report
     assert "Beam parameter product of the focused beam" in report
     assert "Beam parameter product of the laser beam" in report
+
+
+def _simple_beam_data():
+    """Return a simple noiseless hyperbolic beam dataset."""
+    z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770]) * 1e-3
+    r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397]) * 1e-6
+    return z, 2 * r
+
+
+def test_basic_beam_fit_no_nan_when_d_less_than_d0():
+    """basic_beam_fit with fixed d0 must not return NaN even when d < d0 for some points."""
+    z, d = _simple_beam_data()
+    # Use a d0 larger than some measurements to trigger the sqrt-of-negative path
+    d0_fixed = d.max() * 1.1
+    params, errors = basic_beam_fit(z, d, 632.8e-9, z0=z[np.argmin(d)], d0=d0_fixed)
+    assert not any(np.isnan(p) for p in params), f"NaN in params: {params}"
+    assert not any(np.isnan(e) for e in errors), f"NaN in errors: {errors}"
+
+
+def test_m2_fit_strict_warns_not_prints():
+    """M2_fit with strict=True and bad data distribution should warn, not print."""
+    # Only 4 points, too few for ISO 11146 strict mode — should trigger the warning path
+    z = np.array([0.1, 0.2, 0.3, 0.4])
+    d = np.array([500e-6, 480e-6, 460e-6, 450e-6])
+
+    captured = io.StringIO()
+    old_stdout = sys.stdout
+    sys.stdout = captured
+    try:
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            lbs.M2_fit(z, d, 632.8e-9, strict=True)
+    finally:
+        sys.stdout = old_stdout
+
+    printed = captured.getvalue()
+    assert printed == "", f"M2_fit printed to stdout instead of using warnings.warn: {printed!r}"
+
+
+def test_dead_zr_calculation_removed():
+    """The dead first zR assignment (immediately overwritten) must be removed."""
+    src = inspect.getsource(m2.basic_beam_fit)
+    # Count occurrences of "zR = np.pi * d0**2 / (4 * lambda0)" (without M2)
+    plain_zr_lines = [ln for ln in src.splitlines() if "zR = np.pi * d0**2 / (4 * lambda0)" in ln and "M2" not in ln]
+    assert len(plain_zr_lines) == 0, f"Dead zR assignment still present: {plain_zr_lines}"
+
+
+def test_max_index_in_focal_zone_uses_numpy():
+    """max_index_in_focal_zone should use numpy, not a Python loop."""
+    src = inspect.getsource(max_index_in_focal_zone)
+    assert "for " not in src, "max_index_in_focal_zone still uses a Python loop"
+
+
+def test_min_index_in_outer_zone_uses_numpy():
+    """min_index_in_outer_zone should use numpy, not a Python loop."""
+    src = inspect.getsource(min_index_in_outer_zone)
+    assert "for " not in src, "min_index_in_outer_zone still uses a Python loop"
 
 
 def test_m2_report_with_focus_and_minor_uses_iso_artificial_to_original():

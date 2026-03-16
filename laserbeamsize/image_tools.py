@@ -1,4 +1,3 @@
-# pylint: disable=import-error
 """
 Image manipulation routines needed for beam analysis.
 
@@ -10,7 +9,6 @@ from numpy import ma
 import scipy.ndimage
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-
 
 __all__ = (
     "rotate_image",
@@ -348,8 +346,7 @@ def axes_arrays(xc_px, yc_px, d_major, d_minor, phi):
     x_rot1, y_rot1 = rotate_points(x, y, xc_px, yc_px, phi)
 
     if d_minor is None:
-        none_array = np.array([None, None])
-        return np.array([x_rot1, y_rot1, none_array, none_array])
+        return x_rot1, y_rot1, None, None
 
     # minor ellipse axis with center at (xc_px, yc_px)
     ry = d_minor / 2
@@ -357,7 +354,7 @@ def axes_arrays(xc_px, yc_px, d_major, d_minor, phi):
     y = np.array([-ry, ry]) + yc_px
     x_rot2, y_rot2 = rotate_points(x, y, xc_px, yc_px, phi)
 
-    return np.array([x_rot1, y_rot1, x_rot2, y_rot2])
+    return x_rot1, y_rot1, x_rot2, y_rot2
 
 
 def ellipse_arrays(xc_px, yc_px, d_major, d_minor, phi, npoints=200):
@@ -595,7 +592,13 @@ def crop_image_to_integration_rect(image, xc_px, yc_px, d_major, d_minor, phi, m
     rect_major = mask_diameters * d_major
     rect_minor = mask_diameters * d_minor
     xp, yp = rotated_rect_arrays(xc_px, yc_px, rect_major, rect_minor, phi)
-    return crop_image_to_rect(image, xc_px, yc_px, min(xp), max(xp), min(yp), max(yp))
+    cropped, new_xc, new_yc = crop_image_to_rect(image, xc_px, yc_px, min(xp), max(xp), min(yp), max(yp))
+    if cropped is None:
+        raise ValueError(
+            "crop_image_to_integration_rect: resulting crop is too small "
+            "(d_major=%.1f, d_minor=%.1f px, mask_diameters=%d)" % (d_major, d_minor, mask_diameters)
+        )
+    return cropped, new_xc, new_yc
 
 
 def create_cmap(vmin, vmax, band_percentage=4):
