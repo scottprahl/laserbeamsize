@@ -38,7 +38,7 @@ To facilitate interpretation of the results, there is also a `M2_report` functio
 import warnings
 import numpy as np
 import numpy.typing as npt
-import scipy.optimize
+import scipy.optimize  # type: ignore[import-untyped]
 
 from .gaussian import beam_parameter_product, artificial_to_original
 
@@ -120,7 +120,7 @@ def basic_beam_fit(
     lambda0: float,
     z0: float | None = None,
     d0: float | None = None,
-) -> tuple[list[float], list[float]]:
+) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
     """
     Return the hyperbolic fit to the supplied diameters.
 
@@ -205,8 +205,8 @@ def basic_beam_fit(
     if M2 != 0 and d0 != 0 and np.isfinite(zR):
         zR_std = zR * np.sqrt((M2_std / M2) ** 2 + (2 * d0_std / d0) ** 2)
 
-    params = [d0, z0, Theta, M2, zR]
-    errors = [d0_std, z0_std, Theta_std, M2_std, zR_std]
+    params = np.array([d0, z0, Theta, M2, zR])
+    errors = np.array([d0_std, z0_std, Theta_std, M2_std, zR_std])
     return params, errors
 
 

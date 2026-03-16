@@ -245,7 +245,7 @@ def _setup_scale_and_labels(pixel_size: float | None, units: str) -> tuple[float
         tuple: (scale, label, units_str)
     """
     if pixel_size is None:
-        scale = 1
+        scale: float = 1
         unit_str = "px"
     else:
         scale = pixel_size
@@ -288,7 +288,10 @@ def _crop_image_if_needed(
         ymax = yc_px + crop[0] / 2 / scale
         xmin = xc_px - crop[1] / 2 / scale
         xmax = xc_px + crop[1] / 2 / scale
-        return crop_image_to_rect(o_image, xc_px, yc_px, xmin, xmax, ymin, ymax)
+        cropped, new_xc, new_yc = crop_image_to_rect(o_image, xc_px, yc_px, xmin, xmax, ymin, ymax)
+        if cropped is None or new_xc is None or new_yc is None:
+            return o_image, xc_px, yc_px
+        return cropped, new_xc, new_yc
 
     if crop:
         return crop_image_to_integration_rect(o_image, xc_px, yc_px, d_major_px, d_minor_px, phi, diameters)
@@ -330,7 +333,7 @@ def _draw_beam_overlays(
     xp1_px, yp1_px, xp2_px, yp2_px = axes_arrays(xc_px, yc_px, rect_major_px, rect_minor_px, phi)
 
     plot_visible_dotted_line((xp1_px - xc_px) * scale, (yp1_px - yc_px) * scale)
-    if d_minor_px is not None:
+    if d_minor_px is not None and xp2_px is not None and yp2_px is not None:
         plot_visible_dotted_line((xp2_px - xc_px) * scale, (yp2_px - yc_px) * scale)
 
 
@@ -375,7 +378,7 @@ def _plot_image_with_beam_overlay(
         im: the image object
     """
     v_px, h_px = image.shape
-    extent = np.array([-xc_px, h_px - xc_px, v_px - yc_px, -yc_px]) * scale
+    extent = (-xc_px * scale, (h_px - xc_px) * scale, (v_px - yc_px) * scale, -yc_px * scale)
 
     # establish colorbar limits
     if vmax is None:
@@ -629,9 +632,9 @@ def plot_image_analysis(
     _, _, z_major, s_major_px = major_axis_arrays(image, xc_px, yc_px, rect_major_px, phi)
     a_major = np.sqrt(8 / np.pi) / d_major_px * abs(np.sum(z_major - bkgnd) * (s_major_px[1] - s_major_px[0]))
 
-    a_minor = 0
+    a_minor: float = 0
     z_minor = np.array([0])
-    r_minor_s = 0
+    r_minor_s: float = 0
     if d_minor_px is not None:
         r_minor_s = d_minor_px * scale / 2
         rect_minor_px = d_minor_px * diameters

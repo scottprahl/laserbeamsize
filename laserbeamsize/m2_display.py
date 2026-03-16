@@ -310,16 +310,16 @@ def M2_radius_plot(
     # xticks along top axis
     ticks = [(i * zR) * 1e3 for i in range(int((zmin - z0) / zR), int((zmax - z0) / zR) + 1)]
     ticklabels1 = ["%.0f" % (tick_mm + z0 * 1e3) for tick_mm in ticks]
-    ticklabels2 = []
+    ticklabels2: list[str] = []
     for i in range(int((zmin - z0) / zR), int((zmax - z0) / zR) + 1):
         if i == 0:
-            ticklabels2 = np.append(ticklabels2, "0")
+            ticklabels2.append("0")
         elif i == -1:
-            ticklabels2 = np.append(ticklabels2, r"-$z_R$")
+            ticklabels2.append(r"-$z_R$")
         elif i == 1:
-            ticklabels2 = np.append(ticklabels2, r"$z_R$")
+            ticklabels2.append(r"$z_R$")
         else:
-            ticklabels2 = np.append(ticklabels2, r"%d$z_R$" % i)
+            ticklabels2.append(r"%d$z_R$" % i)
     ax1 = plt.gca()
     ax2 = ax1.twiny()
 
@@ -329,7 +329,7 @@ def M2_radius_plot(
     else:
         ax1.set_xticklabels(ticklabels1, fontsize=14)
 
-    ax2.set_xbound(ax1.get_xbound())
+    ax2.set_xbound(*ax1.get_xbound())
     ax2.set_xticks(ticks)
     if len(ticks) > 10:
         ax2.set_xticklabels(ticklabels2, fontsize=14, rotation=90)

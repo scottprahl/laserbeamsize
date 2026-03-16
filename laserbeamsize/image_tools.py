@@ -7,7 +7,7 @@ Full documentation is available at <https://laserbeamsize.readthedocs.io>
 import numpy as np
 import numpy.typing as npt
 from numpy import ma
-import scipy.ndimage
+import scipy.ndimage  # type: ignore[import-untyped]
 import matplotlib.pyplot as plt
 import matplotlib.colors
 from matplotlib.colors import LinearSegmentedColormap
@@ -89,8 +89,12 @@ def line(r0: int, c0: int, r1: int, c1: int) -> tuple[npt.NDArray[np.floating], 
 
 
 def rotate_points(
-    x: npt.NDArray[np.floating], y: npt.NDArray[np.floating], x0: float, y0: float, phi: float
-) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
+    x: float | npt.NDArray[np.floating],
+    y: float | npt.NDArray[np.floating],
+    x0: float,
+    y0: float,
+    phi: float,
+) -> tuple[float | npt.NDArray[np.floating], float | npt.NDArray[np.floating]]:
     """
     Rotate x and y around designated center (x0, y0).
 
@@ -367,7 +371,8 @@ def axes_arrays(
     rx = d_major / 2
     x = np.array([-rx, rx]) + xc_px
     y = np.array([0, 0]) + yc_px
-    x_rot1, y_rot1 = rotate_points(x, y, xc_px, yc_px, phi)
+    xr1, yr1 = rotate_points(x, y, xc_px, yc_px, phi)
+    x_rot1, y_rot1 = np.asarray(xr1), np.asarray(yr1)
 
     if d_minor is None:
         return x_rot1, y_rot1, None, None
@@ -376,7 +381,8 @@ def axes_arrays(
     ry = d_minor / 2
     x = np.array([0, 0]) + xc_px
     y = np.array([-ry, ry]) + yc_px
-    x_rot2, y_rot2 = rotate_points(x, y, xc_px, yc_px, phi)
+    xr2, yr2 = rotate_points(x, y, xc_px, yc_px, phi)
+    x_rot2, y_rot2 = np.asarray(xr2), np.asarray(yr2)
 
     return x_rot1, y_rot1, x_rot2, y_rot2
 
@@ -513,13 +519,13 @@ def crop_image_to_rect2(
         new_xc, new_yc: new beam center (pixels)
     """
     v, h = image.shape
-    xmin = max(0, int(xmin))
-    xmax = min(h, int(xmax))
-    ymin = max(0, int(ymin))
-    ymax = min(v, int(ymax))
-    new_xc = xc_px - xmin
-    new_yc = yc_px - ymin
-    return image[ymin:ymax, xmin:xmax], new_xc, new_yc
+    ixmin = max(0, int(xmin))
+    ixmax = min(h, int(xmax))
+    iymin = max(0, int(ymin))
+    iymax = min(v, int(ymax))
+    new_xc = xc_px - ixmin
+    new_yc = yc_px - iymin
+    return image[iymin:iymax, ixmin:ixmax], new_xc, new_yc
 
 
 def crop_image_to_rect(
@@ -643,7 +649,7 @@ def crop_image_to_integration_rect(
     rect_minor = mask_diameters * d_minor
     xp, yp = rotated_rect_arrays(xc_px, yc_px, rect_major, rect_minor, phi)
     cropped, new_xc, new_yc = crop_image_to_rect(image, xc_px, yc_px, min(xp), max(xp), min(yp), max(yp))
-    if cropped is None:
+    if cropped is None or new_xc is None or new_yc is None:
         raise ValueError(
             "crop_image_to_integration_rect: resulting crop is too small "
             "(d_major=%.1f, d_minor=%.1f px, mask_diameters=%d)" % (d_major, d_minor, mask_diameters)

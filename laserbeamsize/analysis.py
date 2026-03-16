@@ -228,10 +228,9 @@ def beam_size(
     for _iteration in range(1, max_iter):
 
         # save current beam properties for later comparison
-        xc2, yc2, dx2, dy2 = xc, yc, d_major, d_minor
-
         if d_minor is None:
-            return xc2, yc2, dx2, dy2, phi_
+            return xc, yc, d_major, d_minor, phi_
+        xc2, yc2, dx2, dy2 = xc, yc, d_major, d_minor
 
         # create a mask so only values within the mask are used
         rect_major = mask_diameters * d_major

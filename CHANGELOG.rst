@@ -3,33 +3,34 @@ Changelog
 
 2.3.3 (2026-03-15)
 ------------------
-  * fix copy-paste bug: ``plot_beam_diagram()`` used ``d_major`` for minor-rectangle dimension
-  * fix copy-paste bug: ``plot_image_analysis()`` minor-axis label compared major-axis variables
-  * fix ``beam_size()`` crash when ``d_minor`` becomes ``None`` during iterative refinement
-  * fix NaN propagation in ``basic_beam_fit()`` when measured diameter is smaller than fitted waist
-  * fix divide-by-zero in ``beam_parameter_product()`` and M² error propagation when waist or divergence is zero
-  * fix hardcoded figure number in ``m2_display`` that caused matplotlib warnings on repeated calls
-  * fix variable shadowing of plane-fit coefficient ``b`` in ``subtract_tilted_background()``
-  * fix ``_format_beam_title()`` docstring: z parameter is in meters, not mm
-  * fix ``_fmt()`` NaN check to handle ``np.floating`` types, not just Python ``float``
-  * fix ``M2_fit()`` zone-trimming loops to guard against ``None`` index when a zone is exhausted
-  * fix ``beam_parameter_product()`` zero-check to use ``np.isclose()`` instead of exact equality
-  * fix ``plot_image_analysis()`` minor-axis subplot x-limits used ``s_major_px`` instead of ``s_minor_px``
-  * fix ``M2_fit()`` focal-zone trimming loop ignored the ``n_outer==4`` special-case adjustment
-  * fix divide-by-zero in ``M2_radius_plot()`` and ``_fit_plot()`` when ``d0==0`` and ``M2<1``
-  * fix stale ``laserbeamsize.m2`` reference in package docstring (module was split into ``m2_fit`` and ``m2_display``)
-  * fix ``rotated_rect_mask()`` docstring: removed non-existent ``mask_diameters`` parameter
-  * fix ``_prepare_beam_analysis()`` docstring: return tuple listed 7 items but function returns 6
-  * fix ``create_test_image()`` docstring: corrected "magnitued" typo and documented valid ``ntype`` values
-  * fix ``elliptical_mask()`` silent all-False mask for zero diameter: now raises ``ValueError``
-  * fix ``corner_background()`` docstring: Returns section now lists both ``corner_mean`` and ``corner_stdev``, and documents the ``corner_fraction=0`` short-circuit behaviour
-  * clarify ``rotate_points()`` docstring: explains why ``-phi`` is used internally to produce CCW-on-screen rotation in y-down image coordinates
-  * replace ``print()`` with ``warnings.warn()`` in ``M2_fit()`` for strict-mode messages
-  * replace Python loops with numpy in ``max_index_in_focal_zone()`` and ``min_index_in_outer_zone()``
-  * remove dead code: ``basic_beam_size_naive()``, ``rotated_rect_mask_slow()``, ``_mean_filter()``, ``_std_filter()``, ``image_background2()``
-  * remove unused ``scipy.ndimage`` import from ``background.py``
+  * fix plot_beam_diagram() used d_major for minor-rectangle dimension
+  * fix plot_image_analysis() minor-axis label compared major-axis variables
+  * fix beam_size() crash when d_minor becomes None during iterative refinement
+  * fix NaN propagation in basic_beam_fit() when measured diameter is smaller than fitted waist
+  * fix divide-by-zero in beam_parameter_product() and M² error propagation when waist or divergence is zero
+  * fix hardcoded figure number in m2_display that caused matplotlib warnings on repeated calls
+  * fix variable shadowing of plane-fit coefficient b in subtract_tilted_background()
+  * fix _format_beam_title() docstring: z parameter is in meters, not mm
+  * fix _fmt() NaN check to handle np.floating types, not just Python float
+  * fix M2_fit() zone-trimming loops to guard against None index when a zone is exhausted
+  * fix beam_parameter_product() zero-check to use np.isclose() instead of exact equality
+  * fix plot_image_analysis() minor-axis subplot x-limits used s_major_px instead of s_minor_px
+  * fix M2_fit() focal-zone trimming loop ignored the n_outer==4 special-case adjustment
+  * fix divide-by-zero in M2_radius_plot() and _fit_plot() when d0==0 and M2<1
+  * fix stale laserbeamsize.m2 reference in package docstring
+  * fix rotated_rect_mask() docstring: removed non-existent mask_diameters parameter
+  * fix _prepare_beam_analysis() docstring: return tuple listed 7 items but function returns 6
+  * fix create_test_image() docstring: corrected "magnitued" typo and documented valid ntype values
+  * fix elliptical_mask() silent all-False mask for zero diameter: now raises ValueError
+  * fix corner_background() docstring: now lists both corner_mean and corner_stdev
+  * fix rotate_points() docstring: explains why -phi is used internally
+  * replace print() with warnings.warn() in M2_fit() for strict-mode messages
+  * replace Python loops with numpy in max_index_in_focal_zone() and min_index_in_outer_zone()
+  * remove dead code: basic_beam_size_naive(), rotated_rect_mask_slow(), _mean_filter(), _std_filter(), image_background2()
+  * remove unused scipy.ndimage import from background.py
   * add PEP 484 type annotations to all public and private functions across all source modules
-  * add comprehensive tests for all fixed issues; pylint score 10.00/10
+  * fix mypy errors that surfaced after adding type annotations
+  * add comprehensive tests for all fixed issues
 
 2.3.2 (2026-03-05)
 ------------------
@@ -82,11 +83,11 @@ Changelog
   * eliminate dependence on pillow and scikit-image
   * correct angle definitions
   * use black for all formatting
-  * adopt ``pyproject.toml`` with PEP 621 metadata and eliminate setup.cfg
-  * lint YAML files and run ``ruff`` during ``make rcheck``
-  * allow ``iso_noise`` option in display and background functions
-  * rename ``tests/test_all_notebooks.py`` to ``tests/all_test_notebooks.py``
-  * replace ``master`` branch references with ``main`` in docs
+  * adopt pyproject.toml with PEP 621 metadata and eliminate setup.cfg
+  * lint YAML files and run ruff during make rcheck
+  * allow iso_noise option in display and background functions
+  * rename tests/test_all_notebooks.py to tests/all_test_notebooks.py
+  * replace master branch references with main in docs
   * numerous style and docstring improvements
   * remove flake8
   * bump minimum python version to 3.9

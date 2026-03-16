@@ -107,7 +107,13 @@ def z_rayleigh(w0: float, lambda0: float, M2: float = 1) -> float:
     return np.pi * w0**2 / lambda0 / M2
 
 
-def beam_radius(w0: float, lambda0: float, z: float, z0: float = 0, M2: float = 1) -> float:
+def beam_radius(
+    w0: float,
+    lambda0: float,
+    z: float | npt.NDArray[np.floating],
+    z0: float = 0,
+    M2: float = 1,
+) -> float | npt.NDArray[np.floating]:
     """
     Return the beam radius at an axial location of a Gaussian beam.
 
@@ -380,6 +386,6 @@ def artificial_to_original(
     orig_Theta = art_Theta / V
     orig_Theta_std = art_Theta_std / V
 
-    o_params = [orig_d0, orig_z0, orig_Theta, M2, orig_zR]
-    o_errors = [orig_d0_std, orig_z0_std, orig_Theta_std, M2_std, orig_zR_std]
+    o_params = np.array([orig_d0, orig_z0, orig_Theta, M2, orig_zR])
+    o_errors = np.array([orig_d0_std, orig_z0_std, orig_Theta_std, M2_std, orig_zR_std])
     return o_params, o_errors

@@ -69,8 +69,9 @@ def _get_unmasked_bounding_box(image: np.ndarray) -> tuple[int, int, int, int, i
 
     if np.ma.is_masked(image):
         # Find rows and columns that contain unmasked pixels
-        unmasked_rows = np.where(~image.mask.all(axis=1))[0]
-        unmasked_cols = np.where(~image.mask.all(axis=0))[0]
+        img_mask = np.ma.getmaskarray(image)
+        unmasked_rows = np.where(~img_mask.all(axis=1))[0]
+        unmasked_cols = np.where(~img_mask.all(axis=0))[0]
 
         if len(unmasked_rows) == 0 or len(unmasked_cols) == 0:
             # No unmasked pixels
@@ -107,7 +108,7 @@ def _apply_image_mask(mask: npt.NDArray[np.bool_], image: np.ndarray) -> npt.NDA
         modified mask with image.mask applied if present
     """
     if np.ma.is_masked(image):
-        return mask & ~image.mask
+        return mask & ~np.ma.getmaskarray(image)
     return mask
 
 
@@ -237,7 +238,7 @@ def perimeter_mask(image: np.ndarray, corner_fraction: float = 0.035) -> npt.NDA
 
 def rotated_rect_mask(
     image: np.ndarray, xc: float, yc: float, d_major: float, d_minor: float, phi: float
-) -> npt.NDArray[np.floating]:
+) -> npt.NDArray[np.bool_]:
     """
     Create a boolean mask of a rotated rectangle within an image using NumPy.
 
