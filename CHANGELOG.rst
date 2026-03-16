@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.3.3 (2026-03-15)
+2.4.0 (2026-03-15)
 ------------------
   * fix plot_beam_diagram() used d_major for minor-rectangle dimension
   * fix plot_image_analysis() minor-axis label compared major-axis variables

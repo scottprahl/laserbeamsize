@@ -24,7 +24,7 @@ The M² analysis functionality is split into two modules.
     help(laserbeamsize.m2_display)
 """
 
-__version__ = "2.3.2"
+__version__ = "2.4.0"
 __author__ = "Scott Prahl"
 __email__ = "scott.prahl@oit.edu"
 __copyright__ = "2017-2026, Scott Prahl"
