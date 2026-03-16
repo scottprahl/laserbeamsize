@@ -4,12 +4,14 @@ import numpy as np
 import laserbeamsize as lbs
 
 
-def beam_size_checked(beam: np.ndarray, phi_fixed: float | None = None) -> tuple[float, float, float, float, float]:
+def beam_size_checked(
+    beam_image: np.ndarray, fixed_phi: float | None = None
+) -> tuple[float, float, float, float, float]:
     """Return beam_size results, asserting the minor diameter is present."""
-    xc, yc, d_major, d_minor, phi_calc = lbs.beam_size(beam, phi_fixed=phi_fixed)
-    if d_minor is None:
+    x_center, y_center, major_diameter, minor_diameter, fitted_phi = lbs.beam_size(beam_image, phi_fixed=fixed_phi)
+    if minor_diameter is None:
         raise RuntimeError("beam_size() unexpectedly returned d_minor=None in manual phi_fixed test")
-    return xc, yc, d_major, d_minor, phi_calc
+    return x_center, y_center, major_diameter, minor_diameter, fitted_phi
 
 
 print("laserbeamsize version is", lbs.__version__)
@@ -35,35 +37,35 @@ print(
 )
 
 phi_fixed = phi_true + np.radians(0)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- should match"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
 )
 
 phi_fixed = phi_true + np.radians(90)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- major/minor swapped"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
 )
 
 phi_fixed = phi_true + np.radians(-90)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- major/minor swapped"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
 )
 
 phi_fixed = phi_true + np.radians(45)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- d_major=d_minor=127.5"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
 )
 
 phi_fixed = phi_true + np.radians(-45)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- d_major=d_minor=127.5"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
@@ -90,35 +92,35 @@ print(
 )
 
 phi_fixed = phi_true + np.radians(0)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- should match"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
 )
 
 phi_fixed = phi_true + np.radians(90)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- major/minor swapped"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
 )
 
 phi_fixed = phi_true + np.radians(-90)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- major/minor swapped"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
 )
 
 phi_fixed = phi_true + np.radians(45)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- d_major=d_minor=127.5"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
 )
 
 phi_fixed = phi_true + np.radians(-45)
-xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, phi_fixed=phi_fixed)
+xc, yc, d_major, d_minor, phi_calc = beam_size_checked(beam, fixed_phi=phi_fixed)
 print(
     "%8.2f  %8.2f  %8.2f  %8.2f  %8.2f° %8.2f° --- d_major=d_minor=127.5"
     % (xc, yc, d_major, d_minor, np.degrees(phi_fixed), np.degrees(phi_calc))
