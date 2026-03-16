@@ -16,8 +16,9 @@ of a propagating Gaussian beam::
 
     help(laserbeamsize.gaussian)
 
-The last module, `laserbeamsize.m2`, contains functions that find the M² value
-and other beam parameters from a sequence of images::
+The M² analysis functionality is split into two modules.
+`laserbeamsize.m2_fit` contains the fitting functions, and
+`laserbeamsize.m2_display` contains the plotting/reporting functions::
 
     help(laserbeamsize.m2_fit)
     help(laserbeamsize.m2_display)

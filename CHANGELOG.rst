@@ -10,6 +10,13 @@ Changelog
   * fix divide-by-zero in ``beam_parameter_product()`` and M² error propagation when waist or divergence is zero
   * fix hardcoded figure number in ``m2_display`` that caused matplotlib warnings on repeated calls
   * fix variable shadowing of plane-fit coefficient ``b`` in ``subtract_tilted_background()``
+  * fix ``_format_beam_title()`` docstring: z parameter is in meters, not mm
+  * fix ``_fmt()`` NaN check to handle ``np.floating`` types, not just Python ``float``
+  * fix ``M2_fit()`` zone-trimming loops to guard against ``None`` index when a zone is exhausted
+  * fix ``beam_parameter_product()`` zero-check to use ``np.isclose()`` instead of exact equality
+  * fix stale ``laserbeamsize.m2`` reference in package docstring (module was split into ``m2_fit`` and ``m2_display``)
+  * fix ``rotated_rect_mask()`` docstring: removed non-existent ``mask_diameters`` parameter
+  * fix ``_prepare_beam_analysis()`` docstring: return tuple listed 7 items but function returns 6
   * replace ``print()`` with ``warnings.warn()`` in ``M2_fit()`` for strict-mode messages
   * replace Python loops with numpy in ``max_index_in_focal_zone()`` and ``min_index_in_outer_zone()``
   * remove dead code: ``basic_beam_size_naive()``, ``rotated_rect_mask_slow()``, ``_mean_filter()``, ``_std_filter()``, ``image_background2()``

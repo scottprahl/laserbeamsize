@@ -1,6 +1,7 @@
 """Tests for display functions."""
 
-# pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-position,protected-access
+import re
 import inspect
 import matplotlib
 
@@ -50,3 +51,50 @@ def test_plot_image_analysis_title_uses_pixels_by_default():
     assert "µm" not in beam_titles[0]
 
     plt.close(fig)
+
+
+def test_format_beam_title_z_docstring_says_meters():
+    """_format_beam_title docstring must say z is in meters, not mm."""
+    doc = disp._format_beam_title.__doc__ or ""
+    assert "in mm" not in doc, (
+        "_format_beam_title docstring still says z should be 'in mm'; "
+        "it should say 'in meters' (the implementation multiplies by 1e3 to convert to mm for display)"
+    )
+
+
+def test_format_beam_title_numpy_nan_does_not_raise():
+    """_format_beam_title must handle numpy NaN (np.float64) without raising."""
+    import numpy as np  # pylint: disable=import-outside-toplevel
+    nan64 = np.float64("nan")
+    result = disp._format_beam_title(nan64, nan64, "mm")
+    assert "fail" in result, f"Expected 'fail' in title for NaN inputs, got: {result!r}"
+
+
+def test_init_docstring_does_not_reference_m2_module():
+    """__init__.py docstring must not mention laserbeamsize.m2 (the module was split)."""
+    doc = lbs.__doc__ or ""
+    assert "laserbeamsize.m2`" not in doc, (
+        "__init__.py docstring still references `laserbeamsize.m2` which no longer exists; "
+        "update to reference `laserbeamsize.m2_fit` and `laserbeamsize.m2_display`"
+    )
+
+
+def test_prepare_beam_analysis_docstring_matches_return_count():
+    """_prepare_beam_analysis docstring must list exactly 6 return values."""
+    doc = disp._prepare_beam_analysis.__doc__ or ""
+    match = re.search(r'tuple:\s*\(([^)]+)\)', doc)
+    assert match is not None, "_prepare_beam_analysis docstring has no 'tuple: (...)' return description"
+    items = [x.strip() for x in match.group(1).split(',')]
+    assert len(items) == 6, (
+        f"_prepare_beam_analysis docstring lists {len(items)} return values "
+        f"but the function returns 6: {items}"
+    )
+
+
+def test_set_zero_to_lightgray_no_commented_out_color():
+    """set_zero_to_lightgray must not contain a commented-out alternative color."""
+    src = inspect.getsource(disp.set_zero_to_lightgray)
+    assert "[0.7, 0.7, 0.7, 1.0]" not in src, (
+        "set_zero_to_lightgray still has a commented-out alternative color [0.7, 0.7, 0.7, 1.0]; "
+        "remove it"
+    )

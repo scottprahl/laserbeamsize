@@ -304,14 +304,20 @@ def M2_fit(z, d, lambda0, strict=False, z0=None, d0=None):
     if n_focal == 4:
         extra = n_outer - 6
     for _ in range(extra):
-        zone[min_index_in_outer_zone(abs(z - z0), zone)] = 0
+        idx = min_index_in_outer_zone(abs(z - z0), zone)
+        if idx is None:
+            break
+        zone[idx] = 0
 
     # mark extra points in focal zone farthest from focus as unused
     extra = n_outer - n_focal
     if n_outer == 4:
         extra = n_focal - 6
     for _ in range(n_focal - n_outer):
-        zone[max_index_in_focal_zone(abs(z - z0), zone)] = 0
+        idx = max_index_in_focal_zone(abs(z - z0), zone)
+        if idx is None:
+            break
+        zone[idx] = 0
 
     # now find beam parameters with 50% focal and 50% outer zone values
     used = zone != 0

@@ -161,7 +161,6 @@ def set_zero_to_lightgray(cmap_name, min_val, max_val):
         idx = int(256 * abs(min_val) / (max_val - min_val))
 
     colors[idx] = [0.827, 0.827, 0.827, 1.0]
-    #    colors[idx] = [0.7, 0.7, 0.7, 1.0]
 
     return mcolors.ListedColormap(colors)
 
@@ -170,8 +169,8 @@ def _format_beam_title(d_major, d_minor, units, z=None):
     """
     Return a standardized title string describing the beam diameters.
 
-    If z position is not None, then it should be specified in mm.
-    The z position will be added to the title.
+    If z position is not None, then it should be specified in meters.
+    The z position will be converted to mm for display.
 
     Args:
         d_major: major diameter in units specified
@@ -184,7 +183,7 @@ def _format_beam_title(d_major, d_minor, units, z=None):
     """
 
     def _fmt(val, label):
-        if val is None or (isinstance(val, float) and np.isnan(val)):
+        if val is None or (isinstance(val, (float, np.floating)) and np.isnan(val)):
             return f"{label} fail"
         if units == "mm":
             return f"{label}={val:.2f}{units}"
@@ -213,7 +212,7 @@ def _prepare_beam_analysis(image, corner_fraction, nT, iso_noise, **kwargs):
         **kwargs: extra options to pass to beam_size()
 
     Returns:
-        tuple: (diameters, beam_size_args, xc_px, yc_px, d_major_px, d_minor_px, phi)
+        tuple: (diameters, xc_px, yc_px, d_major_px, d_minor_px, phi)
     """
     diameters = kwargs.get("mask_diameters", 3)
 

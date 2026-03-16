@@ -111,3 +111,21 @@ def test_m2_report_with_focus_and_minor_uses_iso_artificial_to_original():
     assert expected_d0y in report
     assert expected_z0x in report
     assert expected_theta_x in report
+
+
+def test_m2_fit_strict_none_index_does_not_crash():
+    """M2_fit zone-trimming must not crash with TypeError when a zone index is None."""
+    # Many focal-zone points, few outer points — exhausts the outer zone during trimming
+    z = np.array([
+        -0.0001, -0.00005, 0.0, 0.00005,
+        -0.0002, 0.0001, 0.0002, -0.00015,
+        -1.0, -0.8, 0.8, 1.0,
+    ])
+    d0_val, theta = 100e-6, 15e-3
+    d = np.sqrt(d0_val**2 + (theta * z) ** 2)
+    try:
+        lbs.M2_fit(z, d, 632.8e-9, strict=True)
+    except TypeError as exc:
+        raise AssertionError(
+            f"M2_fit raised TypeError due to None zone index: {exc}"
+        ) from exc

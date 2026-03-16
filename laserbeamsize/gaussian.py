@@ -284,7 +284,7 @@ def beam_parameter_product(Theta, d0, Theta_std=0, d0_std=0):
         BPP_std: standard deviation of beam parameter product [m * radian]
     """
     BPP = Theta * d0 / 4
-    if Theta == 0 or d0 == 0:
+    if np.isclose(Theta, 0) or np.isclose(d0, 0):
         BPP_std = 0
     else:
         BPP_std = BPP * np.sqrt((Theta_std / Theta) ** 2 + (d0_std / d0) ** 2)

@@ -245,9 +245,6 @@ def rotated_rect_mask(image, xc, yc, d_major, d_minor, phi):
     This routine creates a mask with `true` values for each pixel in
     the image that should be part of the integration.
 
-    The rectangular mask is `mask_diameters` times the pixel diameters
-    of the ellipse.
-
     The rectangular mask is rotated about (xc, yc) using NumPy.
 
     If the image is already masked, only unmasked pixels within the
@@ -260,7 +257,7 @@ def rotated_rect_mask(image, xc, yc, d_major, d_minor, phi):
         d_major: semi-major ellipse diameter
         d_minor: semi-minor ellipse diameter
         phi: angle between horizontal and major axes [radians]
-        mask_diameters: number of diameters to include
+
     Returns:
         masked_image: 2D array with True values inside rectangle
     """

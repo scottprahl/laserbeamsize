@@ -244,3 +244,12 @@ def test_scipy_ndimage_not_imported_in_background():
 def test_rotated_rect_mask_slow_removed():
     """rotated_rect_mask_slow is an unused duplicate and must be removed."""
     assert not hasattr(bg, "rotated_rect_mask_slow"), "rotated_rect_mask_slow should be removed (dead code)"
+
+
+def test_rotated_rect_mask_docstring_no_mask_diameters():
+    """rotated_rect_mask docstring must not reference a mask_diameters parameter that doesn't exist."""
+    doc = bg.rotated_rect_mask.__doc__ or ""
+    assert "mask_diameters" not in doc, (
+        "rotated_rect_mask docstring still references 'mask_diameters', "
+        "which is not a parameter of this function"
+    )

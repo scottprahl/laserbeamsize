@@ -366,3 +366,15 @@ def test_divergence_docstring_notes_small_angle():
     assert (
         "small" in doc.lower() or "approximat" in doc.lower()
     ), "divergence() docstring should mention the small-angle approximation"
+
+
+def test_beam_parameter_product_near_zero_theta_does_not_divide_by_zero():
+    """beam_parameter_product with near-zero Theta must zero out BPP_std, not overflow."""
+    # A subnormal float: not exactly zero but np.isclose(x, 0) should be True
+    almost_zero = 1e-310
+    BPP, BPP_std = lbs.beam_parameter_product(almost_zero, 0.002, 1e-310, 2e-5)
+    assert np.isfinite(BPP), f"BPP is not finite: {BPP}"
+    assert BPP_std == 0, (
+        f"beam_parameter_product did not short-circuit for near-zero Theta={almost_zero}; "
+        f"got BPP_std={BPP_std} (expected 0)"
+    )
