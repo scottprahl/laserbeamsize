@@ -44,6 +44,24 @@ def test_plot_beam_diagram_draws_expected_annotations():
     assert not axis.axison
 
 
+def test_plot_beam_diagram_uses_a_single_axes():
+    """Drawing must reuse the subplot axes.
+
+    Calling plt.axes() instead of plt.gca() added a second axes on top of the
+    one made by subplots(), and since axis("off") only applied to the new one,
+    the empty original showed through as a ticked frame behind the diagram.
+    """
+    lbs.plot_beam_diagram()
+
+    figure = plt.gcf()
+    assert len(figure.axes) == 1, "expected one axes, got %d" % len(figure.axes)
+
+    axis = figure.axes[0]
+    assert len(axis.lines) >= 4, "the diagram was drawn on a different axes"
+    assert not axis.axison, "a visible frame remains behind the diagram"
+    assert axis.get_aspect() == 1.0
+
+
 def test_plot_beam_diagram_scales_both_rectangle_dimensions(monkeypatch):
     """The integration rectangle preserves the beam's major/minor aspect ratio."""
     captured = {}

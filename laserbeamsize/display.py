@@ -91,8 +91,10 @@ def plot_beam_diagram() -> None:
     plt.subplots(1, 1, figsize=(6, 6))
 
     # If the aspect ratio is not `equal` then the major and minor axes
-    # will not appear to be orthogonal to each other!
-    plt.axes().set_aspect("equal")
+    # will not appear to be orthogonal to each other!  Use gca() rather than
+    # axes(): axes() would add a second axes on top of the one just created,
+    # leaving an empty ticked frame showing behind the diagram.
+    plt.gca().set_aspect("equal")
 
     xp, yp = ellipse_arrays(xc, yc, d_major, d_minor, phi)
     plt.plot(xp, yp, "k", lw=2)
