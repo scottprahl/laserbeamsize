@@ -18,8 +18,10 @@ The original can be located at::
 
 import os.path
 import pathlib
+from typing import cast
 import pytest
 import nbformat
+from nbformat import NotebookNode
 import nbconvert.preprocessors
 
 # Default search path is the current directory
@@ -56,4 +58,4 @@ def test_run_notebook(notebook):
     with open(notebook, encoding="utf-8") as f:
         nb = nbformat.read(f, as_version=4)
     ep = nbconvert.preprocessors.ExecutePreprocessor(timeout=600)
-    ep.preprocess(nb, {"metadata": {"path": notebook.parent}})
+    ep.preprocess(cast(NotebookNode, nb), {"metadata": {"path": notebook.parent}})

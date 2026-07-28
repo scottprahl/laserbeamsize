@@ -421,7 +421,7 @@ def create_test_image(
     noise: float = 0,
     ntype: str = "poisson",
     max_value: int = 255,
-) -> npt.NDArray[np.floating]:
+) -> npt.NDArray[np.floating] | npt.NDArray[np.unsignedinteger]:
     """
     Create a 2D test image with an elliptical beam and possible noise.
 
@@ -680,8 +680,8 @@ def create_cmap(vmin: float, vmax: float, band_percentage: float = 4) -> LinearS
 
 def create_plus_minus_cmap(data: npt.NDArray[np.floating]) -> matplotlib.colors.Colormap:
     """Create a color map with reds for positive and blues for negative values."""
-    vmax = np.max(data)
-    vmin = np.min(data)
+    vmax = float(np.max(data))
+    vmin = float(np.min(data))
 
     if 0 <= vmin <= vmax:
         return plt.get_cmap("Reds")

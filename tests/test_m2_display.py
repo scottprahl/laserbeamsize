@@ -2,11 +2,13 @@
 
 # pylint: disable=wrong-import-position,protected-access
 import inspect
+from typing import cast
 import numpy as np
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 import laserbeamsize as lbs
 import laserbeamsize.m2_display as m2d
 
@@ -85,8 +87,8 @@ def test_m2_diameter_plot_minor_residual_spans_use_minor_fit_limits():
     zmin = min(np.min(z), z0y - 4 * zR)
     zmax = max(np.max(z), z0y + 4 * zR)
 
-    left_span = minor_residual_ax.patches[1]
-    right_span = minor_residual_ax.patches[2]
+    left_span = cast(Rectangle, minor_residual_ax.patches[1])
+    right_span = cast(Rectangle, minor_residual_ax.patches[2])
 
     assert np.isclose(left_span.get_x(), (z0y - 2 * zR) * 1e3)
     assert np.isclose(left_span.get_width(), (zmin - (z0y - 2 * zR)) * 1e3)

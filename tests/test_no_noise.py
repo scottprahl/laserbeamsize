@@ -62,7 +62,7 @@ def test_max_iter():
         pass
 
     try:
-        lbs.beam_size(image, max_iter=3.5)
+        lbs.beam_size(image, max_iter=3.5)  # type: ignore[bad-argument-type]  # non-integer is rejected at runtime
         assert False, "Expected ValueError for non-integer max_iter"
     except ValueError:
         pass
@@ -106,6 +106,7 @@ def run_test(h, v, xc, yc, dx, dy, phi, max_value=255):
     if interactive:
         plt.title("result=%.1f° expected=%.1f°" % (rp, erp))
         plt.imshow(test_img)
+        assert result_dy is not None
         x, y = lbs.image_tools.ellipse_arrays(result_xc, result_yc, result_dx, result_dy, result_phi)
         plt.plot(x, y)
         plt.colorbar()

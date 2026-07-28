@@ -38,6 +38,7 @@ def run_test(
     if interactive:
         plt.title("result=%.1f° expected=%.1f°" % (rp, erp))
         plt.imshow(test_img)
+        assert result_dy is not None
         x, y = lbs.image_tools.ellipse_arrays(result_xc, result_yc, result_dx, result_dy, result_phi)
         plt.plot(x, y)
         plt.colorbar()

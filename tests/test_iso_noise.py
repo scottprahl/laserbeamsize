@@ -20,6 +20,7 @@ def run_test(h, v, xc, yc, dx, dy, phi, noise=0, ntype="poisson", max_value=255,
     if interactive:
         plt.title("noise=%.1f pixels, type=%s" % (noise, ntype))
         plt.imshow(test_img)
+        assert result_dy is not None
         x, y = lbs.image_tools.ellipse_arrays(result_xc, result_yc, result_dx, result_dy, result_phi)
         plt.colorbar()
         plt.plot(x, y)

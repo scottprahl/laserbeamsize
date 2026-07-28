@@ -72,7 +72,7 @@ dev = [
   "pytest",
   "imageio",
   "requests",
-  "mypy",
+  "pyrefly",
 
   # Lint / QA
   "ruff",
@@ -134,10 +134,9 @@ ignore = [
 [tool.pytest.ini_options]
 markers = ["notebooks"]
 
-[tool.mypy]
-python_version = "3.10"
-files = ["laserbeamsize", "tests"]
-warn_unused_configs = true
+[tool.pyrefly]
+python-version = "3.10"
+project-includes = ["laserbeamsize", "tests"]
 
 [tool.pylint.messages_control]
 disable = [

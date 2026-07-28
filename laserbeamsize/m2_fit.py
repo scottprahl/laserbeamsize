@@ -160,7 +160,7 @@ def basic_beam_fit(
             i = np.argmax(abs(z - z0_guess))
             theta_guess = abs(d[i] / (z[i] - z0_guess))
             p0 = [d0_guess, z0_guess, theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_1, z, d, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_1, z, d, p0=p0)[:2]
             d0, z0, Theta = nlfit
             d0_std, z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
         else:
@@ -168,7 +168,7 @@ def basic_beam_fit(
             theta_guess = abs(d[i] / (z[i] - z0_guess))
             p0 = [z0_guess, theta_guess]
             dd = np.sqrt(np.maximum(d**2 - d0**2, 0))
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_3, z, dd, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_3, z, dd, p0=p0)[:2]
             z0, Theta = nlfit
             z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
             d0_std = 0
@@ -177,14 +177,14 @@ def basic_beam_fit(
         theta_guess = abs(d[i] / (z[i] - z0))
         if d0 is None:
             p0 = [d0_guess, theta_guess]
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_2, z - z0, d, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_2, z - z0, d, p0=p0)[:2]
             d0, Theta = nlfit
             d0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
             z0_std = 0
         else:
             p0 = [theta_guess]
             dd = np.sqrt(np.maximum(d**2 - d0**2, 0))
-            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_4, z - z0, dd, p0=p0)
+            nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_4, z - z0, dd, p0=p0)[:2]
             Theta = nlfit[0]
             Theta_std = np.sqrt(nlpcov[0, 0])
             z0_std = 0

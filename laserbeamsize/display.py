@@ -635,6 +635,7 @@ def plot_image_analysis(
 
     a_minor: float = 0
     z_minor = np.array([0])
+    s_minor_px = np.array([0])
     r_minor_s: float = 0
     if d_minor_px is not None:
         r_minor_s = d_minor_px * scale / 2
@@ -761,20 +762,6 @@ def plot_image_montage(
     if pixel_size is None:
         units = "px"
 
-    # gather all the options that are fixed for every image in the montage
-    options = {
-        "pixel_size": pixel_size,
-        "vmax": vmax,
-        "vmin": vmin,
-        "units": units,
-        "crop": crop,
-        "cmap": cmap,
-        "corner_fraction": corner_fraction,
-        "nT": nT,
-        "iso_noise": iso_noise,
-        **kwargs,
-    }
-
     # now set up the grid of subplots
     plt.subplots(rows, cols, figsize=(cols * 5, rows * 5))
 
@@ -785,7 +772,21 @@ def plot_image_montage(
         cb = vmax is not None and (i + 1 == cols)
 
         # plot the image and gather the beam diameters
-        _, _, d_major[i], d_minor[i], _ = plot_image_and_fit(im, **options, colorbar=cb)
+        # (options below are fixed for every image in the montage)
+        _, _, d_major[i], d_minor[i], _ = plot_image_and_fit(
+            im,
+            pixel_size=pixel_size,
+            vmax=vmax,
+            vmin=vmin,
+            units=units,
+            crop=crop,
+            cmap=cmap,
+            corner_fraction=corner_fraction,
+            nT=nT,
+            iso_noise=iso_noise,
+            colorbar=cb,
+            **kwargs,
+        )
 
         # add a title using the shared formatter
         if z is None:
