@@ -73,6 +73,10 @@ Install using ``pip``::
 
     pip install laserbeamsize
 
+The image-loading examples below also use ``imageio``::
+
+    pip install imageio
+
 Or with ``conda``::
 
     conda install -c conda-forge laserbeamsize
@@ -90,9 +94,11 @@ Example showing how to compute beam center, major/minor axes, and rotation.
 .. code-block:: python
 
     import imageio.v3 as iio
+    import matplotlib.pyplot as plt
     import laserbeamsize as lbs
 
-    file = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/images/t-hene.pgm"
+    data_url = "https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/images/"
+    file = data_url + "t-hene.pgm"
     beam = iio.imread(file)
 
     x, y, d_major, d_minor, phi = lbs.beam_size(beam)
@@ -130,7 +136,12 @@ For example, a TEM\ :sub:`02`\  mode.
 
 .. code-block:: python
 
-    tem02 = imageio.imread("TEM02_100mm.pgm") >> 4  # 12-bit data stored in 16-bit container
+    import imageio.v3 as iio
+    import matplotlib.pyplot as plt
+    import laserbeamsize as lbs
+
+    data_url = "https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/images/"
+    tem02 = iio.imread(data_url + "TEM02_100mm.pgm") >> 4  # 12-bit data stored in 16-bit container
     lbs.plot_image_analysis(tem02, title="TEM$_{02}$ at z=100 mm", pixel_size=3.75)
     plt.show()
 
@@ -147,6 +158,10 @@ Estimating M² requires beam diameters at several locations along the propagatio
 The beam diameters should be measured within ±1 Rayleigh distance and more than ±2+ Rayleigh distances.
 
 .. code-block:: python
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import laserbeamsize as lbs
 
     lambda1 = 308e-9  # meters
     z1 = np.array([-200,-180,-160,-140,-120,-100,-80,-60,-40,-20,0,20,40,60,80,99,120,140,160,180,200]) * 1e-3
@@ -169,9 +184,15 @@ The beam is a HeNe laser operating predominantly in the TEM\ :sub:`01`\  mode an
 
 .. code-block:: python
 
+    import imageio.v3 as iio
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import laserbeamsize as lbs
+
+    data_url = "https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/images/"
     lambda0 = 632.8e-9  # meters
     z = np.array([247, 251, 259, 266, 281, 292]) * 1e-3  # meters
-    filenames = [repo + "sb_%.0fmm_10.pgm" % (number * 1e3) for number in z]
+    filenames = [data_url + f"sb_{number * 1e3:.0f}mm_10.pgm" for number in z]
 
     # the 12-bit pixel images are stored in high-order bits in 16-bit values
     tem10 = [iio.imread(name) >> 4 for name in filenames]
@@ -190,7 +211,7 @@ The beam is a HeNe laser operating predominantly in the TEM\ :sub:`01`\  mode an
         "iso_noise": False
     }
 
-    d_minor, d_major = lbs.plot_image_montage(tem10, **options)
+    d_major, d_minor = lbs.plot_image_montage(tem10, **options)
     plt.show()
 
 Example montage output:
@@ -202,11 +223,11 @@ Example montage output:
 Plotting the M² Fit
 -------------------
 
-Using the measured diameters:
+Continuing with the measured diameters returned by the montage:
 
 .. code-block:: python
 
-    lbs.M2_diameter_plot(z10, dx*1e-6, lambda0, dy=dy*1e-6)
+    lbs.M2_diameter_plot(z, d_major * 1e-6, lambda0, d_minor=d_minor * 1e-6)
     plt.show()
 
 In the example, the dashed curve indicates the ideal divergence of a Gaussian beam.  
