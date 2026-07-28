@@ -352,8 +352,8 @@ def test_beam_parameter_product_zero_d0_returns_zero():
     assert np.isclose(BPP_std, 0)
 
 
-def test_artificial_to_original_scales_parameters_errors_and_hiatus():
-    """Artificial-waist conversion follows the ISO scaling relationships."""
+def test_artificial_to_original_propagates_all_parameter_errors_and_hiatus():
+    """Artificial-waist conversion propagates errors through the ISO relationships."""
     params = np.array([100e-6, 120e-3, 10e-3, 1.5, 20e-3])
     errors = np.array([2e-6, 3e-3, 0.2e-3, 0.1, 1e-3])
     focal_length = 100e-3
@@ -372,17 +372,35 @@ def test_artificial_to_original_scales_parameters_errors_and_hiatus():
             scale**2 * params[4],
         ]
     )
+    denominator_squared = params[4] ** 2 + x2**2
+    dscale_dz0 = -scale * x2 / denominator_squared
+    dscale_dzR = -scale * params[4] / denominator_squared
     expected_errors = np.array(
         [
-            scale * errors[0],
-            scale**2 * errors[1],
-            errors[2] / scale,
+            np.sqrt(
+                (scale * errors[0]) ** 2
+                + (params[0] * dscale_dz0 * errors[1]) ** 2
+                + (params[0] * dscale_dzR * errors[4]) ** 2
+            ),
+            np.sqrt(
+                ((scale**2 + 2 * scale * x2 * dscale_dz0) * errors[1]) ** 2
+                + (2 * scale * x2 * dscale_dzR * errors[4]) ** 2
+            ),
+            np.sqrt(
+                (errors[2] / scale) ** 2
+                + (-params[2] * dscale_dz0 / scale**2 * errors[1]) ** 2
+                + (-params[2] * dscale_dzR / scale**2 * errors[4]) ** 2
+            ),
             errors[3],
-            scale**2 * errors[4],
+            np.sqrt(
+                (2 * scale * params[4] * dscale_dz0 * errors[1]) ** 2
+                + ((scale**2 + 2 * scale * params[4] * dscale_dzR) * errors[4]) ** 2
+            ),
         ]
     )
     assert np.allclose(converted, expected)
     assert np.allclose(converted_errors, expected_errors)
+    assert converted_errors[0] > scale * errors[0]
 
 
 def test_divergence_docstring_notes_small_angle():

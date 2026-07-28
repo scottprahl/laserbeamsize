@@ -153,6 +153,7 @@ def basic_beam_fit(
     i = np.argmin(d)
     d0_guess = d[i]
     z0_guess = z[i]
+    parameter_covariance = np.zeros((3, 3))
 
     # fit data using SciPy's curve_fit() algorithm
     if z0 is None:
@@ -162,7 +163,7 @@ def basic_beam_fit(
             p0 = [d0_guess, z0_guess, theta_guess]
             nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_1, z, d, p0=p0)[:2]
             d0, z0, Theta = nlfit
-            d0_std, z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
+            parameter_covariance = nlpcov
         else:
             i = np.argmax(abs(z - z0_guess))
             theta_guess = abs(d[i] / (z[i] - z0_guess))
@@ -170,8 +171,7 @@ def basic_beam_fit(
             dd = np.sqrt(np.maximum(d**2 - d0**2, 0))
             nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_3, z, dd, p0=p0)[:2]
             z0, Theta = nlfit
-            z0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
-            d0_std = 0
+            parameter_covariance[np.ix_([1, 2], [1, 2])] = nlpcov
     else:
         i = np.argmax(abs(z - z0))
         theta_guess = abs(d[i] / (z[i] - z0))
@@ -179,31 +179,45 @@ def basic_beam_fit(
             p0 = [d0_guess, theta_guess]
             nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_2, z - z0, d, p0=p0)[:2]
             d0, Theta = nlfit
-            d0_std, Theta_std = [np.sqrt(nlpcov[j, j]) for j in range(nlfit.size)]
-            z0_std = 0
+            parameter_covariance[np.ix_([0, 2], [0, 2])] = nlpcov
         else:
             p0 = [theta_guess]
             dd = np.sqrt(np.maximum(d**2 - d0**2, 0))
             nlfit, nlpcov = scipy.optimize.curve_fit(_beam_fit_fn_4, z - z0, dd, p0=p0)[:2]
             Theta = nlfit[0]
-            Theta_std = np.sqrt(nlpcov[0, 0])
-            z0_std = 0
-            d0_std = 0
+            parameter_covariance[2, 2] = nlpcov[0, 0]
+
+    d0_std, z0_std, Theta_std = np.sqrt(np.maximum(np.diag(parameter_covariance), 0))
 
     # divergence and Rayleigh range of Gaussian beam
-    Theta0 = 4 * lambda0 / (np.pi * d0)
-    M2 = Theta / Theta0
-    with np.errstate(divide="ignore", invalid="ignore"):
-        zR = np.pi * d0**2 / (4 * lambda0 * M2) if M2 != 0 else np.inf
+    m2_factor = np.pi / (4 * lambda0)
+    M2 = m2_factor * d0 * Theta
+    with np.errstate(divide="ignore", invalid="ignore", over="ignore"):
+        zR = d0 / Theta if Theta != 0 else np.inf
     if not np.isfinite(zR):
         zR = np.inf
 
     M2_std = 0
     zR_std = 0
     if Theta != 0 and d0 != 0:
-        M2_std = M2 * np.sqrt((Theta_std / Theta) ** 2 + (d0_std / d0) ** 2)
-    if M2 != 0 and d0 != 0 and np.isfinite(zR):
-        zR_std = zR * np.sqrt((M2_std / M2) ** 2 + (2 * d0_std / d0) ** 2)
+        dM2_dd0 = m2_factor * Theta
+        dM2_dTheta = m2_factor * d0
+        M2_variance = (
+            dM2_dd0**2 * parameter_covariance[0, 0]
+            + dM2_dTheta**2 * parameter_covariance[2, 2]
+            + 2 * dM2_dd0 * dM2_dTheta * parameter_covariance[0, 2]
+        )
+        M2_std = np.sqrt(max(float(M2_variance), 0))
+
+        if np.isfinite(zR):
+            dzR_dd0 = 1 / Theta
+            dzR_dTheta = -d0 / Theta**2
+            zR_variance = (
+                dzR_dd0**2 * parameter_covariance[0, 0]
+                + dzR_dTheta**2 * parameter_covariance[2, 2]
+                + 2 * dzR_dd0 * dzR_dTheta * parameter_covariance[0, 2]
+            )
+            zR_std = np.sqrt(max(float(zR_variance), 0))
 
     params = np.array([d0, z0, Theta, M2, zR])
     errors = np.array([d0_std, z0_std, Theta_std, M2_std, zR_std])
@@ -456,15 +470,18 @@ def M2_report(
         d0y_std_, z0y_std_, Thetay_std_, M2y_std_, zRy_std_ = errors_y
 
         z0_ = (z0x_ + z0y_) / 2
-        z0_std_ = np.sqrt(z0x_std_**2 + z0y_std_**2)
+        z0_std_ = np.sqrt(z0x_std_**2 + z0y_std_**2) / 2
         d0_ = (d0x_ + d0y_) / 2
-        d0_std_ = np.sqrt(d0x_std_**2 + d0y_std_**2)
+        d0_std_ = np.sqrt(d0x_std_**2 + d0y_std_**2) / 2
         zR_ = (zRx_ + zRy_) / 2
-        zR_std_ = np.sqrt(zRx_std_**2 + zRy_std_**2)
+        zR_std_ = np.sqrt(zRx_std_**2 + zRy_std_**2) / 2
         Theta_ = (Thetax_ + Thetay_) / 2
-        Theta_std_ = np.sqrt(Thetax_std_**2 + Thetay_std_**2)
+        Theta_std_ = np.sqrt(Thetax_std_**2 + Thetay_std_**2) / 2
         M2_ = np.sqrt(M2x_ * M2y_)
-        M2_std_ = np.sqrt(M2x_std_**2 + M2y_std_**2)
+        if M2x_ != 0 and M2y_ != 0 and np.isfinite(M2_):
+            M2_std_ = abs(M2_) / 2 * np.sqrt((M2x_std_ / M2x_) ** 2 + (M2y_std_ / M2y_) ** 2)
+        else:
+            M2_std_ = 0
 
         BPP_, BPP_std_ = beam_parameter_product(Theta_, d0_, Theta_std_, d0_std_)
         BPPx_, BPPx_std_ = beam_parameter_product(Thetax_, d0x_, Thetax_std_, d0x_std_)

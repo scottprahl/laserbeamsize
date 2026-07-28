@@ -367,24 +367,46 @@ def artificial_to_original(
         tuple: A tuple containing two lists:
             - params: A list of the original beam parameters without the lens.
             - errors: A list of the standard deviations of the original parameters.
+
+    Note:
+        Error propagation includes every parameter on which each transformed
+        value depends. Input errors are treated as independent because this
+        function receives standard deviations rather than a covariance matrix.
     """
     art_d0, art_z0, art_Theta, M2, art_zR = params
     art_d0_std, art_z0_std, art_Theta_std, M2_std, art_zR_std = errors
 
     x2 = art_z0 - f
-    V = f / np.sqrt(art_zR**2 + x2**2)
+    denominator_squared = art_zR**2 + x2**2
+    V = f / np.sqrt(denominator_squared)
+    dV_dz0 = -V * x2 / denominator_squared
+    dV_dzR = -V * art_zR / denominator_squared
 
     orig_d0 = V * art_d0
-    orig_d0_std = V * art_d0_std
+    orig_d0_std = np.sqrt(
+        (V * art_d0_std) ** 2
+        + (art_d0 * dV_dz0 * art_z0_std) ** 2
+        + (art_d0 * dV_dzR * art_zR_std) ** 2
+    )
 
     orig_z0 = V**2 * x2 + f - hiatus
-    orig_z0_std = V**2 * art_z0_std
+    d_orig_z0_dz0 = V**2 + 2 * V * x2 * dV_dz0
+    d_orig_z0_dzR = 2 * V * x2 * dV_dzR
+    orig_z0_std = np.sqrt((d_orig_z0_dz0 * art_z0_std) ** 2 + (d_orig_z0_dzR * art_zR_std) ** 2)
 
     orig_zR = V**2 * art_zR
-    orig_zR_std = V**2 * art_zR_std
+    d_orig_zR_dz0 = 2 * V * art_zR * dV_dz0
+    d_orig_zR_dzR = V**2 + 2 * V * art_zR * dV_dzR
+    orig_zR_std = np.sqrt((d_orig_zR_dz0 * art_z0_std) ** 2 + (d_orig_zR_dzR * art_zR_std) ** 2)
 
     orig_Theta = art_Theta / V
-    orig_Theta_std = art_Theta_std / V
+    d_orig_Theta_dz0 = -art_Theta * dV_dz0 / V**2
+    d_orig_Theta_dzR = -art_Theta * dV_dzR / V**2
+    orig_Theta_std = np.sqrt(
+        (art_Theta_std / V) ** 2
+        + (d_orig_Theta_dz0 * art_z0_std) ** 2
+        + (d_orig_Theta_dzR * art_zR_std) ** 2
+    )
 
     o_params = np.array([orig_d0, orig_z0, orig_Theta, M2, orig_zR])
     o_errors = np.array([orig_d0_std, orig_z0_std, orig_Theta_std, M2_std, orig_zR_std])

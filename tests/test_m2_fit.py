@@ -61,6 +61,33 @@ def test_basic_beam_fit_with_fixed_waist_diameter_finds_location():
     assert errors[0] == 0
 
 
+def test_basic_beam_fit_propagates_covariance_to_m2_and_rayleigh_range(monkeypatch):
+    """Derived uncertainties must include d0/Theta covariance without double counting."""
+    fitted = np.array([2e-3, 0.1, 10e-3])
+    covariance = np.array(
+        [
+            [4e-10, 0, 1e-9],
+            [0, 9e-6, 0],
+            [1e-9, 0, 1e-8],
+        ]
+    )
+    monkeypatch.setattr(m2.scipy.optimize, "curve_fit", lambda *_args, **_kwargs: (fitted, covariance))
+
+    z = np.array([-1.0, 0.0, 1.0])
+    d = np.array([11e-3, 2e-3, 10e-3])
+    lambda0 = 632.8e-9
+    params, errors = basic_beam_fit(z, d, lambda0)
+
+    m2_factor = np.pi / (4 * lambda0)
+    m2_gradient = np.array([m2_factor * fitted[2], 0, m2_factor * fitted[0]])
+    zR_gradient = np.array([1 / fitted[2], 0, -fitted[0] / fitted[2] ** 2])
+
+    assert np.allclose(errors[:3], np.sqrt(np.diag(covariance)))
+    assert np.isclose(errors[3], np.sqrt(m2_gradient @ covariance @ m2_gradient))
+    assert np.isclose(errors[4], np.sqrt(zR_gradient @ covariance @ zR_gradient))
+    assert np.isclose(params[4], fitted[0] / fitted[2])
+
+
 def test_m2_fit_strict_warns_not_prints():
     """M2_fit with strict=True and bad data distribution should warn, not print."""
     # Only 4 points, too few for ISO 11146 strict mode — should trigger the warning path
@@ -181,6 +208,30 @@ def test_m2_report_two_axes_without_lens_has_one_summary():
     assert "Beam Propagation Ratio\n" in report
     assert "of the focused beam" not in report
     assert "of the laser beam" not in report
+
+
+def test_m2_report_propagates_two_axis_summary_errors(monkeypatch):
+    """Combined two-axis values must use the derivatives of their reported means."""
+    fits = [
+        (
+            np.array([200e-6, 4e-3, 6e-3, 8.0, 10e-3]),
+            np.array([20e-6, 0.4e-3, 0.6e-3, 0.8, 1.0e-3]),
+            np.ones(2, dtype=bool),
+        ),
+        (
+            np.array([400e-6, 6e-3, 8e-3, 18.0, 12e-3]),
+            np.array([40e-6, 0.6e-3, 0.8e-3, 1.8, 1.2e-3]),
+            np.ones(2, dtype=bool),
+        ),
+    ]
+    monkeypatch.setattr(m2, "M2_fit", lambda *_args, **_kwargs: fits.pop(0))
+
+    report = m2.M2_report(np.array([0.0, 1.0]), np.ones(2), 632.8e-9, d_minor=np.ones(2))
+
+    assert "        M2 = 12.00 ± 0.85" in report
+    assert "        d0 = 300 ± 22 µm" in report
+    assert "        zR = 11 ± 1 mm" in report
+    assert "     theta = 7.00 ± 0.50 milliradians" in report
 
 
 def test_m2_fit_strict_none_index_does_not_crash():
