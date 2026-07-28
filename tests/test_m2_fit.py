@@ -1,6 +1,5 @@
 """Tests for M2 fitting/report generation."""
 
-import inspect
 import io
 import sys
 import warnings
@@ -50,6 +49,18 @@ def test_basic_beam_fit_no_nan_when_d_less_than_d0():
     assert not any(np.isnan(e) for e in errors), f"NaN in errors: {errors}"
 
 
+def test_basic_beam_fit_with_fixed_waist_diameter_finds_location():
+    """Fixing d0 still fits the waist location and divergence."""
+    z, dx, _ = _synthetic_beam_data()
+
+    params, errors = basic_beam_fit(z, dx, 1064e-9, d0=220e-6)
+
+    assert np.isclose(params[0], 220e-6)
+    assert np.isclose(params[1], 0.8e-3)
+    assert np.isclose(params[2], 18e-3)
+    assert errors[0] == 0
+
+
 def test_m2_fit_strict_warns_not_prints():
     """M2_fit with strict=True and bad data distribution should warn, not print."""
     # Only 4 points, too few for ISO 11146 strict mode — should trigger the warning path
@@ -70,24 +81,48 @@ def test_m2_fit_strict_warns_not_prints():
     assert printed == "", f"M2_fit printed to stdout instead of using warnings.warn: {printed!r}"
 
 
-def test_dead_zr_calculation_removed():
-    """The dead first zR assignment (immediately overwritten) must be removed."""
-    src = inspect.getsource(m2.basic_beam_fit)
-    # Count occurrences of "zR = np.pi * d0**2 / (4 * lambda0)" (without M2)
-    plain_zr_lines = [ln for ln in src.splitlines() if "zR = np.pi * d0**2 / (4 * lambda0)" in ln and "M2" not in ln]
-    assert len(plain_zr_lines) == 0, f"Dead zR assignment still present: {plain_zr_lines}"
+def test_zone_index_helpers_select_expected_measurements():
+    """Zone helpers choose the requested extrema and handle empty zones."""
+    z = np.array([0.4, 0.1, 0.3, 0.2])
+    zone = np.array([1, 1, 2, 2])
+
+    assert max_index_in_focal_zone(z, zone) == 0
+    assert min_index_in_outer_zone(z, zone) == 3
+    assert max_index_in_focal_zone(z, np.zeros(4)) is None
+    assert min_index_in_outer_zone(z, np.zeros(4)) is None
 
 
-def test_max_index_in_focal_zone_uses_numpy():
-    """max_index_in_focal_zone should use numpy, not a Python loop."""
-    src = inspect.getsource(max_index_in_focal_zone)
-    assert "for " not in src, "max_index_in_focal_zone still uses a Python loop"
+def _strict_zone_data(n_focal, n_outer):
+    """Create exact beam data with controlled focal and outer zone counts."""
+    focal = np.array([-0.008, -0.005, -0.002, 0.002, 0.005, 0.008])[:n_focal]
+    outer = np.array([-0.050, -0.040, -0.030, -0.025, 0.025, 0.030, 0.040])[:n_outer]
+    z = np.concatenate((focal, outer))
+    d0 = 100e-6
+    theta = 10e-3
+    d = np.sqrt(d0**2 + (theta * z) ** 2)
+    return z, d, d0
 
 
-def test_min_index_in_outer_zone_uses_numpy():
-    """min_index_in_outer_zone should use numpy, not a Python loop."""
-    src = inspect.getsource(min_index_in_outer_zone)
-    assert "for " not in src, "min_index_in_outer_zone still uses a Python loop"
+def test_m2_fit_stops_outer_trimming_if_no_index_is_available(monkeypatch):
+    """Strict fitting remains usable if outer-zone selection cannot continue."""
+    z, d, d0 = _strict_zone_data(5, 6)
+    monkeypatch.setattr(m2, "min_index_in_outer_zone", lambda *_args: None)
+
+    params, _, used = lbs.M2_fit(z, d, 632.8e-9, strict=True, z0=0, d0=d0)
+
+    assert np.all(used)
+    assert np.isclose(params[2], 10e-3)
+
+
+def test_m2_fit_stops_focal_trimming_if_no_index_is_available(monkeypatch):
+    """Strict fitting remains usable if focal-zone selection cannot continue."""
+    z, d, d0 = _strict_zone_data(6, 5)
+    monkeypatch.setattr(m2, "max_index_in_focal_zone", lambda *_args: None)
+
+    params, _, used = lbs.M2_fit(z, d, 632.8e-9, strict=True, z0=0, d0=d0)
+
+    assert np.all(used)
+    assert np.isclose(params[2], 10e-3)
 
 
 def test_m2_report_with_focus_and_minor_uses_iso_artificial_to_original():
@@ -111,6 +146,41 @@ def test_m2_report_with_focus_and_minor_uses_iso_artificial_to_original():
     assert expected_d0y in report
     assert expected_z0x in report
     assert expected_theta_x in report
+
+
+def test_m2_report_single_axis_includes_fitted_values():
+    """A single-axis report formats the fitted propagation parameters."""
+    z, d = _simple_beam_data()
+
+    report = lbs.M2_report(z, d, 632.8e-9)
+
+    assert report.startswith("Beam propagation parameters\n")
+    assert "M^2 =" in report
+    assert "d_0 =" in report
+    assert "z_R =" in report
+    assert "BPP =" in report
+
+
+def test_m2_report_single_axis_with_lens_includes_original_beam():
+    """A lens report describes both the focused and original beams."""
+    z, d = _simple_beam_data()
+
+    report = lbs.M2_report(z, d, 632.8e-9, f=100e-3)
+
+    assert "Beam propagation parameters for the focused beam" in report
+    assert "Beam propagation parameters for the laser beam" in report
+
+
+def test_m2_report_two_axes_without_lens_has_one_summary():
+    """Two-axis data without a lens returns only the fitted-beam summary."""
+    z, dx, dy = _synthetic_beam_data()
+
+    report = lbs.M2_report(z, dx, 1064e-9, d_minor=dy)
+
+    assert "Beam propagation parameters derived from hyperbolic fit" in report
+    assert "Beam Propagation Ratio\n" in report
+    assert "of the focused beam" not in report
+    assert "of the laser beam" not in report
 
 
 def test_m2_fit_strict_none_index_does_not_crash():
@@ -138,19 +208,6 @@ def test_m2_fit_strict_none_index_does_not_crash():
         lbs.M2_fit(z, d, 632.8e-9, strict=True)
     except TypeError as exc:
         raise AssertionError(f"M2_fit raised TypeError due to None zone index: {exc}") from exc
-
-
-def test_m2_fit_focal_zone_trimming_uses_extra_not_raw_difference():
-    """M2_fit focal-zone trimming loop must use extra (with n_outer==4 adjustment), not range(n_focal-n_outer)."""
-    src = inspect.getsource(m2.M2_fit)
-    # The second trimming loop must iterate over range(extra), not range(n_focal - n_outer)
-    # Split on the comment that starts the focal-zone block
-    focal_block = src.rsplit("mark extra points in focal zone", maxsplit=1)[-1]
-    loop_line = [ln.strip() for ln in focal_block.splitlines() if ln.strip().startswith("for _")][0]
-    assert "range(extra)" in loop_line, (
-        f"Focal-zone trimming loop uses '{loop_line}' instead of 'range(extra)'; "
-        "the n_outer==4 special case adjustment is silently ignored"
-    )
 
 
 def test_m2_fit_strict_preserves_focal_zone_points_after_outer_trim():
