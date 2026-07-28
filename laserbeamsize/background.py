@@ -10,13 +10,13 @@ all un-illuminated pixels::
     >>> import imageio.v3 as iio
     >>> import laserbeamsize as lbs
     >>>
-    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/t-hene.pgm"
+    >>> file = "https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/images/t-hene.pgm"
     >>> image = iio.imread(file)
     >>>
     >>> mean, stdev = lbs.corner_background(image)
-    >>> print("The corner pixels have an average         %.1f ± %.1f)" % (mean, stdev))
+    >>> print("The corner pixels have an average         %.1f ± %.1f" % (mean, stdev))
     >>> mean, stdev = lbs.iso_background(image)
-    >>> print("The un-illuminated pixels have an average %.1f ± %.1f)" % (mean, stdev))
+    >>> print("The un-illuminated pixels have an average %.1f ± %.1f" % (mean, stdev))
 
 In addition to these functions, there are a variety of subtraction functions to
 remove the background.  The most useful is `subtract_iso_background()` which will
@@ -25,10 +25,10 @@ return an image with the average of the un-illuminated pixels subtracted::
     >>> import imageio.v3 as iio
     >>> import laserbeamsize as lbs
     >>>
-    >>> file = "https://github.com/scottprahl/laserbeamsize/raw/main/docs/t-hene.pgm"
+    >>> file = "https://raw.githubusercontent.com/scottprahl/laserbeamsize/main/docs/images/t-hene.pgm"
     >>> image = iio.imread(file)
     >>>
-    >>> clean_image = subtract_iso_background(image)
+    >>> clean_image = lbs.subtract_iso_background(image)
 
 Full documentation is available at <https://laserbeamsize.readthedocs.io>
 """

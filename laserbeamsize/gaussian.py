@@ -94,7 +94,7 @@ def z_rayleigh(w0: float, lambda0: float, M2: float = 1) -> float:
 
     By measuring the beam radius at several points along the propagation
     direction and using the Rayleigh distance, one can locate the position of
-    the beam waist precisely.  This is what the `laserbeamsize.m2` module does.
+    the beam waist precisely. This is what the `laserbeamsize.m2_fit` module does.
 
     Args:
         w0: minimum beam radius [m]

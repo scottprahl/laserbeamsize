@@ -172,13 +172,14 @@ def M2_diameter_plot(
 
     Example::
 
-        >>>> import numpy as np
-        >>>> import laserbeamsize as lbs
-        >>>> lambda0 = 632.8e-9  # meters
-        >>>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
-        >>>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
-        >>>> lbs.M2_diameter_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
-        >>>> plt.show()
+        >>> import matplotlib.pyplot as plt
+        >>> import numpy as np
+        >>> import laserbeamsize as lbs
+        >>> lambda0 = 632.8e-9  # meters
+        >>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
+        >>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
+        >>> lbs.M2_diameter_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
+        >>> plt.show()
 
     Args:
         z: array of axial position of beam measurements [m]
@@ -264,13 +265,14 @@ def M2_radius_plot(
 
     Example::
 
-        >>>> import numpy as np
-        >>>> import laserbeamsize as lbs
-        >>>> lambda0 = 632.8e-9  # meters
-        >>>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
-        >>>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
-        >>>> lbs.M2_radius_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
-        >>>> plt.show()
+        >>> import matplotlib.pyplot as plt
+        >>> import numpy as np
+        >>> import laserbeamsize as lbs
+        >>> lambda0 = 632.8e-9  # meters
+        >>> z = np.array([168, 210, 280, 348, 414, 480, 495, 510, 520, 580, 666, 770])
+        >>> r = np.array([597, 572, 547, 554, 479, 403, 415, 400, 377, 391, 326, 397])
+        >>> lbs.M2_radius_plot(z * 1e-3, 2 * r * 1e-6, lambda0)
+        >>> plt.show()
 
     Args:
         z: array of axial position of beam measurements [m]
