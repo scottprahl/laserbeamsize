@@ -141,6 +141,20 @@ def test_corner_uniform_image():
     assert corner_stdev == 0
 
 
+@pytest.mark.parametrize("shape", [(8, 8), (3, 100), (100, 3), (1, 20), (20, 1), (1, 1)])
+def test_default_background_supports_small_and_narrow_images(shape):
+    """A positive corner fraction always samples pixels from nonempty images."""
+    image = np.full(shape, 7.0)
+
+    corner_mean, corner_stdev = lbs.corner_background(image)
+    iso_mean, iso_stdev = lbs.iso_background(image)
+
+    assert corner_mean == 7
+    assert corner_stdev == 0
+    assert iso_mean == 7
+    assert iso_stdev == 0
+
+
 def test_corner_image_data_types():
     """Test corner image data types."""
     image_float = np.ones((100, 100), dtype=float)
@@ -195,6 +209,14 @@ def test_perimeter_mask_fully_masked_image_is_empty():
     """A fully masked image has no perimeter pixels."""
     image = np.ma.masked_all((4, 5))
     assert not np.any(lbs.perimeter_mask(image, corner_fraction=0.25))
+
+
+def test_default_corner_and_perimeter_masks_have_pixels_on_narrow_images():
+    """Default fractional masks retain a one-pixel thickness on each usable axis."""
+    image = np.zeros((2, 20))
+
+    assert np.any(lbs.corner_mask(image))
+    assert np.any(lbs.perimeter_mask(image))
 
 
 # iso_background

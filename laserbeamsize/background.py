@@ -111,6 +111,13 @@ def _apply_image_mask(mask: npt.NDArray[np.bool_], image: np.ndarray) -> npt.NDA
     return mask
 
 
+def _fractional_mask_size(length: int, fraction: float) -> int:
+    """Return a fractional mask size, preserving one pixel for positive fractions."""
+    if fraction <= 0 or length <= 0:
+        return 0
+    return max(1, int(length * fraction))
+
+
 def elliptical_mask(
     image: np.ndarray, xc: float, yc: float, d_major: float, d_minor: float, phi: float
 ) -> npt.NDArray[np.bool_]:
@@ -179,8 +186,8 @@ def corner_mask(image: np.ndarray, corner_fraction: float = 0.035) -> npt.NDArra
     row_min, row_max, col_min, col_max, v_inner, h_inner = bbox
 
     # Calculate corner sizes based on inner region
-    n = int(v_inner * corner_fraction)
-    m = int(h_inner * corner_fraction)
+    n = _fractional_mask_size(v_inner, corner_fraction)
+    m = _fractional_mask_size(h_inner, corner_fraction)
 
     # Create the mask
     the_mask = np.full((v, h), False, dtype=bool)
@@ -221,8 +228,8 @@ def perimeter_mask(image: np.ndarray, corner_fraction: float = 0.035) -> npt.NDA
     row_min, row_max, col_min, col_max, v_inner, h_inner = bbox
 
     # Calculate perimeter width based on inner region
-    n = int(v_inner * corner_fraction)
-    m = int(h_inner * corner_fraction)
+    n = _fractional_mask_size(v_inner, corner_fraction)
+    m = _fractional_mask_size(h_inner, corner_fraction)
 
     the_mask = np.full((v, h), False, dtype=bool)
 
