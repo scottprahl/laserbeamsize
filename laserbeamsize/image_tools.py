@@ -44,11 +44,6 @@ def line(r0: int, c0: int, r1: int, c1: int) -> tuple[npt.NDArray[np.floating], 
     Returns:
         rr, cc : Coordinates of pixels in the line.
     """
-    r0 = int(r0)
-    c0 = int(c0)
-    r1 = int(r1)
-    c1 = int(c1)
-
     steep = abs(r1 - r0) > abs(c1 - c0)
 
     if steep:
@@ -151,7 +146,7 @@ def values_along_line(
     height, width = image.shape
 
     # Full set of pixel indices (row = y, col = x)
-    rr_full, cc_full = line(int(round(y0)), int(round(x0)), int(round(y1)), int(round(x1)))
+    rr_full, cc_full = line(round(y0), round(x0), round(y1), round(x1))
 
     # Total distance (from true endpoints)
     total_distance = np.hypot(x1 - x0, y1 - y0)

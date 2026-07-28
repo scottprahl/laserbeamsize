@@ -29,6 +29,7 @@ PORT            := 8000
 PYTEST_OPTS     :=
 SPHINX_OPTS     := -T -E -b html -d $(DOCS_DIR)/_build/doctrees -D language=en
 PYLINT_TARGETS  := $(PACKAGE)/*.py tests/*.py .github/scripts/update_citation.py docs/conf.py
+PYREFLY_OPTS    := --error unnecessary-type-conversion
 PYREFLY_TARGETS := $(PACKAGE) tests
 YAML_TARGETS    := .github/workflows/citation.yaml .github/workflows/pypi.yaml .github/workflows/test.yaml .readthedocs.yaml
 RST_TARGETS     := README.rst CHANGELOG.rst $(DOCS_DIR)/index.rst $(DOCS_DIR)/changelog.rst $(wildcard $(DOCS_DIR)/jones-or-mueller.rst)
@@ -94,7 +95,7 @@ lint: pylint-check
 
 .PHONY: pyrefly-check
 pyrefly-check:
-	$(RUN) pyrefly check $(PYREFLY_TARGETS)
+	$(RUN) pyrefly check $(PYREFLY_OPTS) $(PYREFLY_TARGETS)
 
 .PHONY: pylint-check
 pylint-check:

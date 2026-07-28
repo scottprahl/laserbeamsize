@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from laserbeamsize.image_tools import (
+    line,
     rotate_image,
     rotate_points,
     values_along_line,
@@ -13,6 +14,14 @@ from laserbeamsize.image_tools import (
     create_test_image,
     crop_image_to_integration_rect,
 )
+
+
+# line
+def test_line_integer_coordinates():
+    """Test line with its documented integer-coordinate contract."""
+    rr, cc = line(0, 0, 3, 3)
+    assert np.array_equal(rr, np.array([0, 1, 2, 3]))
+    assert np.array_equal(cc, np.array([0, 1, 2, 3]))
 
 
 # rotate_points
@@ -83,6 +92,15 @@ def test_values_along_line_diagonal_small():
     assert np.all(y == np.array([0, 1]))
     assert np.all(z == np.array([0, 3]))
     assert np.allclose(s, np.array([-0.70710678, 0.70710678]))
+
+
+def test_values_along_line_rounds_fractional_endpoints():
+    """Test fractional endpoints are rounded to the nearest pixel."""
+    image = np.arange(16).reshape(4, 4)
+    x, y, z, _ = values_along_line(image, 0.4, 0.4, 2.6, 2.6)
+    assert np.array_equal(x, np.array([0, 1, 2, 3]))
+    assert np.array_equal(y, np.array([0, 1, 2, 3]))
+    assert np.array_equal(z, np.array([0, 5, 10, 15]))
 
 
 # major_axis_arrays

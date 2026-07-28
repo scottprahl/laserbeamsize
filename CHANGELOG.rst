@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Unreleased
+----------
+  * replace mypy with Pyrefly for static type checking
+  * eliminate redundant integer-conversion warnings reported by Pyrefly
+
 2.4.1 (2026-03-16)
 ------------------
   * fix M2_fit() strict-mode trimming so focal-zone points are not discarded
