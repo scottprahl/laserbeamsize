@@ -2,7 +2,7 @@ cff-version: 1.2.0
 type: software
 message: If you use this software, please cite it as below.
 title: "laserbeamsize: ISO 11146 Calculation of Laser Beam Center, Diameter, and M\xB2"
-version: 2.4.0
+version: 2.4.1
 doi: 10.5281/zenodo.8346799
 date-released: '2026-03-16'
 url: https://doi.org/10.5281/zenodo.8346799
@@ -46,7 +46,7 @@ preferred-citation:
   title: "laserbeamsize: ISO 11146 Calculation of Laser Beam Center, Diameter, and\
     \ M\xB2"
   year: 2026
-  version: 2.4.0
+  version: 2.4.1
   doi: 10.5281/zenodo.8346799
   url: https://doi.org/10.5281/zenodo.8346799
   authors:
