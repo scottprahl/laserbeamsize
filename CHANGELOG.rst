@@ -8,6 +8,7 @@ Unreleased
   * expand background tests to reach 100% statement coverage
   * expand display tests to reach 100% statement coverage
   * expand image-tools tests to reach 100% statement coverage
+  * expand M² display tests to reach 100% statement coverage
   * expand M² fitting tests to reach 100% statement coverage
   * replace mypy with Pyrefly for static type checking
   * eliminate redundant integer-conversion warnings reported by Pyrefly
