@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from laserbeamsize.image_tools import (
+    NOISE_TYPES,
     create_cmap,
     create_plus_minus_cmap,
     crop_image_to_rect,
@@ -330,6 +331,46 @@ def test_noise_addition():
     img = create_test_image(10, 10, 5, 5, 5, 5, 0, noise=10)
     without_noise = create_test_image(10, 10, 5, 5, 5, 5, 0, noise=0)
     assert not np.array_equal(img, without_noise), "Noise not added properly"
+
+
+def test_invalid_ntype_is_rejected():
+    """An unrecognized ntype must raise instead of silently producing no noise."""
+    with pytest.raises(ValueError, match="ntype"):
+        create_test_image(10, 10, 5, 5, 5, 5, 0, noise=10, ntype="gauss")
+
+
+def test_invalid_ntype_rejected_even_without_noise():
+    """A misspelled ntype is an error whether or not any noise is requested."""
+    with pytest.raises(ValueError, match="ntype"):
+        create_test_image(10, 10, 5, 5, 5, 5, 0, ntype="bogus")
+
+
+@pytest.mark.parametrize("ntype", NOISE_TYPES)
+def test_every_documented_ntype_actually_adds_noise(ntype):
+    """Each name in NOISE_TYPES must be accepted and must perturb the image."""
+    noisy = create_test_image(40, 40, 20, 20, 10, 10, 0, noise=10, ntype=ntype)
+    clean = create_test_image(40, 40, 20, 20, 10, 10, 0, noise=0)
+    assert not np.array_equal(noisy, clean), "ntype=%s added no noise" % ntype
+
+
+def test_negative_noise_is_rejected():
+    """Negative noise inflates the amplitude past max_value and wraps on cast."""
+    with pytest.raises(ValueError, match="noise must be non-negative"):
+        create_test_image(10, 10, 5, 5, 5, 5, 0, noise=-50)
+
+
+def test_noise_larger_than_headroom_is_rejected():
+    """Too much noise once drove the amplitude negative and inverted the beam."""
+    with pytest.raises(ValueError, match="no room for the beam"):
+        create_test_image(200, 200, 100, 100, 60, 40, 0, noise=100, max_value=255)
+
+
+def test_beam_center_stays_brightest_for_largest_allowed_noise():
+    """Just below the headroom limit the beam must still be a bright spot."""
+    max_value = 255
+    noise = 0.99 * max_value / 3
+    img = create_test_image(200, 200, 100, 100, 60, 40, 0, noise=noise, ntype="constant", max_value=max_value)
+    assert img[100, 100] == img.max(), "beam center is not the brightest pixel"
 
 
 def test_dtype_returned():

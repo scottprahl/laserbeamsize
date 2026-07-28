@@ -13,6 +13,7 @@ import matplotlib.colors
 from matplotlib.colors import LinearSegmentedColormap
 
 __all__ = (
+    "NOISE_TYPES",
     "rotate_image",
     "axes_arrays",
     "ellipse_arrays",
@@ -25,6 +26,9 @@ __all__ = (
     "create_cmap",
     "create_plus_minus_cmap",
 )
+
+#: noise distributions accepted by the `ntype` argument of `create_test_image()`
+NOISE_TYPES = ("poisson", "gaussian", "normal", "flat", "uniform", "constant")
 
 
 def line(r0: int, c0: int, r1: int, c1: int) -> tuple[npt.NDArray[np.floating], npt.NDArray[np.floating]]:
@@ -432,13 +436,20 @@ def create_test_image(
         d_major: major axis (i.e, major diameter)
         d_minor: minor axis (i.e, minor diameter)
         phi: angle between major axis and horizontal axis [radians]
-        noise: (optional) magnitude of pixel noise to add
+        noise: (optional) magnitude of pixel noise to add.  The beam amplitude is
+            reduced to `max_value - 3 * noise` to leave headroom for the noise, so
+            `noise` must be non-negative and less than `max_value / 3`.
         ntype: (optional) type of noise — one of "poisson" (default), "gaussian"/"normal",
             "flat"/"uniform", or "constant"
         max_value: (optional) all values in image fall between 0 and `max_value`
 
     Returns:
         image: an unsigned 2D integer array of a Gaussian elliptical spot
+
+    Raises:
+        ValueError: if any argument is out of range, if `ntype` is not a
+            recognized noise type, or if `noise` is so large that no headroom
+            remains for the beam itself.
     """
     if max_value < 0 or max_value >= 2**16:
         raise ValueError("max_value must be positive and less than 65535")
@@ -452,14 +463,27 @@ def create_test_image(
     if phi is not None and abs(phi) > 2.1 * np.pi:
         raise ValueError("the angle phi should be in radians!")
 
+    if ntype not in NOISE_TYPES:
+        raise ValueError("ntype must be one of %s, not '%s'" % (", ".join(NOISE_TYPES), ntype))
+
+    if noise < 0:
+        raise ValueError("noise must be non-negative")
+
+    # The beam amplitude is lowered to leave room for the noise.  Without this
+    # check the amplitude goes negative and the beam becomes a dark spot on a
+    # bright background instead of the bright spot that was asked for.
+    scale = max_value - 3 * noise
+    if scale <= 0:
+        raise ValueError(
+            "noise=%g leaves no room for the beam when max_value=%g; "
+            "noise must be less than max_value/3=%g" % (noise, max_value, max_value / 3)
+        )
+
     rx = d_major / 2
     ry = d_minor / 2
 
-    image0 = np.zeros([v, h])
-
     y, x = np.ogrid[:v, :h]
 
-    scale = max_value - 3 * noise
     image0 = scale * np.exp(-2 * (x - xc_px) ** 2 / rx**2 - 2 * (y - yc_px) ** 2 / ry**2)
 
     image1 = rotate_image(image0, xc_px, yc_px, phi)
@@ -469,15 +493,15 @@ def create_test_image(
             # noise is the mean value of the distribution
             image1 += np.random.poisson(noise, size=(v, h))
 
-        if ntype == "constant":
+        elif ntype == "constant":
             # noise is the mean value of the distribution
             image1 += noise
 
-        if ntype in ("gaussian", "normal"):
+        elif ntype in ("gaussian", "normal"):
             # noise is the mean value of the distribution
             image1 += np.random.normal(noise, np.sqrt(noise), size=(v, h))
 
-        if ntype in ("flat", "uniform"):
+        elif ntype in ("flat", "uniform"):
             # noise is the mean value of the distribution
             image1 += np.random.uniform(0, noise, size=(v, h))
 
