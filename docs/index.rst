@@ -52,6 +52,8 @@
 
    display
 
+   gaussian
+
    image_tools
 
    m2_fit

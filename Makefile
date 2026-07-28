@@ -34,7 +34,7 @@ PYREFLY_OPTS    := --error unnecessary-type-conversion
 PYREFLY_TARGETS := $(PACKAGE) tests
 YAML_TARGETS    := .github/workflows/citation.yaml .github/workflows/pypi.yaml .github/workflows/test.yaml .readthedocs.yaml
 RST_TARGETS     := README.rst CHANGELOG.rst $(DOCS_DIR)/index.rst $(DOCS_DIR)/changelog.rst $(wildcard $(DOCS_DIR)/jones-or-mueller.rst)
-RST_AUTOMODULE_TARGETS := $(wildcard $(DOCS_DIR)/$(PACKAGE).rst) $(DOCS_DIR)/analysis.rst $(DOCS_DIR)/background.rst $(DOCS_DIR)/display.rst $(DOCS_DIR)/image_tools.rst $(DOCS_DIR)/m2_display.rst $(DOCS_DIR)/m2_fit.rst
+RST_AUTOMODULE_TARGETS := $(wildcard $(DOCS_DIR)/$(PACKAGE).rst) $(DOCS_DIR)/analysis.rst $(DOCS_DIR)/background.rst $(DOCS_DIR)/display.rst $(DOCS_DIR)/gaussian.rst $(DOCS_DIR)/image_tools.rst $(DOCS_DIR)/m2_display.rst $(DOCS_DIR)/m2_fit.rst
 
 .PHONY: help
 help:
