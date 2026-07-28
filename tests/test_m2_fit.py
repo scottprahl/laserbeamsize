@@ -71,15 +71,12 @@ def test_basic_beam_fit_with_fixed_waist_diameter_finds_location():
         (0.8e-3, 220e-6, 0, np.inf),
     ],
 )
-def test_basic_beam_fit_constrains_physical_parameters(
-    monkeypatch, fixed_z0, fixed_d0, expected_lower, expected_upper
-):
+def test_basic_beam_fit_constrains_physical_parameters(monkeypatch, fixed_z0, fixed_d0, expected_lower, expected_upper):
     """Every fit branch constrains waist diameter and divergence to be nonnegative."""
-    observed_bounds = None
+    observed_bounds = []
 
     def fake_curve_fit(_function, _z, _d, *, p0, bounds, **_options):
-        nonlocal observed_bounds
-        observed_bounds = bounds
+        observed_bounds.append(bounds)
         return np.asarray(p0), np.eye(len(p0))
 
     monkeypatch.setattr(m2.scipy.optimize, "curve_fit", fake_curve_fit)
@@ -87,9 +84,10 @@ def test_basic_beam_fit_constrains_physical_parameters(
 
     params, _ = basic_beam_fit(z, d, 1064e-9, z0=fixed_z0, d0=fixed_d0)
 
-    assert observed_bounds is not None
-    assert np.allclose(observed_bounds[0], expected_lower)
-    assert np.allclose(observed_bounds[1], expected_upper)
+    assert len(observed_bounds) == 1
+    lower, upper = observed_bounds[0]
+    assert np.allclose(lower, expected_lower)
+    assert np.allclose(upper, expected_upper)
     assert params[0] >= 0
     assert params[2] >= 0
     assert params[3] >= 0

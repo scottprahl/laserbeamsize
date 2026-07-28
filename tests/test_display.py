@@ -1,6 +1,8 @@
 """Tests for display functions."""
 
-# pylint: disable=wrong-import-position,protected-access
+# matplotlib.pyplot must be imported after the Agg backend is selected, so the
+# matplotlib imports are deliberately split across the backend call.
+# pylint: disable=wrong-import-position,protected-access,ungrouped-imports
 import re
 import numpy as np
 import matplotlib
@@ -220,9 +222,7 @@ def test_plot_image_montage_handles_layout_titles_and_colorbar_selection(monkeyp
     monkeypatch.setattr(disp, "plot_image_and_fit", fake_plot_image_and_fit)
     images = [np.ones((4, 4)) for _ in range(3)]
 
-    d_major, d_minor = lbs.plot_image_montage(
-        images, z=np.array([0.1, 0.2, 0.3]), cols=2, vmax=10, crop=[4, 4]
-    )
+    d_major, d_minor = lbs.plot_image_montage(images, z=np.array([0.1, 0.2, 0.3]), cols=2, vmax=10, crop=[4, 4])
 
     assert np.array_equal(d_major, np.array([4, 4, 4]))
     assert np.array_equal(d_minor, np.array([2, 2, 2]))

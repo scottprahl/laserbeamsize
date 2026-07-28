@@ -1,6 +1,8 @@
 """Tests for m2_display.py."""
 
-# pylint: disable=wrong-import-position,protected-access
+# matplotlib.pyplot must be imported after the Agg backend is selected, so the
+# matplotlib imports are deliberately split across the backend call.
+# pylint: disable=wrong-import-position,protected-access,ungrouped-imports
 from typing import cast
 import numpy as np
 import matplotlib

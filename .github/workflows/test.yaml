@@ -10,6 +10,46 @@ on:
   workflow_dispatch:  # allow manual triggering
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v9
+        with:
+          python-version: "3.14"
+
+      # Each check runs even if an earlier one failed, so a single run
+      # reports every problem instead of stopping at the first.
+      # These invoke the same make targets used locally.
+      - name: ruff
+        if: ${{ !cancelled() }}
+        run: make ruff-check
+
+      - name: black
+        if: ${{ !cancelled() }}
+        run: make black-check
+
+      - name: pylint
+        if: ${{ !cancelled() }}
+        run: make pylint-check
+
+      - name: pyrefly
+        if: ${{ !cancelled() }}
+        run: make pyrefly-check
+
+      - name: rstcheck
+        if: ${{ !cancelled() }}
+        run: make rst-check
+
+      - name: yamllint
+        if: ${{ !cancelled() }}
+        run: make yaml-check
+
   test:
     runs-on: ${{ matrix.os }}
     name: Test (${{ matrix.os }}, Python ${{ matrix.python-version }})

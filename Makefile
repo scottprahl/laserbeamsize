@@ -29,6 +29,7 @@ PORT            := 8000
 PYTEST_OPTS     :=
 SPHINX_OPTS     := -T -E -b html -d $(DOCS_DIR)/_build/doctrees -D language=en
 PYLINT_TARGETS  := $(PACKAGE)/*.py tests/*.py .github/scripts/update_citation.py docs/conf.py
+BLACK_TARGETS   := $(PACKAGE) tests .github/scripts/update_citation.py docs/conf.py
 PYREFLY_OPTS    := --error unnecessary-type-conversion
 PYREFLY_TARGETS := $(PACKAGE) tests
 YAML_TARGETS    := .github/workflows/citation.yaml .github/workflows/pypi.yaml .github/workflows/test.yaml .readthedocs.yaml
@@ -49,14 +50,19 @@ help:
 	@echo "  test           - Run pytest on python files"
 	@echo "  note-test      - Test all notebooks for errors"
 	@echo ""
+	@echo "Lint Targets:"
+	@echo "  lint           - Run ruff, black, pylint, and pyrefly checks"
+	@echo "  black          - Reformat code in place with black"
+	@echo "  black-check    - Verify formatting without changing files"
+	@echo "  pylint-check   - Lint with pylint"
+	@echo "  pyrefly-check  - Type-check package and tests"
+	@echo "  ruff-check     - Lint all .py and .ipynb files"
+	@echo ""
 	@echo "Packaging Targets:"
 	@echo "  rcheck         - Distribution release checks"
-	@echo "  pyrefly-check  - Type-check package and tests"
 	@echo "  manifest-check - Validate MANIFEST"
-	@echo "  pylint-check   - Same as lint above"
 	@echo "  pyroma-check   - Validate overall packaging"
 	@echo "  rst-check      - Validate all RST files"
-	@echo "  ruff-check     - Lint all .py and .ipynb files"
 	@echo "  yaml-check     - Validate YAML files"
 	@echo ""
 	@echo "JupyterLite Targets:"
@@ -96,7 +102,20 @@ html:
 	@command -v open >/dev/null 2>&1 && open "$(HTML_DIR)/index.html" || true
 
 .PHONY: lint
-lint: pylint-check
+lint:
+	@$(MAKE) ruff-check
+	@$(MAKE) black-check
+	@$(MAKE) pylint-check
+	@$(MAKE) pyrefly-check
+	@echo "✅ Lint checks complete"
+
+.PHONY: black
+black:
+	$(RUN) black $(BLACK_TARGETS)
+
+.PHONY: black-check
+black-check:
+	@$(RUN) black --check --diff $(BLACK_TARGETS)
 
 .PHONY: pyrefly-check
 pyrefly-check:
@@ -132,6 +151,7 @@ rcheck:
 	@echo "Running all release checks..."
 	@$(MAKE) realclean
 	@$(MAKE) ruff-check
+	@$(MAKE) black-check
 	@$(MAKE) pyrefly-check
 	@$(MAKE) pylint-check
 	@$(MAKE) yaml-check

@@ -384,9 +384,7 @@ def artificial_to_original(
 
     orig_d0 = V * art_d0
     orig_d0_std = np.sqrt(
-        (V * art_d0_std) ** 2
-        + (art_d0 * dV_dz0 * art_z0_std) ** 2
-        + (art_d0 * dV_dzR * art_zR_std) ** 2
+        (V * art_d0_std) ** 2 + (art_d0 * dV_dz0 * art_z0_std) ** 2 + (art_d0 * dV_dzR * art_zR_std) ** 2
     )
 
     orig_z0 = V**2 * x2 + f - hiatus
@@ -403,9 +401,7 @@ def artificial_to_original(
     d_orig_Theta_dz0 = -art_Theta * dV_dz0 / V**2
     d_orig_Theta_dzR = -art_Theta * dV_dzR / V**2
     orig_Theta_std = np.sqrt(
-        (art_Theta_std / V) ** 2
-        + (d_orig_Theta_dz0 * art_z0_std) ** 2
-        + (d_orig_Theta_dzR * art_zR_std) ** 2
+        (art_Theta_std / V) ** 2 + (d_orig_Theta_dz0 * art_z0_std) ** 2 + (d_orig_Theta_dzR * art_zR_std) ** 2
     )
 
     o_params = np.array([orig_d0, orig_z0, orig_Theta, M2, orig_zR])
