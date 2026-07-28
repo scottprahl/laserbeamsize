@@ -56,6 +56,23 @@ def test_horizontal_ellipse():
     run_test(200, 200, 100, 50, 0)
 
 
+def test_basic_beam_size_fills_masked_pixels_with_zero():
+    """Masked pixels do not contribute to beam moments."""
+    masked = np.ma.array([[100, 0, 0], [0, 4, 0], [0, 0, 0]], mask=[[True, False, False]] * 3)
+    expected = lbs.basic_beam_size(np.ma.filled(masked, 0))
+
+    result = lbs.basic_beam_size(masked)
+
+    assert result == expected
+
+
+def test_basic_beam_size_all_zero_image_returns_center():
+    """An all-zero image returns its center and zero diameters."""
+    result = lbs.basic_beam_size(np.zeros((4, 6)))
+
+    assert result == (3, 2, 0, 0, 0)
+
+
 def test_vertical_ellipse_rotated():
     """Test vertical ellipse rotated."""
     run_test(200, 200, 100, 50, np.pi / 6)
@@ -114,6 +131,12 @@ def test_phi_fixed_validation_rejects_angle_beyond_pi():
         _validate_inputs(image, phi_fixed=3.5)  # 3.5 rad > π
 
 
+def test_beam_size_rejects_color_image():
+    """Beam analysis supports only two-dimensional images."""
+    with pytest.raises(ValueError, match="Color images not supported"):
+        lbs.beam_size(np.zeros((4, 4, 3)))
+
+
 def test_wrap_phi_at_half_pi():
     """wrap_phi should return π/2 for π/2 input."""
     assert np.isclose(wrap_phi(np.pi / 2), np.pi / 2)
@@ -145,6 +168,18 @@ def test_beam_size_d_minor_none_does_not_crash_convergence():
     # Should complete without TypeError from abs(None - value)
     _, _, d_major, _, _ = lbs.beam_size(image)
     assert d_major >= 0
+
+
+def test_beam_size_returns_when_minor_diameter_collapses_during_iteration(monkeypatch):
+    """A minor diameter that collapses during refinement returns cleanly."""
+    results = iter([(2.0, 2.0, 2.0, 1.0, 0.0), (2.0, 2.0, 2.0, None, 0.0)])
+    monkeypatch.setattr(ana, "subtract_iso_background", lambda image, **_kwargs: image.astype(float))
+    monkeypatch.setattr(ana, "rotated_rect_mask", lambda image, *_args: np.ones(image.shape, dtype=bool))
+    monkeypatch.setattr(ana, "basic_beam_size", lambda *_args, **_kwargs: next(results))
+
+    result = lbs.beam_size(np.ones((5, 5)), max_iter=2)
+
+    assert result == (2.0, 2.0, 2.0, None, 0.0)
 
 
 # Running the tests
