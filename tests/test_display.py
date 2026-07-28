@@ -2,9 +2,9 @@
 
 # pylint: disable=wrong-import-position,protected-access
 import re
-import inspect
 import numpy as np
 import matplotlib
+import pytest
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -12,20 +12,84 @@ import laserbeamsize as lbs
 import laserbeamsize.display as disp
 
 
-def test_plot_beam_diagram_rect_minor_uses_d_minor():
-    """plot_beam_diagram must use d_minor (not d_major) for the minor rectangle dimension."""
-    src = inspect.getsource(disp.plot_beam_diagram)
-    assert "rect_minor = d_minor" in src, "plot_beam_diagram still uses d_major for rect_minor (copy-paste bug)"
+@pytest.fixture(autouse=True)
+def close_figures():
+    """Close Matplotlib figures after every display test."""
+    yield
+    plt.close("all")
 
 
-def test_plot_image_analysis_minor_label_uses_minor_variables():
-    """Minor-axis label condition must compare r_minor_s against s_minor_px, not major axis variables."""
-    src = inspect.getsource(disp.plot_image_analysis)
-    # Find the block for the minor axis (after 'if d_minor_px is not None:' in subplot 2,2,4)
-    # The condition guarding minor axis label placement must reference minor variables
-    assert (
-        "r_major_s < max(s_major_px)" not in src.rsplit("Minor Axis", maxsplit=1)[-1]
-    ), "plot_image_analysis minor-axis label still uses r_major_s/s_major_px (copy-paste bug)"
+@pytest.mark.parametrize(
+    ("d_major", "d_minor", "expected_ellipticity"),
+    [(4.0, 2.0, 0.5), (2.0, 4.0, 0.5), (3.0, 3.0, 1.0)],
+)
+def test_beam_ellipticity_orders_diameters(d_major, d_minor, expected_ellipticity):
+    """Ellipticity is the smaller-to-larger diameter ratio."""
+    ellipticity, d_circular = lbs.beam_ellipticity(d_major, d_minor)
+
+    assert ellipticity == expected_ellipticity
+    assert np.isclose(d_circular, np.sqrt((d_major**2 + d_minor**2) / 2))
+
+
+def test_plot_beam_diagram_draws_expected_annotations():
+    """The reference diagram contains its axes, dimensions, and beam outlines."""
+    lbs.plot_beam_diagram()
+
+    axis = plt.gca()
+    labels = {text.get_text() for text in axis.texts}
+    assert {"x", "y", r"$\phi$", r"$d_{major}$", r"$d_{minor}$"} <= labels
+    assert len(axis.lines) >= 4
+    assert not axis.axison
+
+
+def test_plot_beam_diagram_scales_both_rectangle_dimensions(monkeypatch):
+    """The integration rectangle preserves the beam's major/minor aspect ratio."""
+    captured = {}
+
+    def fake_rotated_rect_arrays(_xc, _yc, d_major, d_minor, _phi):
+        captured["diameters"] = (d_major, d_minor)
+        return np.array([[0.0, 1.0], [0.0, 1.0]])
+
+    monkeypatch.setattr(disp, "rotated_rect_arrays", fake_rotated_rect_arrays)
+
+    lbs.plot_beam_diagram()
+
+    assert captured["diameters"] == (150, 75)
+
+
+def test_plot_image_analysis_uses_minor_axis_data_for_minor_plot(monkeypatch):
+    """Minor-axis limits and label placement depend on minor-axis data."""
+    monkeypatch.setattr(disp, "_prepare_beam_analysis", lambda *_args, **_kwargs: (3, 2, 2, 4, 2, 0))
+    monkeypatch.setattr(disp, "subtract_iso_background", lambda image, **_kwargs: image.astype(float))
+    monkeypatch.setattr(disp, "iso_background", lambda *_args, **_kwargs: (0.0, 0.0))
+    monkeypatch.setattr(
+        disp,
+        "major_axis_arrays",
+        lambda *_args, **_kwargs: (
+            np.array([-100.0, 100.0]),
+            np.zeros(2),
+            np.ones(2),
+            np.array([-100.0, 100.0]),
+        ),
+    )
+    monkeypatch.setattr(
+        disp,
+        "minor_axis_arrays",
+        lambda *_args, **_kwargs: (
+            np.array([-1.0, 1.0]),
+            np.zeros(2),
+            np.ones(2),
+            np.array([-1.0, 1.0]),
+        ),
+    )
+
+    lbs.plot_image_analysis(np.ones((5, 5)))
+
+    minor_axis = next(axis for axis in plt.gcf().axes if axis.get_title() == "Minor Axis")
+    minor_label = next(text for text in minor_axis.texts if text.get_text().startswith("$d_{minor}$"))
+    assert np.allclose(minor_axis.get_xlim(), (-1, 1))
+    assert minor_label.get_position()[0] == 0
+    assert minor_label.get_verticalalignment() == "bottom"
 
 
 def test_plot_image_analysis_completes_without_error():
@@ -70,6 +134,138 @@ def test_format_beam_title_numpy_nan_does_not_raise():
     assert "fail" in result, f"Expected 'fail' in title for NaN inputs, got: {result!r}"
 
 
+def test_format_beam_title_formats_mm_and_z_position():
+    """Millimeter values retain decimals and z is converted from meters."""
+    result = disp._format_beam_title(1.234, 0.567, "mm", z=0.25)
+
+    assert result == "z=250mm, $d_{major}$=1.23mm, $d_{minor}$=0.57mm"
+
+
+def test_setup_scale_and_labels_uses_physical_units():
+    """A supplied pixel size controls scaling and labels."""
+    scale, label, units = disp._setup_scale_and_labels(0.01, "mm")
+
+    assert scale == 0.01
+    assert label == "Distance from Center [mm]"
+    assert units == "mm"
+
+
+def test_crop_image_if_needed_supports_explicit_size():
+    """An explicit crop size is centered on the fitted beam."""
+    image = np.arange(100).reshape(10, 10)
+
+    cropped, xc, yc = disp._crop_image_if_needed(image, 5, 5, 2, 2, 0, [4, 6], 1, 3)
+
+    assert cropped.shape == (4, 6)
+    assert (xc, yc) == (3, 2)
+
+
+def test_crop_image_if_needed_keeps_image_when_crop_is_too_small():
+    """An unusably small explicit crop falls back to the original image."""
+    image = np.ones((10, 10))
+
+    cropped, xc, yc = disp._crop_image_if_needed(image, 5, 5, 2, 2, 0, [2, 2], 1, 3)
+
+    assert cropped is image
+    assert (xc, yc) == (5, 5)
+
+
+def test_crop_image_if_needed_supports_integration_crop():
+    """True selects the fitted integration rectangle."""
+    image = np.ones((20, 20))
+
+    cropped, xc, yc = disp._crop_image_if_needed(image, 10, 10, 4, 2, 0, True, 1, 3)
+
+    assert cropped.shape == (6, 12)
+    assert np.isclose(xc, 6)
+    assert np.isclose(yc, 3)
+
+
+def test_plot_image_and_fit_returns_scaled_measurements_and_colorbar():
+    """The public fit plot reports physical dimensions and can add a colorbar."""
+    image = lbs.image_tools.create_test_image(100, 100, 50, 50, 30, 20, 0)
+
+    xc, yc, d_major, d_minor, phi = lbs.plot_image_and_fit(
+        image, pixel_size=0.01, units="mm", colorbar=True, corner_fraction=0.1
+    )
+
+    assert np.isclose(xc, 0.5, rtol=0.03)
+    assert np.isclose(yc, 0.5, rtol=0.03)
+    assert np.isclose(d_major, 0.3, rtol=0.05)
+    assert np.isclose(d_minor, 0.2, rtol=0.05)
+    assert np.isclose(phi, 0, atol=0.03)
+    assert "mm" in plt.gca().get_title()
+    assert len(plt.gcf().axes) == 2
+
+
+def test_plot_image_and_fit_preserves_failed_minor_fit(monkeypatch):
+    """A failed minor-axis fit is returned as None and shown without crashing."""
+    monkeypatch.setattr(disp, "_prepare_beam_analysis", lambda *_args, **_kwargs: (3, 2, 2, 2, None, 0))
+    monkeypatch.setattr(disp, "subtract_iso_background", lambda image, **_kwargs: image.astype(float))
+
+    result = lbs.plot_image_and_fit(np.ones((5, 5)))
+
+    assert result == (2, 2, 2, None, 0)
+    assert "fail" in plt.gca().get_title()
+
+
+def test_plot_image_montage_handles_layout_titles_and_colorbar_selection(monkeypatch):
+    """Montage layout applies z titles, label suppression, and one colorbar request."""
+    calls = []
+
+    def fake_plot_image_and_fit(_image, **kwargs):
+        calls.append(kwargs)
+        return 1, 2, 4, 2, 0
+
+    monkeypatch.setattr(disp, "plot_image_and_fit", fake_plot_image_and_fit)
+    images = [np.ones((4, 4)) for _ in range(3)]
+
+    d_major, d_minor = lbs.plot_image_montage(
+        images, z=np.array([0.1, 0.2, 0.3]), cols=2, vmax=10, crop=[4, 4]
+    )
+
+    assert np.array_equal(d_major, np.array([4, 4, 4]))
+    assert np.array_equal(d_minor, np.array([2, 2, 2]))
+    assert [call["colorbar"] for call in calls] == [False, True, False]
+    assert calls[0]["units"] == "px"
+    assert any("z=100mm" in axis.get_title() for axis in plt.gcf().axes)
+    assert not plt.gcf().axes[-1].axison
+
+
+def test_plot_image_montage_formats_titles_without_z(monkeypatch):
+    """Montages without axial positions use diameter-only titles."""
+    monkeypatch.setattr(disp, "plot_image_and_fit", lambda *_args, **_kwargs: (1, 2, 4, 2, 0))
+
+    lbs.plot_image_montage([np.ones((4, 4))], cols=1, pixel_size=0.5, units="mm")
+
+    title = plt.gca().get_title()
+    assert "z=" not in title
+    assert "mm" in title
+
+
+def test_plot_image_analysis_uses_inside_labels_for_small_mask():
+    """Small integration masks place diameter labels above the arrows."""
+    image = lbs.image_tools.create_test_image(100, 100, 50, 50, 30, 20, 0)
+
+    lbs.plot_image_analysis(image, mask_diameters=1, corner_fraction=0.1)
+
+    major_axis = next(axis for axis in plt.gcf().axes if axis.get_title() == "Major Axis")
+    minor_axis = next(axis for axis in plt.gcf().axes if axis.get_title() == "Minor Axis")
+    assert any(text.get_text().startswith("$d_{major}$") for text in major_axis.texts)
+    assert any(text.get_text().startswith("$d_{minor}$") for text in minor_axis.texts)
+
+
+def test_plot_image_analysis_displays_failed_minor_fit(monkeypatch):
+    """A missing minor diameter produces a clear failure panel."""
+    monkeypatch.setattr(disp, "_prepare_beam_analysis", lambda *_args, **_kwargs: (3, 2, 2, 2, None, 0))
+    monkeypatch.setattr(disp, "subtract_iso_background", lambda image, **_kwargs: image.astype(float))
+    monkeypatch.setattr(disp, "iso_background", lambda *_args, **_kwargs: (0.0, 0.0))
+
+    lbs.plot_image_analysis(np.ones((5, 5)))
+
+    assert any(text.get_text() == "Fit failed." for axis in plt.gcf().axes for text in axis.texts)
+
+
 def test_init_docstring_does_not_reference_m2_module():
     """__init__.py docstring must not mention laserbeamsize.m2 (the module was split)."""
     doc = lbs.__doc__ or ""
@@ -90,22 +286,10 @@ def test_prepare_beam_analysis_docstring_matches_return_count():
     )
 
 
-def test_plot_image_analysis_minor_xlim_uses_minor_array():
-    """Minor-axis subplot xlim must use s_minor_px, not s_major_px."""
-    src = inspect.getsource(disp.plot_image_analysis)
-    # After 'Minor Axis' title the xlim call must reference s_minor_px
-    after_minor_title = src.rsplit("Minor Axis", maxsplit=1)[-1]
-    assert (
-        "s_major_px" not in after_minor_title.split("xlim")[1].split("\n")[0]
-    ), "Minor-axis subplot xlim still uses s_major_px instead of s_minor_px"
-
-
-def test_set_zero_to_lightgray_no_commented_out_color():
-    """set_zero_to_lightgray must not contain a commented-out alternative color."""
-    src = inspect.getsource(disp.set_zero_to_lightgray)
-    assert "[0.7, 0.7, 0.7, 1.0]" not in src, (
-        "set_zero_to_lightgray still has a commented-out alternative color [0.7, 0.7, 0.7, 1.0]; " "remove it"
-    )
+def test_set_zero_to_lightgray_maps_zero_within_range():
+    """Zero maps to light gray when it lies within the data range."""
+    cmap = disp.set_zero_to_lightgray("viridis", -1.0, 1.0)
+    assert np.allclose(cmap.colors[128], [0.827, 0.827, 0.827, 1.0])
 
 
 def test_set_zero_to_lightgray_handles_zero_at_top_of_range():

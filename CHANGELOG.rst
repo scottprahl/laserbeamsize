@@ -6,6 +6,7 @@ Unreleased
   * add a make coverage target for package coverage reporting
   * expand analysis tests to reach 100% statement coverage
   * expand background tests to reach 100% statement coverage
+  * expand display tests to reach 100% statement coverage
   * replace mypy with Pyrefly for static type checking
   * eliminate redundant integer-conversion warnings reported by Pyrefly
 
