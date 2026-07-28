@@ -223,3 +223,28 @@ def test_m2_fit_strict_preserves_focal_zone_points_after_outer_trim():
     assert np.sum(used) == 10
     assert np.sum(used & focal) == 4
     assert np.sum(used & outer) == 6
+
+
+def test_m2_fit_strict_refits_unconstrained_waist_after_excluding_middle_zone():
+    """Strict fitting must not freeze z0 at the preliminary all-data estimate."""
+    focal = np.array([-0.008, -0.005, -0.002, 0.002, 0.005, 0.008])
+    outer = np.array([-0.050, -0.040, -0.030, 0.030, 0.040, 0.050])
+    middle = np.array([0.014, 0.016])
+    z = np.concatenate((focal, outer, middle))
+
+    d0_val = 100e-6
+    theta = 10e-3
+    d = np.sqrt(d0_val**2 + (theta * z) ** 2)
+    d[:12] *= np.array([1.002, 0.999, 1.001, 1.000, 0.998, 1.002, 1.001, 0.999, 1.002, 0.998, 1.001, 1.000])
+    d[-2:] *= 1.5
+
+    preliminary, _ = basic_beam_fit(z, d, 632.8e-9)
+    params, _, used = lbs.M2_fit(z, d, 632.8e-9, strict=True)
+    expected, _ = basic_beam_fit(z[used], d[used], 632.8e-9)
+
+    assert not np.any(used[-2:])
+    assert not np.isclose(preliminary[1], 0, atol=1e-4)
+    assert np.allclose(params, expected)
+    assert np.isclose(params[1], 0, atol=1e-4)
+    assert np.isclose(params[0], d0_val, rtol=0.01)
+    assert np.isclose(params[2], theta, rtol=0.01)

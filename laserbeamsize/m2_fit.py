@@ -283,20 +283,21 @@ def M2_fit(
         errors: [d0_std, z0_std, Theta_std, M2_std, zR_std]
         used: boolean array indicating if data point is used
     """
+    fixed_z0 = z0
     used = np.full_like(z, True, dtype=bool)
     params, errors = basic_beam_fit(z, d, lambda0, z0=z0, d0=d0)
     if not strict:
         return params, errors, used
 
-    z0 = params[1]
+    estimated_z0 = params[1]
     zR = params[4]
 
     # identify zones (0=unused, 1=focal region, 2=outer region)
     zone = np.zeros_like(z)
     for i, zz in enumerate(z):
-        if abs(zz - z0) <= 1.01 * zR:
+        if abs(zz - estimated_z0) <= 1.01 * zR:
             zone[i] = 1
-        if 1.99 * zR <= abs(zz - z0):
+        if 1.99 * zR <= abs(zz - estimated_z0):
             zone[i] = 2
 
     # count points in each zone
@@ -318,7 +319,7 @@ def M2_fit(
     if n_focal == 4:
         extra = n_outer - 6
     for _ in range(extra):
-        idx = min_index_in_outer_zone(abs(z - z0), zone)
+        idx = min_index_in_outer_zone(abs(z - estimated_z0), zone)
         if idx is None:
             break
         zone[idx] = 0
@@ -333,7 +334,7 @@ def M2_fit(
     if n_outer == 4:
         extra = n_focal - 6
     for _ in range(extra):
-        idx = max_index_in_focal_zone(abs(z - z0), zone)
+        idx = max_index_in_focal_zone(abs(z - estimated_z0), zone)
         if idx is None:
             break
         zone[idx] = 0
@@ -342,7 +343,7 @@ def M2_fit(
     used = zone != 0
     dd = d[used]
     zz = z[used]
-    params, errors = basic_beam_fit(zz, dd, lambda0, z0=z0, d0=d0)
+    params, errors = basic_beam_fit(zz, dd, lambda0, z0=fixed_z0, d0=d0)
     return params, errors, used
 
 
