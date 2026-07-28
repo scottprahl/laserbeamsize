@@ -4,6 +4,7 @@ import io
 import sys
 import warnings
 import numpy as np
+import pytest
 import laserbeamsize as lbs
 import laserbeamsize.m2_fit as m2
 from laserbeamsize.m2_fit import basic_beam_fit, max_index_in_focal_zone, min_index_in_outer_zone
@@ -59,6 +60,56 @@ def test_basic_beam_fit_with_fixed_waist_diameter_finds_location():
     assert np.isclose(params[1], 0.8e-3)
     assert np.isclose(params[2], 18e-3)
     assert errors[0] == 0
+
+
+@pytest.mark.parametrize(
+    ("fixed_z0", "fixed_d0", "expected_lower", "expected_upper"),
+    [
+        (None, None, [0, -np.inf, 0], [np.inf, np.inf, np.inf]),
+        (None, 220e-6, [-np.inf, 0], [np.inf, np.inf]),
+        (0.8e-3, None, [0, 0], [np.inf, np.inf]),
+        (0.8e-3, 220e-6, 0, np.inf),
+    ],
+)
+def test_basic_beam_fit_constrains_physical_parameters(
+    monkeypatch, fixed_z0, fixed_d0, expected_lower, expected_upper
+):
+    """Every fit branch constrains waist diameter and divergence to be nonnegative."""
+    observed_bounds = None
+
+    def fake_curve_fit(_function, _z, _d, *, p0, bounds, **_options):
+        nonlocal observed_bounds
+        observed_bounds = bounds
+        return np.asarray(p0), np.eye(len(p0))
+
+    monkeypatch.setattr(m2.scipy.optimize, "curve_fit", fake_curve_fit)
+    z, d, _ = _synthetic_beam_data()
+
+    params, _ = basic_beam_fit(z, d, 1064e-9, z0=fixed_z0, d0=fixed_d0)
+
+    assert observed_bounds is not None
+    assert np.allclose(observed_bounds[0], expected_lower)
+    assert np.allclose(observed_bounds[1], expected_upper)
+    assert params[0] >= 0
+    assert params[2] >= 0
+    assert params[3] >= 0
+    assert params[4] >= 0
+
+
+@pytest.mark.parametrize(
+    ("lambda0", "d0", "message"),
+    [
+        (0, None, "lambda0 must be positive"),
+        (-1064e-9, None, "lambda0 must be positive"),
+        (1064e-9, -220e-6, "d0 must be nonnegative"),
+    ],
+)
+def test_basic_beam_fit_rejects_nonphysical_fixed_inputs(lambda0, d0, message):
+    """Caller-supplied physical parameters cannot make derived values negative."""
+    z, diameters, _ = _synthetic_beam_data()
+
+    with pytest.raises(ValueError, match=message):
+        basic_beam_fit(z, diameters, lambda0, d0=d0)
 
 
 def test_basic_beam_fit_propagates_covariance_to_m2_and_rayleigh_range(monkeypatch):
