@@ -487,9 +487,7 @@ def create_test_image(
 
     if max_value < 2**8:
         return image1.astype(np.uint8)
-    if max_value < 2**16:
-        return image1.astype(np.uint16)
-    return image1
+    return image1.astype(np.uint16)
 
 
 def crop_image_to_rect2(
