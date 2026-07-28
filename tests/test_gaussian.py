@@ -1,7 +1,5 @@
 """Tests for Gaussian-beam helper calculations."""
 
-import inspect
-
 import numpy as np
 import laserbeamsize as lbs
 import laserbeamsize.gaussian as g
@@ -354,10 +352,37 @@ def test_beam_parameter_product_zero_d0_returns_zero():
     assert np.isclose(BPP_std, 0)
 
 
-def test_artificial_to_original_no_placeholder():
-    """artificial_to_original must not contain a placeholder comment."""
-    src = inspect.getsource(g.artificial_to_original)
-    assert "rest of your code" not in src, "artificial_to_original still has placeholder comment"
+def test_artificial_to_original_scales_parameters_errors_and_hiatus():
+    """Artificial-waist conversion follows the ISO scaling relationships."""
+    params = np.array([100e-6, 120e-3, 10e-3, 1.5, 20e-3])
+    errors = np.array([2e-6, 3e-3, 0.2e-3, 0.1, 1e-3])
+    focal_length = 100e-3
+    hiatus = 5e-3
+    x2 = params[1] - focal_length
+    scale = focal_length / np.sqrt(params[4] ** 2 + x2**2)
+
+    converted, converted_errors = lbs.artificial_to_original(params, errors, focal_length, hiatus=hiatus)
+
+    expected = np.array(
+        [
+            scale * params[0],
+            scale**2 * x2 + focal_length - hiatus,
+            params[2] / scale,
+            params[3],
+            scale**2 * params[4],
+        ]
+    )
+    expected_errors = np.array(
+        [
+            scale * errors[0],
+            scale**2 * errors[1],
+            errors[2] / scale,
+            errors[3],
+            scale**2 * errors[4],
+        ]
+    )
+    assert np.allclose(converted, expected)
+    assert np.allclose(converted_errors, expected_errors)
 
 
 def test_divergence_docstring_notes_small_angle():

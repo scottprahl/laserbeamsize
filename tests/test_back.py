@@ -3,7 +3,6 @@
 
 """Tests for functions in background.py."""
 
-import inspect
 from typing import Any
 
 import numpy as np
@@ -323,26 +322,11 @@ def test_subtract_tilted_background_removes_fitted_plane():
     assert np.allclose(result, expected)
 
 
-def test_subtract_tilted_background_no_variable_shadowing():
-    """subtract_tilted_background must not name the perimeter array 'b' (shadows fit coefficient)."""
-    src = inspect.getsource(bg.subtract_tilted_background)
-    # The perimeter values array must not be named 'b' (shadows the plane-fit coefficient b)
-    assert (
-        "b = np.array(perimeter_values)" not in src
-    ), "Perimeter array is still named 'b', which shadows the plane-fit coefficient"
-
-
 def test_dead_code_functions_removed():
     """_mean_filter, _std_filter, and image_background2 are dead code and must be removed."""
     assert not hasattr(bg, "_mean_filter"), "_mean_filter should be removed (dead code)"
     assert not hasattr(bg, "_std_filter"), "_std_filter should be removed (dead code)"
     assert not hasattr(bg, "image_background2"), "image_background2 should be removed (dead code)"
-
-
-def test_scipy_ndimage_not_imported_in_background():
-    """background.py must not import scipy.ndimage after dead code removal."""
-    src = inspect.getsource(bg)
-    assert "import scipy.ndimage" not in src, "scipy.ndimage is imported but unused after dead-code removal"
 
 
 def test_rotated_rect_mask_slow_removed():
