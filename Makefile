@@ -79,7 +79,7 @@ dist:
 	
 .PHONY: test
 test:
-	-$(RUN) pytest $(PYTEST_OPTS) tests --ignore=tests/test_all_notebooks.py
+	$(RUN) pytest $(PYTEST_OPTS) tests --ignore=tests/test_all_notebooks.py
 
 .PHONY: coverage
 coverage:
@@ -104,16 +104,16 @@ pyrefly-check:
 
 .PHONY: pylint-check
 pylint-check:
-	-@$(RUN) pylint $(PYLINT_TARGETS)
+	@$(RUN) pylint $(PYLINT_TARGETS)
 
 .PHONY: yaml-check
 yaml-check:
-	-@$(RUN) yamllint $(YAML_TARGETS)
+	@$(RUN) yamllint $(YAML_TARGETS)
 
 .PHONY: rst-check
 rst-check:    ## Validate all RST files
-	-@$(RUN) rstcheck $(RST_TARGETS)
-	-@$(RUN) rstcheck --ignore-directives automodapi $(RST_AUTOMODULE_TARGETS)
+	@$(RUN) rstcheck $(RST_TARGETS)
+	@$(RUN) rstcheck --ignore-directives automodapi $(RST_AUTOMODULE_TARGETS)
 
 .PHONY: ruff-check
 ruff-check:

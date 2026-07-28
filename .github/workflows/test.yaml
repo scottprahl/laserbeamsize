@@ -29,8 +29,8 @@ jobs:
 
       - name: Install package and dependencies
         run: |
-          pip install pytest
-          pip install -e .  # current package in editable mode
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
 
-      - name: Run pytest
-        run: pytest tests/test_basic_beam_size.py
+      - name: Run full test suite
+        run: python -m pytest tests
