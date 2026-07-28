@@ -387,12 +387,11 @@ def _plot_image_with_beam_overlay(
     if vmin is None:
         vmin = image.min()
 
-    # add gray to cmap around zero
-    ccmap = set_zero_to_lightgray(cmap, vmin, vmax)
+    # add gray to cmap around zero, black for masked/padded values
+    ccmap = set_zero_to_lightgray(cmap, vmin, vmax).with_extremes(bad="black")
 
     # display image
     im = plt.imshow(image, extent=extent, cmap=ccmap, vmax=vmax, vmin=vmin)
-    im.cmap.set_bad(color="black")
     plt.xlabel(label)
     plt.ylabel(label)
 
@@ -587,13 +586,12 @@ def plot_image_analysis(
     plt.subplots(2, 2, figsize=(12, 12))
     plt.subplots_adjust(right=1.0)
 
-    # add gray to cmap around zero
-    ccmap = set_zero_to_lightgray(cmap, min_, max_)
+    # add gray to cmap around zero, black for masked/padded values
+    ccmap = set_zero_to_lightgray(cmap, min_, max_).with_extremes(bad="black")
 
     # original image
     plt.subplot(2, 2, 1)
     im = plt.imshow(image, cmap=ccmap)
-    im.cmap.set_bad(color="black")  # color for padded values
     plt.colorbar(im, fraction=0.046 * v_s / h_s, pad=0.04)
     plt.clim(min_, max_)
     plt.xlabel("Position [px]")
