@@ -434,6 +434,9 @@ def iso_background(image: np.ndarray, corner_fraction: float = 0.035, nT: float 
     un-illuminated (background) pixels.  These are averaged to find the background
     value for the image.
 
+    If corner_fraction=0, no correction is made for the corners and (0, 0) is
+    returned immediately, matching `corner_background()`.
+
     Args:
         image : the image to work with
         nT: how many standard deviations to subtract
@@ -441,8 +444,11 @@ def iso_background(image: np.ndarray, corner_fraction: float = 0.035, nT: float 
     Returns:
         mean, stdev: mean and stdev of background in the image
     """
-    if corner_fraction <= 0 or corner_fraction > 0.25:
-        raise ValueError("corner_fraction must be positive and less than 0.25.")
+    if corner_fraction < 0 or corner_fraction > 0.25:
+        raise ValueError("corner_fraction must be non-negative and less than 0.25.")
+
+    if corner_fraction == 0:
+        return 0, 0
 
     # estimate background
     ave, std = corner_background(image, corner_fraction=corner_fraction)
@@ -557,12 +563,18 @@ def subtract_tilted_background(image: np.ndarray, corner_fraction: float = 0.035
     this noise at this stage and therefore we offset the plane so
     that one standard deviation of noise remains.
 
+    If corner_fraction=0, there is no perimeter to fit a plane to, so no
+    correction is made and the image is returned unchanged (as float).
+
     Args:
         image : the image to work with
         corner_fraction: the fractional size of corner rectangles
     Returns:
         image: 2D array with tilted planar background subtracted
     """
+    if corner_fraction == 0:
+        return image.astype(float)
+
     v, h = image.shape
     xx, yy = np.meshgrid(range(h), range(v))
 

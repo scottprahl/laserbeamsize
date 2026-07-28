@@ -232,18 +232,19 @@ def test_iso_known_mean_stdev():
 
 
 def test_iso_zero_corner_fraction():
-    """Test iso zero corner fraction."""
+    """corner_fraction=0 means no corner correction, so the background is (0, 0)."""
     image = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    try:
-        lbs.iso_background(image, 0)
-        assert False, "Expected ValueError for corner_fraction <= 0"
-    except ValueError:
-        pass
-    try:
+    assert lbs.iso_background(image, 0) == (0, 0)
+    assert lbs.corner_background(image, 0) == (0, 0)
+
+
+def test_iso_out_of_range_corner_fraction():
+    """corner_fraction outside [0, 0.25] is still rejected."""
+    image = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    with pytest.raises(ValueError, match="corner_fraction"):
         lbs.iso_background(image, 0.3)
-        assert False, "Expected ValueError for corner_fraction > 0.25"
-    except ValueError:
-        pass
+    with pytest.raises(ValueError, match="corner_fraction"):
+        lbs.iso_background(image, -0.1)
 
 
 def test_iso_test_noise_only_image():
@@ -380,6 +381,45 @@ def test_corner_background_zero_fraction_documented():
     assert (
         "corner_fraction=0" in doc or "corner_fraction == 0" in doc
     ), "corner_background docstring does not document the corner_fraction=0 special case"
+
+
+def test_zero_corner_fraction_subtracts_nothing():
+    """Every subtraction routine must leave the image alone when corner_fraction=0."""
+    image = lbs.image_tools.create_test_image(200, 200, 100, 100, 60, 40, 0, noise=10)
+    expected = image.astype(float)
+
+    assert np.array_equal(lbs.subtract_iso_background(image, corner_fraction=0), expected)
+    assert np.array_equal(lbs.subtract_corner_background(image, corner_fraction=0), expected)
+    assert np.array_equal(lbs.subtract_tilted_background(image, corner_fraction=0), expected)
+
+
+def test_beam_size_zero_corner_fraction_matches_default_without_noise():
+    """With no background to remove, corner_fraction=0 must agree with the default."""
+    xc, yc, d_major, d_minor = 100, 110, 60, 40
+    image = lbs.image_tools.create_test_image(300, 300, xc, yc, d_major, d_minor, 0)
+
+    x, y, major, minor, _ = lbs.beam_size(image, corner_fraction=0)
+
+    assert minor is not None, "fit failed"
+    assert abs(x - xc) < 1
+    assert abs(y - yc) < 1
+    assert abs(major - d_major) / d_major < 0.05
+    assert abs(minor - d_minor) / d_minor < 0.05
+    assert np.allclose(lbs.beam_size(image, corner_fraction=0), lbs.beam_size(image))
+
+
+def test_beam_size_zero_corner_fraction_runs_on_noisy_image():
+    """corner_fraction=0 must not raise on a noisy image, but it removes no background.
+
+    The result is expected to be poor: with the noise floor left in place the
+    second moments are dominated by the background, exactly as basic_beam_size()
+    warns. This pins the no-raise contract, not the accuracy.
+    """
+    image = lbs.image_tools.create_test_image(300, 300, 100, 110, 60, 40, 0, noise=5)
+
+    result = lbs.beam_size(image, corner_fraction=0)
+
+    assert all(np.isfinite(v) for v in result)
 
 
 def test_elliptical_mask_raises_on_zero_diameter():

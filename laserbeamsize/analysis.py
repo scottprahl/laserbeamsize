@@ -152,7 +152,7 @@ def _validate_inputs(
         raise ValueError("mask_diameters must be a positive number less than 5.")
 
     if corner_fraction < 0 or corner_fraction > 0.25:
-        raise ValueError("corner_fraction must be a positive number less than 0.25.")
+        raise ValueError("corner_fraction must be a non-negative number less than 0.25.")
 
     if nT < 2 or nT > 4:
         raise ValueError("nT must be between 2 and 4.")
@@ -189,6 +189,10 @@ def beam_size(
 
     `corner_fraction` determines the size of the corners. ISO 11146-3
     recommends values from 2-5%.  The default value of 3.5% works pretty well.
+    Setting `corner_fraction=0` disables the corner correction entirely so that
+    no background is subtracted.  Only use it on images that are already
+    background-free; otherwise the background dominates the second moments and
+    the fit fails badly.
 
     `mask_diameters` is the size of the rectangular mask in diameters
     of the ellipse.  ISO 11146 states that `mask_diameters` should be 3.
