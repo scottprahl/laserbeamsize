@@ -6,6 +6,10 @@ build-backend = "setuptools.build_meta"
 packages = ["laserbeamsize"]
 include-package-data = true
 
+[tool.setuptools.package-data]
+# PEP 561 marker so type checkers use the inline annotations
+laserbeamsize = ["py.typed"]
+
 [tool.setuptools.dynamic]
 version = {attr = "laserbeamsize.__version__"}
 

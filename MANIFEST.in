@@ -1,4 +1,5 @@
 # Core package files
+include laserbeamsize/py.typed
 include LICENSE.txt
 include README.rst
 include CHANGELOG.rst
