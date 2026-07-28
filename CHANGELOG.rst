@@ -3,6 +3,7 @@ Changelog
 
 Unreleased
 ----------
+  * add a make coverage target for package coverage reporting
   * replace mypy with Pyrefly for static type checking
   * eliminate redundant integer-conversion warnings reported by Pyrefly
 

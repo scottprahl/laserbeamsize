@@ -45,6 +45,7 @@ help:
 	@echo "  venv           - Install dependencies with uv"
 	@echo ""
 	@echo "Test Targets:"
+	@echo "  coverage       - Run pytest with package coverage reporting"
 	@echo "  test           - Run pytest on python files"
 	@echo "  note-test      - Test all notebooks for errors"
 	@echo ""
@@ -79,6 +80,10 @@ dist:
 .PHONY: test
 test:
 	-$(RUN) pytest $(PYTEST_OPTS) tests --ignore=tests/test_all_notebooks.py
+
+.PHONY: coverage
+coverage:
+	$(RUN) pytest $(PYTEST_OPTS) --cov=$(PACKAGE) --cov-report=term-missing tests --ignore=tests/test_all_notebooks.py
 
 .PHONY: note-test
 note-test:
@@ -228,6 +233,7 @@ clean: lite-clean
 	@find . -name '.DS_Store' -type f -delete
 	@find . -name '.ipynb_checkpoints' -type d -prune -exec $(RMR) {} +
 	@find . -name '.pytest_cache' -type d -prune -exec $(RMR) {} +
+	@$(RM) .coverage
 	@$(RMR) .ruff_cache
 	@$(RMR) docs/api
 	@$(RMR) docs/_build

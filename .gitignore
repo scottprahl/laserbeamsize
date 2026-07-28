@@ -1,5 +1,6 @@
 _site/
 
+.coverage
 .cache/
 .DS_Store
 .ipynb_checkpoints/
