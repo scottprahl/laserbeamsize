@@ -248,8 +248,8 @@ def beam_size(
         mask = rotated_rect_mask(image, xc, yc, rect_major, rect_minor, -phi_)
         masked_image = np.copy(image_no_bkgnd)
 
-        # zero values outside mask (rotation allows mask pixels to differ from 0 or 1)
-        masked_image[mask < 0.5] = 0
+        # zero values outside the mask
+        masked_image[~mask] = 0
 
         # find the new parameters
         if phi_fixed is None:

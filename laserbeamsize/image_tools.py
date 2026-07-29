@@ -420,6 +420,7 @@ def create_test_image(
     noise: float = 0,
     ntype: str = "poisson",
     max_value: int = 255,
+    rng: np.random.Generator | int | None = None,
 ) -> npt.NDArray[np.floating] | npt.NDArray[np.unsignedinteger]:
     """
     Create a 2D test image with an elliptical beam and possible noise.
@@ -442,6 +443,10 @@ def create_test_image(
         ntype: (optional) type of noise — one of "poisson" (default), "gaussian"/"normal",
             "flat"/"uniform", or "constant"
         max_value: (optional) all values in image fall between 0 and `max_value`
+        rng: (optional) source of randomness for the noise.  Pass an int to get a
+            reproducible image, or a `numpy.random.Generator` to share one stream
+            across several calls.  The default draws from fresh entropy, so
+            repeated calls give different noise.
 
     Returns:
         image: an unsigned 2D integer array of a Gaussian elliptical spot
@@ -489,9 +494,11 @@ def create_test_image(
     image1 = rotate_image(image0, xc_px, yc_px, phi)
 
     if noise > 0:
+        generator = rng if isinstance(rng, np.random.Generator) else np.random.default_rng(rng)
+
         if ntype == "poisson":
             # noise is the mean value of the distribution
-            image1 += np.random.poisson(noise, size=(v, h))
+            image1 += generator.poisson(noise, size=(v, h))
 
         elif ntype == "constant":
             # noise is the mean value of the distribution
@@ -499,11 +506,11 @@ def create_test_image(
 
         elif ntype in ("gaussian", "normal"):
             # noise is the mean value of the distribution
-            image1 += np.random.normal(noise, np.sqrt(noise), size=(v, h))
+            image1 += generator.normal(noise, np.sqrt(noise), size=(v, h))
 
         elif ntype in ("flat", "uniform"):
             # noise is the mean value of the distribution
-            image1 += np.random.uniform(0, noise, size=(v, h))
+            image1 += generator.uniform(0, noise, size=(v, h))
 
         # after adding noise, the signal may exceed the range 0 to max_value
         np.place(image1, image1 > max_value, max_value)
@@ -512,35 +519,6 @@ def create_test_image(
     if max_value < 2**8:
         return image1.astype(np.uint8)
     return image1.astype(np.uint16)
-
-
-def crop_image_to_rect2(
-    image: np.ndarray, xc_px: float, yc_px: float, xmin: float, xmax: float, ymin: float, ymax: float
-) -> tuple[np.ndarray, float, float]:
-    """
-    Return image cropped to specified rectangle.
-
-    Args:
-        image: image of beam
-        xc_px: horizontal center of beam
-        yc_px: vertical center of beam
-        xmin: left edge (pixels)
-        xmax: right edge (pixels)
-        ymin: top edge (pixels)
-        ymax: bottom edge (pixels)
-
-    Returns:
-        cropped_image: cropped image
-        new_xc, new_yc: new beam center (pixels)
-    """
-    v, h = image.shape
-    ixmin = max(0, int(xmin))
-    ixmax = min(h, int(xmax))
-    iymin = max(0, int(ymin))
-    iymax = min(v, int(ymax))
-    new_xc = xc_px - ixmin
-    new_yc = yc_px - iymin
-    return image[iymin:iymax, ixmin:ixmax], new_xc, new_yc
 
 
 def crop_image_to_rect(

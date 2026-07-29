@@ -137,6 +137,11 @@ ignore = [
 ]
 
 [tool.pytest.ini_options]
+# testpaths: a bare `pytest` collects only tests/, not docs/ or build output
+# --strict-markers: a typo'd @pytest.mark.foo is an error, not a silent no-op
+# --strict-config: an unknown key in this table is an error, not ignored
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config"
 markers = ["notebooks"]
 
 [tool.pyrefly]

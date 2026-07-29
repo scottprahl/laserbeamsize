@@ -10,7 +10,6 @@ from laserbeamsize.image_tools import (
     create_cmap,
     create_plus_minus_cmap,
     crop_image_to_rect,
-    crop_image_to_rect2,
     line,
     rotate_image,
     rotate_points,
@@ -333,6 +332,29 @@ def test_noise_addition():
     assert not np.array_equal(img, without_noise), "Noise not added properly"
 
 
+def test_rng_seed_makes_noise_reproducible():
+    """The same rng seed must give a byte-identical image, a different one must not."""
+    args = (60, 60, 30, 30, 20, 10, 0)
+    first = create_test_image(*args, noise=10, rng=42)
+    again = create_test_image(*args, noise=10, rng=42)
+    other = create_test_image(*args, noise=10, rng=7)
+
+    assert np.array_equal(first, again), "same seed produced different noise"
+    assert not np.array_equal(first, other), "different seeds produced identical noise"
+
+
+def test_rng_accepts_a_generator_and_advances_it():
+    """Passing a Generator shares one stream, so successive calls differ."""
+    generator = np.random.default_rng(1)
+    args = (60, 60, 30, 30, 20, 10, 0)
+
+    first = create_test_image(*args, noise=10, rng=generator)
+    second = create_test_image(*args, noise=10, rng=generator)
+
+    assert not np.array_equal(first, second), "the generator was not advanced"
+    assert np.array_equal(first, create_test_image(*args, noise=10, rng=np.random.default_rng(1)))
+
+
 def test_invalid_ntype_is_rejected():
     """An unrecognized ntype must raise instead of silently producing no noise."""
     with pytest.raises(ValueError, match="ntype"):
@@ -433,16 +455,6 @@ def test_crop_image_to_integration_rect_raises_not_returns_none():
     # A crop request with diameters so small the result is <3 pixels should raise
     with pytest.raises(ValueError):
         crop_image_to_integration_rect(image, 100, 100, 1, 1, 0, mask_diameters=1)
-
-
-def test_crop_image_to_rect2_clamps_requested_bounds():
-    """The simple crop helper clips a rectangle to the image boundaries."""
-    image = np.arange(25).reshape(5, 5)
-
-    cropped, new_xc, new_yc = crop_image_to_rect2(image, 2, 3, -2, 4, 1, 10)
-
-    assert np.array_equal(cropped, image[1:5, 0:4])
-    assert (new_xc, new_yc) == (2, 2)
 
 
 def test_crop_image_to_rect_rejects_nonoverlapping_crop():
