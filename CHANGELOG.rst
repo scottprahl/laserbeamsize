@@ -1,8 +1,8 @@
 Changelog
 =========
 
-Unreleased
-----------
+2.5.0 (2026-07-28)
+------------------
   * ship a py.typed marker so type checkers use the inline annotations
   * add an rng argument to create_test_image() for reproducible noise
   * add NOISE_TYPES listing the noise distributions create_test_image() accepts
