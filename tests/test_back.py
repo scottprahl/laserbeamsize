@@ -376,6 +376,14 @@ def test_corner_background_docstring_lists_both_return_values():
     )
 
 
+def test_zero_corner_fraction_gives_empty_corner_and_perimeter_masks():
+    """A zero fraction selects no pixels, so both masks come back all False."""
+    image = np.ones((50, 50))
+
+    assert not np.any(lbs.corner_mask(image, 0))
+    assert not np.any(lbs.perimeter_mask(image, 0))
+
+
 def test_subtract_background_image_docstring_example_is_accurate():
     """The Examples block must reproduce what the function really returns.
 

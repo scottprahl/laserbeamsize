@@ -62,6 +62,51 @@ def test_basic_beam_fit_with_fixed_waist_diameter_finds_location():
     assert errors[0] == 0
 
 
+def test_basic_beam_fit_with_fixed_waist_location_finds_diameter():
+    """Fixing z0 leaves d0 and Theta free, exercising the two-parameter fit."""
+    z, dx, _ = _synthetic_beam_data()
+
+    params, errors = basic_beam_fit(z, dx, 1064e-9, z0=0.8e-3)
+
+    # a least-squares fit lands near, not exactly on, the generating parameters
+    assert np.isclose(params[0], 220e-6, rtol=1e-3)
+    assert np.isclose(params[1], 0.8e-3, rtol=1e-3)
+    assert np.isclose(params[2], 18e-3, rtol=1e-3)
+    assert errors[1] == 0
+
+
+def test_basic_beam_fit_reports_infinite_rayleigh_range_on_overflow(monkeypatch):
+    """A waist over a vanishing divergence overflows, and zR must stay +inf.
+
+    Theta is denormal rather than merely tiny so that d0/Theta overflows while
+    the M2 uncertainty arithmetic stays in range; that keeps this test on the
+    zR branch instead of tripping an unrelated overflow.
+    """
+
+    def fake_curve_fit(_function, _z, _d, *, p0, bounds, **_options):
+        assert bounds is not None
+        return np.array([1.0, 0.0, 1e-320]), np.eye(len(p0))
+
+    monkeypatch.setattr(m2.scipy.optimize, "curve_fit", fake_curve_fit)
+    z, dx, _ = _synthetic_beam_data()
+
+    params, errors = basic_beam_fit(z, dx, 1064e-9)
+
+    assert np.isposinf(params[4]), "zR should collapse to +inf on overflow"
+    assert errors[4] == 0, "no meaningful uncertainty for an infinite zR"
+
+
+def test_m2_report_handles_zero_waist_without_dividing_by_zero():
+    """Forcing d0=0 makes M2 zero on both axes, so its uncertainty must be 0."""
+    z, dx, dy = _synthetic_beam_data()
+
+    report = lbs.M2_report(z, dx, 1064e-9, d_minor=dy, d0=0)
+
+    assert "M2 = 0.00 ± 0.00" in report
+    assert "M2x = 0.00 ± 0.00" in report
+    assert "M2y = 0.00 ± 0.00" in report
+
+
 @pytest.mark.parametrize(
     ("fixed_z0", "fixed_d0", "expected_lower", "expected_upper"),
     [
