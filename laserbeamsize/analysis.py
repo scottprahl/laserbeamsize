@@ -55,7 +55,13 @@ def basic_beam_size(
     FWIW, this implementation is roughly 800X faster than one that finds
     the moments using for loops.
 
-    When background noise dominates then a diameter of 1 is returned.
+    When background noise dominates, the moments are taken over the whole frame
+    and the returned diameters are meaningless — they come out comparable to the
+    image dimensions rather than to the beam.  Use `beam_size()` instead, which
+    subtracts the background first.
+
+    If every pixel is zero there is no centroid to find, so the image center is
+    returned with both diameters and phi set to zero.
 
     phi_fixed defaults to None, in which case the best fitted angle for the
     ellipse is found.  If phi_fixed is specified, then an ellipse is rotated to

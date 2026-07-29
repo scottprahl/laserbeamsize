@@ -202,9 +202,9 @@ def divergence(w0: float, lambda0: float, M2: float = 1) -> float:
     Calculate the full angle of divergence of a Gaussian beam.
 
     The beam divergence refers to the increase in the beam diameter as the beam
-    propagates away from the beam waist (minimum beam radius). In Gaussian beam
-    optics, it's characterized by a half-angle at which the beam radius
-    increases with the distance from the optical axis.
+    propagates away from the beam waist (minimum beam radius).  This function
+    returns the *full* angle subtended by the far-field beam, which is twice the
+    half-angle at which the beam radius grows with distance along the axis.
 
     The limiting case occurs when the beam propagation factor (M²) equals 1,
     representing a perfect Gaussian beam. In this case, the divergence is solely
@@ -218,7 +218,7 @@ def divergence(w0: float, lambda0: float, M2: float = 1) -> float:
         M2: beam propagation factor [-]
 
     Returns:
-        theta: divergence of beam [radians]
+        theta: full divergence angle of beam [radians]
 
     Note:
         Uses the small-angle approximation: theta ≈ 2*w0/zR instead of the

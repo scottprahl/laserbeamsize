@@ -56,6 +56,7 @@ def _fit_plot(
         residuals: array with differences between fit and data
         z0: location of focus
         zR: Rayleigh distance for beam
+        used: boolean array indicating which measurements the fit used
     """
     params, errors, used = M2_fit(z, d, lambda0, strict=strict, z0=z0, d0=d0)
     unused = np.logical_not(used)
