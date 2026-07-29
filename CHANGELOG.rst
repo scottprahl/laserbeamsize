@@ -3,7 +3,34 @@ Changelog
 
 Unreleased
 ----------
+  * ship a py.typed marker so type checkers use the inline annotations
+  * add an rng argument to create_test_image() for reproducible noise
+  * add NOISE_TYPES listing the noise distributions create_test_image() accepts
+  * raise ValueError from create_test_image() when noise >= max_value/3, which
+    used to invert the beam into a dark spot
+  * raise ValueError from create_test_image() for negative noise, which used to
+    wrap around on conversion to an unsigned image
+  * raise ValueError from create_test_image() for an unrecognized ntype, which
+    used to be ignored and add no noise at all
+  * remove the undocumented crop_image_to_rect2(); use crop_image_to_rect()
+  * accept corner_fraction=0 everywhere it is documented to mean no background
+    correction, instead of raising from beam_size() and subtract_iso_background()
+  * fix subtract_tilted_background() raising LinAlgError when corner_fraction=0
+  * fix plot_beam_diagram() drawing an empty ticked frame behind the diagram
+  * add the laserbeamsize.gaussian module to the API documentation
+  * fix the divergence() docstring, which described the returned full angle as a
+    half-angle
+  * fix the basic_beam_size() docstring, which promised a diameter of 1 for
+    noise-dominated images
+  * fix the subtract_background_image() docstring example, which showed integers
+    for a function that returns floats
+  * document the fourth value returned by the internal _fit_plot()
   * add a make coverage target for package coverage reporting
+  * add make black, make black-check, and a make lint target running every linter
+  * run ruff, black, pylint, Pyrefly, rstcheck, and yamllint in CI
+  * enable pytest testpaths, --strict-markers, and --strict-config
+  * stop make readme from stamping execution times into readme_images.ipynb,
+    so regenerating the images no longer rewrites the notebook
   * expand analysis tests to reach 100% statement coverage
   * expand background tests to reach 100% statement coverage
   * expand display tests to reach 100% statement coverage
