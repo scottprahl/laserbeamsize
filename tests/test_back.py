@@ -3,6 +3,7 @@
 
 """Tests for functions in background.py."""
 
+import doctest
 from typing import Any
 
 import numpy as np
@@ -373,6 +374,27 @@ def test_corner_background_docstring_lists_both_return_values():
         "corner_background Returns section does not list corner_stdev; "
         "the function returns (mean, stdev) but only corner_mean is documented"
     )
+
+
+def test_subtract_background_image_docstring_example_is_accurate():
+    """The Examples block must reproduce what the function really returns.
+
+    pytest does not run with --doctest-modules, because several module-level
+    docstrings are illustrative rather than executable. That is how this
+    example drifted: it promised an int array while the function has always
+    returned float. Running this one real example keeps it honest.
+    """
+    finder = doctest.DocTestFinder()
+    runner = doctest.DocTestRunner(verbose=False)
+
+    found = finder.find(bg.subtract_background_image)
+    assert found, "no doctest found for subtract_background_image"
+    assert any(test.examples for test in found), "the Examples block disappeared"
+
+    for test in found:
+        runner.run(test)
+
+    assert runner.failures == 0, "docstring example does not match actual output"
 
 
 def test_corner_background_zero_fraction_documented():

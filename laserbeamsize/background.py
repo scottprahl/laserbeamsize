@@ -346,8 +346,8 @@ def subtract_background_image(original: np.ndarray, background: np.ndarray) -> n
         >>> original = np.array([[1, 2], [3, 4]])
         >>> background = np.array([[2, 1], [1, 1]])
         >>> subtract_background_image(original, background)
-        array([[-1, 1],
-               [2, 3]])
+        array([[-1.,  1.],
+               [ 2.,  3.]])
     """
     # Checking if the inputs are numpy arrays
     if not isinstance(original, np.ndarray) or not isinstance(background, np.ndarray):
