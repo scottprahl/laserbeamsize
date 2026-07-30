@@ -19,6 +19,7 @@ docs/Untitled*
 docs/_static/ISO*
 laserbeamsize.egg-info/
 laserbeamsize/__pycache__/
+meta.yaml
 problems/
 tests/__pycache__/
 todo
